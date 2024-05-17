@@ -1,0 +1,21 @@
+.app-header {
+  width: 100%;
+  height: 3em;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: start;
+  background-color: white;
+  border-bottom: 1px solid rgb(207, 207, 207);
+  flex: none;
+
+  .item {
+    padding: 0.3em 1em;
+    margin: 0em 1em;
+    border-radius: 2px;
+    &:hover{
+      background-color: rgb(231, 231, 231);
+      cursor: pointer;
+    }
+  }
+}

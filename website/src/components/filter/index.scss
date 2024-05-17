@@ -1,0 +1,14 @@
+.filter {
+  width: 80%;
+  box-sizing: border-box;
+  padding: 0.5em;
+  margin: 1em;
+  border-radius: 0.3em;
+  border: 1px solid grey;
+  outline: none;
+
+  &.error {
+    color: rgb(201, 31, 31);
+    border-color: rgb(201, 31, 31);
+  }
+}

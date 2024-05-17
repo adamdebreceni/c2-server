@@ -1,0 +1,26 @@
+.create-dynamic-property {
+  padding: 20px 30px;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  .title {
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgb(226, 226, 226);
+  }
+  input {
+    margin: 40px 0px;
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .ok {
+    align-self: flex-end;
+    display: inline-block;
+    padding: 10px;
+    &:hover {
+      background-color: rgb(237, 237, 237);
+      color: rgb(8, 85, 8);
+      cursor: pointer;
+    }
+  }
+}

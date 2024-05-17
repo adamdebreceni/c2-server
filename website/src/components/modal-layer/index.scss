@@ -1,0 +1,21 @@
+.modal-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  .content-overlay {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.223);
+    width: 100%;
+    height: 100%;
+  }
+  .modal {
+    position: relative;
+    background-color: white;
+    border-radius: 3px;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.381);
+  }
+}

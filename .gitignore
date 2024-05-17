@@ -1,0 +1,7 @@
+node_modules
+build
+server/build
+.data
+test-home
+.DS_Store
+package-lock.json

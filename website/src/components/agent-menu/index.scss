@@ -1,0 +1,23 @@
+.agent-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background-color: white;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.381);
+  border-radius: 3px;
+  width: 160px;
+  .menu-item {
+    padding-top: 7px;
+    padding-bottom: 7px;
+    padding-left: 15px;
+    width: 100%;
+    box-sizing: border-box;
+    &:not(.disabled):hover {
+      cursor: pointer;
+      background-color: rgb(236, 236, 236);
+    }
+    &.disabled {
+      color: #999;
+    }
+  }
+}

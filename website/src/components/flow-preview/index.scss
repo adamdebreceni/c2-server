@@ -1,0 +1,21 @@
+.flow-preview {
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5em;
+  border: 1px solid rgb(237, 237, 237);
+  margin: 0.5em;
+  border-radius: 5px;
+
+  .flow-id {
+    color: rgb(27, 40, 66);
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  .date {
+    margin-top: 1em;
+    font-size: 0.8em;
+    color: rgb(152, 152, 152);
+  }
+}

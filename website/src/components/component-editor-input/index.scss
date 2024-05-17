@@ -1,0 +1,21 @@
+.input-field {
+  padding-top: 5px;
+  display: inline-block;
+  .input-label {
+    color: rgb(115, 115, 115);
+    font-size: 0.7em;
+    display: inline-block;
+  }
+  input {
+    display: inline-block;
+    outline: none;
+    border: 1px solid rgb(201, 201, 201);
+    border-radius: 3px;
+    padding: 7px 10px;
+    width: 100%;
+    box-sizing: border-box;
+    &:focus {
+      border-color: rgb(53, 53, 255);
+    }
+  }
+}

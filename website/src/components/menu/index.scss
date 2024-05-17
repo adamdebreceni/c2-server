@@ -1,0 +1,15 @@
+.menu {
+  position: absolute;
+  background-color: white;
+  box-shadow: 0 0 4px black;
+  border-radius: 3px;
+  outline: none;
+  .menu-item {
+    white-space: pre;
+    padding: 5px 15px;
+    cursor: pointer;
+    &:hover{
+      background-color: rgb(193, 224, 255);
+    }
+  }
+}

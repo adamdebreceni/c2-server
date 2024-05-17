@@ -1,0 +1,63 @@
+.json-object-open {
+  display: inline-block;
+  cursor: pointer;
+  border-radius: 2px;
+  padding: 2px;
+  &:hover {
+    background-color: rgb(230, 230, 230);
+  }
+}
+
+.json-object-close {
+  padding: 2px;
+  display: inline-block;
+}
+
+.json-object-open, .json-object-close {
+  font-weight: bold;
+  color:rgb(232, 147, 21);
+}
+
+.json-object, .json-array {
+  display: inline-block;
+  cursor: pointer;
+  border-radius: 2px;
+  padding: 2px;
+  &:hover {
+    background-color: rgb(230, 230, 230);
+  }
+  color:rgb(218, 74, 30);
+}
+
+.json-property-name {
+  display: inline-block;
+}
+
+.json-property-value {
+  margin-left: 5px;
+  display: inline;
+}
+
+.json-object-properties {
+  margin-left: 20px;
+}
+
+.json-number, .json-null, .json-undefined, .json-string, .json-boolean {
+  display: inline;
+}
+
+.json-number {
+  color: rgb(218, 30, 218);
+}
+
+.json-null, .json-undefined {
+  color:rgb(30, 152, 218);
+}
+
+.json-string {
+  color: rgb(17, 160, 17);
+}
+
+.json-boolean {
+  color: rgb(196, 26, 77);
+}

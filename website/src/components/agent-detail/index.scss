@@ -1,0 +1,45 @@
+.agent-detail {
+  overflow: auto;
+  height: 100%;
+  background-color: rgb(242, 242, 242);
+  .basic {
+    margin: 20px;
+    .property {
+      margin: 40px;
+      display: inline-block;
+      .name {
+        color: rgb(49, 49, 49);
+        margin-bottom: 10px;
+      }
+      .value {
+        display: inline-block;
+        color: rgb(124, 124, 124);
+        font-size: 0.9em;
+      }
+    }
+  }
+  .tab {
+    margin: 20px;
+    margin-top: 40px;
+    .content {
+      overflow: auto;
+      padding: 20px;
+      font-family: monospace;
+      box-sizing: border-box;
+    }
+    .title {
+      color: rgb(49, 49, 49);
+      //height: 50px;
+      border-bottom: 1px solid rgb(235, 235, 235);
+      display: flex;
+      align-items: center;
+      padding: 20px;
+    }
+  }
+
+  .basic, .tab {
+    background-color: white;
+    border-radius: 3px;
+    box-sizing: border-box;
+  }
+}

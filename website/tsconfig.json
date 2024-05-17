@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "baseUrl": "..",
+    "rootDir": "src",
+    "outDir": "build",
+    "strict": true,
+    "jsx": "react",
+    "sourceMap": true,
+    "target": "ES2020",
+    "moduleResolution": "node"
+  },
+  "include": ["src/**/*", "../common/flow.d.ts", "../common/agent-manifest.d.ts"]
+}

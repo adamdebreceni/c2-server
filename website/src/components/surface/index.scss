@@ -1,0 +1,22 @@
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+}
+
+.surface-fragment {
+  width: 0px;
+  height: 0px;
+  left: 0px;
+  top: 0px;
+  position: absolute;
+  overflow: visible;
+}
+
+.middle-surface {
+  transform-origin: 0 0;
+}

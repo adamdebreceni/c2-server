@@ -1,0 +1,1 @@
+type JsonValue = string|null|undefined|number|object|boolean;
