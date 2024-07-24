@@ -1,12 +1,12 @@
 import * as React from "react";
-import { useHistory } from "react-router";
+import { useNavigate } from "react-router";
 
 import "./index.scss";
 
 export function FlowPreview(props: {value: FlowLike}) {
-  const history = useHistory();
+  const navigate = useNavigate();
   return <div className="flow-preview">
-    <div className="flow-id" onClick={()=>history.push(`/flow/${props.value.id}`)}>{props.value.id}</div>
+    <div className="flow-id" onClick={()=>navigate(`/flow/${props.value.id}`)}>{props.value.id}</div>
     <div className="date">{
       (()=>{
         if (props.value.status === "editing") {

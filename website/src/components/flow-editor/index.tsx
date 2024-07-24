@@ -13,7 +13,7 @@ import { ConnectionEditor } from "../connection-editor";
 import { ProcessorSelector } from "../processor-selector";
 import { ServiceContext } from "../../common/service-context";
 import { PublishModal } from "../publish-modal";
-import { useHistory } from "react-router";
+import { useNavigate } from "react-router";
 import { NotificationContext } from "../../common/notification-context";
 import { Eval } from "../../utils/attribute-expression";
 import { ServiceSelector } from "../service-selector";
@@ -55,7 +55,7 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
   }, [])
 
   const services = React.useContext(ServiceContext);
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const notif = React.useContext(NotificationContext);
 
@@ -73,7 +73,7 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
         if (!mounted) return;
         setState(st => ({...st, saved: true}));
         if (id !== props.id) {
-          history.push(`/flow/${id}`);
+          navigate(`/flow/${id}`);
         }
         //notif.emit("Successfully saved", "success");
       });

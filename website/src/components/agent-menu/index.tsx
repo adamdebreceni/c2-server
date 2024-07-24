@@ -1,5 +1,4 @@
 import * as React from "react";
-import { useHistory } from "react-router";
 import { ModalContext } from "../../common/modal-context";
 import { NotificationContext } from "../../common/notification-context";
 import { ServiceContext } from "../../common/service-context";
@@ -11,7 +10,6 @@ export function AgentMenu(props: {id: string}) {
   const notif = React.useContext(NotificationContext)
   const services = React.useContext(ServiceContext);
   const openModal = React.useContext(ModalContext);
-  const history = useHistory();
   const openInstallExtension = React.useCallback((e: React.MouseEvent)=>{
     openModal(<InstallExtensionModal onInstall={async (extensions) => {
       await services!.agents.installExtensions(props.id, extensions);

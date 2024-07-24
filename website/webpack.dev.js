@@ -36,14 +36,14 @@ module.exports = {
     filename: 'main.js'
   },
   devServer: {
-    disableHostCheck: true,
-    proxy: {
-      "/api/*": {
+    proxy: [
+      {
+        context: ['/api'],
         target: 'http://localhost:11309'
       }
-    },
+    ],
     port: 13405,
-    contentBase: path.join(__dirname, "static"),
+    static: path.join(__dirname, "static"),
     historyApiFallback: true
   }
 }

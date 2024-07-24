@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useHistory } from "react-router";
+import { useNavigate } from "react-router";
 import { NotificationContext } from "../../common/notification-context";
 import { ModalContext } from "../../common/modal-context";
 import { ServiceContext } from "../../common/service-context";
@@ -10,9 +10,9 @@ import { AgentMenu } from "../agent-menu";
 
 export function Agent(props: {value: AgentLike}) {
   const services = React.useContext(ServiceContext);
-  const history = useHistory();
+  const navigate = useNavigate();
   const goToAgent = React.useCallback(() => {
-    history.push(`agent/${props.value.id}`);
+    navigate(`/agent/${props.value.id}`);
   }, [props.value.id]);
   return <div className="agent">
       <div className="header">
@@ -32,15 +32,15 @@ export function Agent(props: {value: AgentLike}) {
           services?.flows.fetch(props.value.flow).then(flow=>{
             if (!flow) {
               services?.flows.create({agent: props.value.id}).then(id => {
-                history.push(`/flow/${id}`);
+                navigate(`/flow/${id}`);
               })
             } else {
-              history.push(`/flow/${props.value.flow}`)
+              navigate(`/flow/${props.value.flow}`)
             }
           })
         } else {
           services?.flows.create({agent: props.value.id}).then(id => {
-            history.push(`/flow/${id}`);
+            navigate(`/flow/${id}`);
           })
         }
       }}>{props.value.flow ?? "<using class flow>"}</div>

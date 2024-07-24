@@ -1,9 +1,9 @@
 import * as React from 'react';
-import * as ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { ServiceContext } from './common/service-context';
 import "./index.css";
 import { CreateServices } from './services';
-import { BrowserRouter as Router, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { AppHeader } from './components/app-header';
 import { AgentClasses } from './components/agent-classes';
 import { Flows } from './components/flows';
@@ -22,11 +22,13 @@ function App() {
         <ModalLayer>
           <AppHeader/>
           <div className="content">
-            <Route path="/agent-classes" component={AgentClasses} />
-            <Route path="/agents" component={AgentList} />
-            <Route path="/agent/:id" component={AgentDetail} />
-            <Route path="/flows" component={Flows} />
-            <Route path="/flow/:id" component={FlowView} />
+            <Routes>
+              <Route path="/agent-classes" element={<AgentClasses/>} />
+              <Route path="/agents" element={<AgentList/>} />
+              <Route path="/agent/:id" element={<AgentDetail/>} />
+              <Route path="/flows" element={<Flows/>} />
+              <Route path="/flow/:id" element={<FlowView/>} />
+            </Routes>
           </div>
         </ModalLayer>
       </NotificationLayer>
@@ -34,4 +36,4 @@ function App() {
   </ServiceContext.Provider>
 }
 
-ReactDOM.render(<App/>, document.getElementById("root"));
+createRoot(document.getElementById("root")!).render(<App/>);

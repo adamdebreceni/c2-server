@@ -11,7 +11,7 @@ import "./index.scss"
 export function AgentDetail() {
   const services = useContext(ServiceContext);
   const notif = useContext(NotificationContext)
-  const flowId = useParams<any>()["id"];
+  const flowId = useParams<any>()["id"]!;
   const [agent, setAgent] = useState<{value: AgentLike, manifest: JsonValue, response: JsonValue}|null|undefined>(undefined);
   const mounted = React.useRef<boolean>(true);
   useEffect(()=>{

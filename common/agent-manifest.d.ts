@@ -10,7 +10,8 @@ interface AgentManifest {
     yieldDurationMillis?: number
   }
   properties: {[name: string]: string|null}
-  hash?: string
+  hash?: string,
+  raw?: any
 }
 
 interface SchedulingDefaults {

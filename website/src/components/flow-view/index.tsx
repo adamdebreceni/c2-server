@@ -5,7 +5,7 @@ import { FlowEditor } from "../flow-editor";
 
 export function FlowView() {
   const [flow, setFlow] = React.useState<FlowObject|null>(null);
-  const flowId = useParams<any>()["id"];
+  const flowId = useParams<any>()["id"]!;
   const services = React.useContext(ServiceContext);
   React.useEffect(()=>{
     let isMounted = true;

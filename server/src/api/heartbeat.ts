@@ -105,6 +105,9 @@ export function CreateHeartbeatRouter(services: Services) {
     }
 
     const manifest: AgentManifest|null = transformManifest(req.body.agentInfo?.agentManifest ?? null);
+    if (manifest) {
+      manifest.raw = req.body;
+    }
     if (req.body.agentInfo?.agentManifestHash && manifest) {
       manifest.hash = req.body.agentInfo.agentManifestHash;
     }

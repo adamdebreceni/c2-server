@@ -2,7 +2,7 @@ import { useState } from "react";
 import * as React from "react";
 import { useLocation } from "react-router";
 import { parseFilter } from "../../utils/filter-parser";
-import * as qs from 'query-string';
+import qs from 'query-string';
 
 import "./index.scss"
 
