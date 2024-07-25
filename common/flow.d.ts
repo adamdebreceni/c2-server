@@ -91,4 +91,4 @@ interface ErrorObject {
   type: ErrorType,
   target: string,
   message: string
-};
+}

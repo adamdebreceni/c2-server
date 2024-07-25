@@ -37,9 +37,9 @@
     cursor: pointer;
     width: 24px;
     height: 24px;
+    border-radius: 2px;
     &:hover {
       background-color: rgb(226, 226, 226);
     }
-    border-radius: 2px;
   }
 }
