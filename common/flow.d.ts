@@ -83,3 +83,12 @@ type AssetInfo = {
   url: string,
   force?: boolean
 }
+
+type ErrorType = "RELATIONSHIP" | "PROPERTY";
+
+interface ErrorObject {
+  component: Uuid,
+  type: ErrorType,
+  target: string,
+  message: string
+};

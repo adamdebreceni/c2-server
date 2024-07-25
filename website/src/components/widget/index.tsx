@@ -1,8 +1,10 @@
 import * as React from "react";
 import { FlowContext } from "../../common/flow-context";
 import "./index.scss"
+import { Tooltip } from "../tooltip";
+import { WarningIcon } from "../../icons/warning";
 
-export function Widget(props: {highlight?: boolean, service?: boolean, value: Component, deg?: number}) {
+export function Widget(props: {highlight?: boolean, service?: boolean, value: Component, deg?: number, errors?: ErrorObject[]}) {
   const [grabbing, setGrabbing] = React.useState(false);
   const flow_context = React.useContext(FlowContext);
   const onmousedown = React.useCallback((e: React.MouseEvent)=>{
@@ -42,6 +44,18 @@ export function Widget(props: {highlight?: boolean, service?: boolean, value: Co
   }, [props.value.id, flow_context?.editComponent]);
   return <div className={`widget ${!grabbing && props.deg !== undefined ? "active": ""} ${props.highlight ? "highlight" : ""} ${props.service ? "service" : ""}`} style={{left: `${props.value.position.x}px`, top: `${props.value.position.y}px`}} onMouseDown={onmousedown} onContextMenu={oncontextmenu} onDoubleClick={ondblclick}>
     <div className="processor-view">
+      {(props.errors?.length ?? 0) === 0 ? null : <div className="processor-errors"><Tooltip message={(()=>{
+        const messages = [];
+        let first = true;
+        for (const err of props.errors!) {
+          if (!first) {
+            messages.push(<br/>);
+          }
+          first = false;
+          messages.push(err.message);
+        }
+        return messages;
+      })()}><WarningIcon size={20}/></Tooltip></div>}
       <div className="name">{props.value.name}</div>
       <div className="connection-icon-container" style={props.deg !== undefined ? {transform: `rotate(${props.deg * 180 / Math.PI - 90}deg)`}: undefined}>
         <div className="connection-icon">

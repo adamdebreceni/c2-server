@@ -40,6 +40,7 @@ const hw = 25;
 
 export function FlowEditor(props: {id: string, flow: FlowObject}) {
   const [state, setState] = useState<FlowEditorState>({saved: true, publish: false, flow: props.flow, panning: false, menu: null, editingComponent: null, newConnection: null, newComponent: null});
+  const [errors, setErrors] = useState<ErrorObject[]>([]);
   const areaRef = React.useRef<HTMLDivElement>(null);
   const mousedown = React.useCallback((e: React.MouseEvent)=>{
     if (e.button !== 0) return;
@@ -60,6 +61,23 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
   const notif = React.useContext(NotificationContext);
 
   const isSavePending = React.useRef(false);
+
+  React.useEffect(()=>{
+    let errors: ErrorObject[] = [];
+    for (let proc of state.flow.processors) {
+      const proc_manifest = state.flow.manifest.processors.find(proc_manifest => proc_manifest.type === proc.type)!;
+      for (let rel of proc_manifest.supportedRelationships) {
+        const conn = state.flow.connections.find(conn => conn.source.id === proc.id && (rel.name in conn.sourceRelationships) && conn.sourceRelationships[rel.name]);
+        if (conn && proc.autoterminatedRelationships[rel.name]) {
+          errors.push({component: proc.id, type: "RELATIONSHIP", target: rel.name, message: `Relationship '${rel.name}' is both connected and auto-terminated`});
+        }
+        if (!conn && (!(rel.name in proc.autoterminatedRelationships) || !proc.autoterminatedRelationships[rel.name])) {
+          errors.push({component: proc.id, type: "RELATIONSHIP", target: rel.name, message: `Relationship '${rel.name}'  has to be either connected or auto-terminated`});
+        }
+      }
+    }
+    setErrors(errors);
+  }, [state.flow])
 
   React.useEffect(()=>{
     if (state.flow === props.flow) return;
@@ -224,10 +242,16 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
           })()
         }
         {
-          state.flow.processors.map(proc => <Widget key={proc.id} highlight={state.newConnection?.to === proc.id} value={proc} deg={state.newConnection?.source === proc.id && !state.newConnection.to ? state.newConnection.deg : undefined}/>)
+          state.flow.processors.map(proc => {
+            const proc_errors = errors.filter(err => err.component === proc.id);
+            return <Widget key={proc.id} errors={proc_errors} highlight={state.newConnection?.to === proc.id} value={proc} deg={state.newConnection?.source === proc.id && !state.newConnection.to ? state.newConnection.deg : undefined}/>
+          })
         }
         {
-          state.flow.services.map(service => <Widget key={service.id} value={service} service />)
+          state.flow.services.map(service => {
+            const service_errors = errors.filter(err => err.component === service.id);
+            return <Widget key={service.id} value={service} service errors={service_errors} />
+          })
         }
         {
           state.menu ? <div className="menu-container" style={{left: `${state.menu.position.x}px`, top: `${state.menu.position.y}px`}}>
@@ -258,7 +282,8 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
                 return <ConnectionEditor model={state.editingComponent}/>;
               } else if ("scheduling" in state.editingComponent) {
                 const proc_manifest = state.flow.manifest.processors.find(proc => proc.type === (state.editingComponent as Processor).type)!;
-                return <ProcessorEditor model={state.editingComponent as Processor} manifest={proc_manifest} />
+                const proc_errors = errors.filter(err => err.component === (state.editingComponent as Processor).id);
+                return <ProcessorEditor model={state.editingComponent as Processor} manifest={proc_manifest} errors={proc_errors} />
               } else {
                 // service
                 const service_manifest = state.flow.manifest.controllerServices.find(service => service.type === (state.editingComponent as MiNiFiService).type)!;

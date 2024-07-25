@@ -10,7 +10,7 @@ import { Dropdown } from "../dropdown";
 
 import "./index.scss";
 
-export function ProcessorEditor(props: {model: Processor, manifest: ProcessorManifest}) {
+export function ProcessorEditor(props: {model: Processor, manifest: ProcessorManifest, errors: ErrorObject[]}) {
   const notif = useContext(NotificationContext);
   const flow_context = useContext(FlowContext);
   const openModal = useContext(ModalContext);
@@ -44,7 +44,8 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
       <div className="section-title">Auto-terminated relationships</div>
       {
         Object.keys(model.autoterminatedRelationships).sort().map(rel=>{
-          return <Toggle key={rel} name={rel} initial={model.autoterminatedRelationships[rel]} onChange={val => setModel(curr => ({...curr, autoterminatedRelationships: {...curr.autoterminatedRelationships, [rel]: val}}))}/>
+          let err = props.errors.find(err => err.type === "RELATIONSHIP" && err.target === rel);
+          return <Toggle key={rel} name={rel} initial={model.autoterminatedRelationships[rel]} onChange={val => setModel(curr => ({...curr, autoterminatedRelationships: {...curr.autoterminatedRelationships, [rel]: val}}))} error={err?.message}/>
         })
       }
     </div>
