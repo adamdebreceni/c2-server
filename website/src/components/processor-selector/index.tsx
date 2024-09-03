@@ -5,11 +5,34 @@ import "./index.scss";
 
 export function ProcessorSelector(props: {processors: {id: string, name: string, description: string}[]}) {
   const flow_context = React.useContext(FlowContext);
+  const [searchQuery, setSearchQuery] = React.useState<string>('');
+
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, []);
+
+  const filteredProcessors = props.processors
+    .filter(proc => proc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    proc.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a, b) => a.name < b.name ? -1 : (a.name === b.name ? 0 : 1));
+
   return <div className="processor-selector">
     <div className="title">Processors</div>
+    <input
+      type="text"
+      placeholder="Search processors..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      className="search-input"
+      ref={searchInputRef}
+    />
     <div className="processor-list">
       <div className="processor-list-inner">{
-        props.processors.sort((a, b) => a.name < b.name ? -1 : (a.name === b.name ? 0 : 1))
+        filteredProcessors.sort((a, b) => a.name < b.name ? -1 : (a.name === b.name ? 0 : 1))
         .map(proc => <ProcessorListItem key={proc.id} id={proc.id} name={proc.name} description={proc.description} />)
       }</div>
     </div>
