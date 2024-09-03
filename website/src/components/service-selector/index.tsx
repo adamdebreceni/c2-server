@@ -5,11 +5,35 @@ import "./index.scss";
 
 export function ServiceSelector(props: {services: {id: string, name: string, description: string}[]}) {
   const flow_context = React.useContext(FlowContext);
+  const [searchQuery, setSearchQuery] = React.useState<string>('');
+
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, []);
+
+  const filteredServices = props.services
+    .filter(proc => proc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    proc.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a, b) => a.name < b.name ? -1 : (a.name === b.name ? 0 : 1));
+
+
   return <div className="service-selector">
     <div className="title">Services</div>
+    <input
+      type="text"
+      placeholder="Search services..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      className="search-input"
+      ref={searchInputRef}
+    />
     <div className="service-list">
       <div className="service-list-inner">{
-        props.services.sort((a, b) => a.name < b.name ? -1 : (a.name === b.name ? 0 : 1))
+        filteredServices.sort((a, b) => a.name < b.name ? -1 : (a.name === b.name ? 0 : 1))
         .map(service => <ServiceListItem key={service.id} id={service.id} name={service.name} description={service.description} />)
       }</div>
     </div>
