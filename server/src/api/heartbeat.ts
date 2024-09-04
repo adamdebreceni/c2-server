@@ -131,7 +131,7 @@ export function CreateHeartbeatRouter(services: Services) {
           args: {
             flowId: target_flow,
             persist: "true",
-            location: `http://localhost:13405/api/flows/${target_flow}`
+            location: `/${target_flow}`
           }
         }
       ]})
