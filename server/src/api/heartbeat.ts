@@ -120,7 +120,9 @@ export function CreateHeartbeatRouter(services: Services) {
     if (flow !== null && typeof flow !== "string") {
       throw new Error(`Invalid agent flow: ${flow}`);
     }
-    const target_flow = await services.agentService.heartbeat({id, flow, class: class_name, manifest: manifest ? stableStringify(manifest) : null});
+    const hb_result = await services.agentService.heartbeat({id, flow, class: class_name, manifest: manifest ? stableStringify(manifest) : null});
+    const target_flow = hb_result.flow;
+    const agent_manifest = hb_result.manifest;
     if (target_flow !== null && target_flow !== flow) {
       console.log(`Sending flow update request, expected flow: ${target_flow}, actual: ${flow}`);
       return res.json({requestedOperations: [
@@ -135,6 +137,37 @@ export function CreateHeartbeatRouter(services: Services) {
           }
         }
       ]})
+    }
+    if (agent_manifest === null) {
+      console.log(`Requesting manifest from ${id}`)
+      const opId = `${nextOperationId++}`;
+      let resolve: (data?: any)=>void = null as any;
+      let reject: (reason?: string)=>void = null as any;
+      new Promise<string>((res, rej) => {
+        resolve = res;
+        reject = rej;
+      }).then((resp_str: string) => {
+        const response = JSON.parse(resp_str);
+        const id = response.agentInfo.identifier;
+        const class_name = response.agentInfo.agentClass;
+        const manifest: AgentManifest|null = transformManifest(response.agentInfo.agentManifest);
+        if (manifest) {
+          manifest.raw = resp_str;
+        }
+        if (response.agentInfo.agentManifestHash && manifest) {
+          manifest.hash = response.agentInfo.agentManifestHash;
+        }
+        return services.agentService.heartbeat({id, flow: null, class: class_name, manifest: manifest ? stableStringify(manifest) : null})
+      })
+      PendingOperations.set(opId, {resolve, reject});
+      return res.json({requestedOperations: [
+        {
+          identifier: opId,
+          operation: "DESCRIBE",
+          operand: "manifest",
+          args: {}
+        }
+      ]});
     }
     res.json({requestedOperations: []});
   })

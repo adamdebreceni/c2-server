@@ -66,13 +66,13 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
     let errors: ErrorObject[] = [];
     for (let proc of state.flow.processors) {
       const proc_manifest = state.flow.manifest.processors.find(proc_manifest => proc_manifest.type === proc.type)!;
-      for (let rel of proc_manifest.supportedRelationships) {
-        const conn = state.flow.connections.find(conn => conn.source.id === proc.id && (rel.name in conn.sourceRelationships) && conn.sourceRelationships[rel.name]);
-        if (conn && proc.autoterminatedRelationships[rel.name]) {
-          errors.push({component: proc.id, type: "RELATIONSHIP", target: rel.name, message: `Relationship '${rel.name}' is both connected and auto-terminated`});
+      for (let rel in proc.autoterminatedRelationships) {
+        const conn = state.flow.connections.find(conn => conn.source.id === proc.id && (rel in conn.sourceRelationships) && conn.sourceRelationships[rel]);
+        if (conn && proc.autoterminatedRelationships[rel]) {
+          errors.push({component: proc.id, type: "RELATIONSHIP", target: rel, message: `Relationship '${rel}' is both connected and auto-terminated`});
         }
-        if (!conn && (!(rel.name in proc.autoterminatedRelationships) || !proc.autoterminatedRelationships[rel.name])) {
-          errors.push({component: proc.id, type: "RELATIONSHIP", target: rel.name, message: `Relationship '${rel.name}'  has to be either connected or auto-terminated`});
+        if (!conn && (!(rel in proc.autoterminatedRelationships) || !proc.autoterminatedRelationships[rel])) {
+          errors.push({component: proc.id, type: "RELATIONSHIP", target: rel, message: `Relationship '${rel}'  has to be either connected or auto-terminated`});
         }
       }
     }
@@ -413,14 +413,14 @@ function useFlowContext(areaRef: React.RefObject<HTMLDivElement>, state: FlowEdi
           let changed = false;
           const newSourceRelationships: {[name: string]: boolean} = {};
           for (const rel in out.sourceRelationships) {
-            if (rel in updated.properties) {
+            if (rel in updated.autoterminatedRelationships) {
               newSourceRelationships[rel] = out.sourceRelationships[rel];
               continue;
             }
             // relationship removed
             changed = true;
           }
-          for (const rel in updated.properties) {
+          for (const rel in updated.autoterminatedRelationships) {
             if (rel in newSourceRelationships) continue;
             // new relationship
             newSourceRelationships[rel] = false;

@@ -83,14 +83,13 @@
             right: 20px;
             color: rgb(115, 115, 115);
             border: 1px solid grey;
-            padding: 3px 8px;
-            border-radius: 2px;
+            padding: 5px 20px;
+            border-radius: 20px;
             display: none;
             cursor: pointer;
             &:hover {
-              color: white;
-              background-color: rgb(8, 183, 8);
-              border: none;
+              color: rgb(12, 183, 12);
+              border-color: rgb(12, 183, 12);
             }
           }
           &:hover {
