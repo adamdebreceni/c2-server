@@ -21,12 +21,13 @@ export async function CreateAgentService(db: Database): Promise<AgentService> {
     fetchClasses(): Promise<AgentClass[]> {
       return db.classes.select({});
     },
-    async heartbeat(agent_heartbeat: {id: string, class: string|null, flow: string | null, manifest: string|null}): Promise<FlowId|null> {
-      const agent = {...agent_heartbeat, last_heartbeat: new Date().toISOString()};
-      const agents = await db.agents.select({id: agent.id});
+    async heartbeat(agent_hb: {id: string, class: string|null, flow: string | null, manifest: string|null}): Promise<{flow: FlowId|null, manifest: string|null}> {
+      const agent = {...agent_hb, last_heartbeat: new Date().toISOString()};
+      const agents = await db.agents.select({id: agent.id}, true);
       if (agents.length > 1) {
         throw new Error("More than one agent with the same id in the database?");
       }
+      let manifest: string|null = agent_hb.manifest ?? agents[0].manifest ?? null;
       let target_flow: string|null = null;
       if (agents.length === 1) {
         // console.log(`Updating agent id: ${agent.id}`);
@@ -41,22 +42,22 @@ export async function CreateAgentService(db: Database): Promise<AgentService> {
         await db.agents.insert({...agent, target_flow: null});
       }
       if (agent.class === null) {
-        return null;
+        return {flow: null, manifest};
       }
-      const class_descr = await db.classes.select({name: agent.class});
+      const class_descr = await db.classes.select({name: agent.class}, true);
       if (class_descr.length === 1) {
-        if (typeof agent.manifest === "string" && agent.manifest !== class_descr[0].manifest) {
+        if (agent.manifest !== null && agent.manifest !== class_descr[0].manifest) {
           // update class with new manifest
           await db.classes.update({name: agent.class}, {manifest: agent.manifest});
         }
-        return target_flow ?? class_descr[0].flow;
+        return {flow: target_flow ?? class_descr[0].flow, manifest};
       }
       if (class_descr.length > 1) {
         throw new Error("More than one agent class with the same name in the database?");
       }
       console.log(`Registering new agent class with name: "${agent.class}"`);
       await db.classes.insert({name: agent.class, flow: null, manifest: agent.manifest});
-      return target_flow;
+      return {flow: target_flow, manifest};
     },
     async publish(classes: string[], agents: string[], flowId: string): Promise<void> {
       for (const clazz of classes) {

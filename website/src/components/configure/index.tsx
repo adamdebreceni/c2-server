@@ -49,6 +49,6 @@ function PropertyWidget(props: {model: Property, onRemove: (name: string)=>void,
   return <div className="property">
     <InputField name="Name" width="100%" default={props.model.name} labelPaddingBottom={0} onChange={val=>props.onChange({...props.model, name: val})}/>
     <InputField name="Value" width="100%" default={props.model.value} labelPaddingBottom={0} onChange={val=>props.onChange({...props.model, value: val})}/>
-    <Toggle name="Persist" onChange={val => props.onChange({...props.model, persist: val})}/>
+    <Toggle name="Persist" marginBottom="10px" onChange={val => props.onChange({...props.model, persist: val})}/>
   </div>
 }

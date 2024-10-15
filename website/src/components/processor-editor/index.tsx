@@ -9,6 +9,9 @@ import { CreateDynamicPropertyModal } from "../create-dynamic-property";
 import { Dropdown } from "../dropdown";
 
 import "./index.scss";
+import { CreateDynamicRelationshipModal } from "../create-dynamic-relationship";
+import { DeleteIcon } from "../../icons/delete";
+import { Fill } from "../fill/Fill";
 
 export function ProcessorEditor(props: {model: Processor, manifest: ProcessorManifest, errors: ErrorObject[]}) {
   const notif = useContext(NotificationContext);
@@ -29,8 +32,20 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
       return {...curr, properties: {...curr.properties, [prop]: ""}}
     });
   }, []);
-  const openModalCb = React.useCallback(()=>{
+  const onNewDynamicRelationship = React.useCallback((rel: string) => {
+    setModel(curr => {
+      if (rel in curr.autoterminatedRelationships) {
+        notif.emit(`Relationship '${rel}' already exists`, "error");
+        return curr;
+      }
+      return {...curr, autoterminatedRelationships: {...curr.autoterminatedRelationships, [rel]: false}}
+    });
+  }, []);
+  const openCreateDynPropCb = React.useCallback(()=>{
     openModal(<CreateDynamicPropertyModal onSubmit={onNewDynamicProperty}/>);
+  }, []);
+  const openCreateDynRelCb = React.useCallback(()=>{
+    openModal(<CreateDynamicRelationshipModal onSubmit={onNewDynamicRelationship}/>);
   }, []);
   return <div className="component-settings">
     <div className="type">{model.type}</div>
@@ -43,12 +58,40 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
     <div className="section">
       <div className="section-title">Auto-terminated relationships</div>
       {
-        Object.keys(model.autoterminatedRelationships).sort().map(rel=>{
-          let err = props.errors.find(err => err.type === "RELATIONSHIP" && err.target === rel);
-          return <Toggle key={rel} name={rel} initial={model.autoterminatedRelationships[rel]} onChange={val => setModel(curr => ({...curr, autoterminatedRelationships: {...curr.autoterminatedRelationships, [rel]: val}}))} error={err?.message}/>
+        props.manifest.supportedRelationships.sort().map(rel=>{
+          let err = props.errors.find(err => err.type === "RELATIONSHIP" && err.target === rel.name);
+          return <Toggle key={rel.name} marginBottom="10px" name={rel.name} initial={model.autoterminatedRelationships[rel.name]} onChange={val => setModel(curr => ({...curr, autoterminatedRelationships: {...curr.autoterminatedRelationships, [rel.name]: val}}))} error={err?.message}/>
         })
       }
     </div>
+    {!props.manifest.supportsDynamicRelationships ? null : 
+    <div className="section">
+      <div className="section-title">Dynamic Relationships<span style={{flexGrow: 1}}/><div className="add-dynamic-relationship" onClick={openCreateDynRelCb}>
+          <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+        </div>
+      </div>
+      {
+        Object.keys(model.autoterminatedRelationships).sort().map(rel_name => {
+          if (props.manifest.supportedRelationships.find(rel => rel.name === rel_name)) {
+            // not dynamic property
+            return null;
+          }
+          let err = props.errors.find(err => err.type === "RELATIONSHIP" && err.target === rel_name);
+          return <div className="dynamic-relationship">
+            <Toggle key={rel_name} name={rel_name} initial={model.autoterminatedRelationships[rel_name]} onChange={val => setModel(curr => ({...curr, autoterminatedRelationships: {...curr.autoterminatedRelationships, [rel_name]: val}}))} error={err?.message}/>
+            <Fill/>
+            <DeleteIcon size={24} onClick={() => {
+              setModel(model => {
+                let new_autorels = {...model.autoterminatedRelationships};
+                delete new_autorels[rel_name];
+                return {...model, autoterminatedRelationships: new_autorels};
+              })
+            }}/>
+          </div>;
+        })
+      }
+    </div>
+    }
     <div className="section">
       <div className="section-title">Scheduling</div>
       <Dropdown name="STRATEGY" width="100%" initial={model.scheduling.strategy} items={["TIMER_DRIVEN", "EVENT_DRIVEN", "CRON_DRIVEN"]} onChange={val=>setModel(curr => ({...curr, scheduling: {...curr.scheduling, strategy: val as any}}))}/>
@@ -74,7 +117,7 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
     </div>
     {!props.manifest.supportsDynamicProperties ? null : 
     <div className="section">
-      <div className="section-title">Dynamic Properties<span style={{flexGrow: 1}}/><div className="add-dynamic-property" onClick={openModalCb}>
+      <div className="section-title">Dynamic Properties<span style={{flexGrow: 1}}/><div className="add-dynamic-property" onClick={openCreateDynPropCb}>
           <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
         </div>
       </div>
@@ -84,7 +127,17 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
             // not dynamic property
             return null;
           }
-          return <InputField key={prop_name} name={prop_name} width="100%" default={model.properties[prop_name]} onChange={val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: val}}))}/>
+          return <div className="dynamic-property">
+            <InputField key={prop_name} name={prop_name} width="100%" default={model.properties[prop_name]} onChange={val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: val}}))}/>
+            <Fill/>
+            <DeleteIcon size={24} onClick={() => {
+              setModel(model => {
+                let new_props = {...model.properties};
+                delete new_props[prop_name];
+                return {...model, properties: new_props};
+              })
+            }}/>
+          </div>
         })
       }
     </div>

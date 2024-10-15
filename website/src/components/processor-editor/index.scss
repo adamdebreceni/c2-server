@@ -32,7 +32,7 @@
       fill: black;
     }
   }
-  .add-dynamic-property {
+  .add-dynamic-property, .add-dynamic-relationship {
     display: inline-block;
     cursor: pointer;
     width: 24px;
@@ -40,6 +40,38 @@
     border-radius: 2px;
     &:hover {
       background-color: rgb(226, 226, 226);
+    }
+  }
+
+  .dynamic-relationship {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    .delete-icon {
+      margin-left: 10px;
+      cursor: pointer;
+      &:hover svg {
+        fill: #dd2222 !important;
+      }
+      &:not(:hover) {
+        opacity: 0.5;
+      }
+    }
+  }
+
+  .dynamic-property {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    .delete-icon {
+      margin-left: 10px;
+      cursor: pointer;
+      &:hover svg {
+        fill: #dd2222 !important;
+      }
+      &:not(:hover) {
+        opacity: 0.5;
+      }
     }
   }
 }

@@ -26,7 +26,7 @@ export function ConnectionEditor(props: {model: Connection}) {
       <div className="section-title">Source relationships</div>
       {
         Object.keys(props.model.sourceRelationships).sort().map(rel=>{
-          return <Toggle key={rel} name={rel} initial={props.model.sourceRelationships[rel]} onChange={val => setModel(curr => ({...curr, sourceRelationships: {...curr.sourceRelationships, [rel]: val}}))} />
+          return <Toggle key={rel} marginBottom="10px" name={rel} initial={props.model.sourceRelationships[rel]} onChange={val => setModel(curr => ({...curr, sourceRelationships: {...curr.sourceRelationships, [rel]: val}}))} />
         })
       }
     </div>
