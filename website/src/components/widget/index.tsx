@@ -3,6 +3,7 @@ import { FlowContext } from "../../common/flow-context";
 import "./index.scss"
 import { Tooltip } from "../tooltip";
 import { WarningIcon } from "../../icons/warning";
+import { ExtendedWidget } from "../extended-widget";
 
 export function Widget(props: {highlight?: boolean, service?: boolean, value: Component, deg?: number, errors?: ErrorObject[]}) {
   const [grabbing, setGrabbing] = React.useState(false);
@@ -43,7 +44,8 @@ export function Widget(props: {highlight?: boolean, service?: boolean, value: Co
     flow_context?.editComponent(props.value.id);
   }, [props.value.id, flow_context?.editComponent]);
   return <div className={`widget ${!grabbing && props.deg !== undefined ? "active": ""} ${props.highlight ? "highlight" : ""} ${props.service ? "service" : ""}`} style={{left: `${props.value.position.x}px`, top: `${props.value.position.y}px`}} onMouseDown={onmousedown} onContextMenu={oncontextmenu} onDoubleClick={ondblclick}>
-    <div className="processor-view">
+    <div className={`processor-view ${props.value.visibleProperties?.length ?? 0 !== 0 ? "extended" : ""}`}>
+      {(props.value.visibleProperties?.length ?? 0 === 0 ? null : <ExtendedWidget value={props.value} />)}
       {(props.errors?.length ?? 0) === 0 ? null : <div className="processor-errors"><Tooltip message={(()=>{
         const messages = [];
         let first = true;

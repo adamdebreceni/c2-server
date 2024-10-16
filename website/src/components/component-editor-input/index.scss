@@ -6,16 +6,34 @@
     font-size: 0.7em;
     display: inline-block;
   }
-  input {
+  .inner {
+    position: relative;
     display: inline-block;
-    outline: none;
-    border: 1px solid rgb(201, 201, 201);
-    border-radius: 3px;
-    padding: 7px 10px;
     width: 100%;
-    box-sizing: border-box;
-    &:focus {
-      border-color: rgb(53, 53, 255);
+    input {
+      display: inline-block;
+      outline: none;
+      border: 1px solid rgb(201, 201, 201);
+      border-radius: 3px;
+      padding: 7px 10px;
+      padding-right: 30px;
+      width: 100%;
+      box-sizing: border-box;
+      &:focus {
+        border-color: rgb(53, 53, 255);
+      }
+    }
+    .edit-text-icon {
+      position: absolute;
+      right: 7px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      &:hover {
+        svg {
+          fill: rgb(53, 53, 255);
+        }
+      }
     }
   }
 }

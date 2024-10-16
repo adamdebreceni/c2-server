@@ -45,5 +45,6 @@ module.exports = {
     port: 13405,
     static: path.join(__dirname, "static"),
     historyApiFallback: true
-  }
+  },
+  ignoreWarnings: [(warning) => true]
 }

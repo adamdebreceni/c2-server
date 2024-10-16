@@ -2,8 +2,10 @@ import * as React from "react";
 import { useState } from "react";
 
 import "./index.scss";
+import { VisibilityIcon } from "../../icons/visibility";
+import { PropertyVisibility } from "../property-visibility";
 
-export function Dropdown(props: {name: string, items: string[], initial?: string|null, onChange?: (item: string)=>void, width?: string}) {
+export function Dropdown(props: {name: string, items: string[], initial?: string|null, onChange?: (item: string)=>void, width?: string, visible?: boolean, onChangeVisibility?: (name: string)=>void}) {
   const [state, setState] = useState({current: props.initial ?? props.items[0], active: false});
   const onBlur = React.useCallback(()=>{
     setState(curr => ({...curr, active: false}));
@@ -11,8 +13,15 @@ export function Dropdown(props: {name: string, items: string[], initial?: string
   const onFocus = React.useCallback(()=>{
     setState(curr => ({...curr, active: true}));
   }, [])
+  const onChangeVisibility = React.useCallback(()=>{
+    if (!props.onChangeVisibility) return;
+    props.onChangeVisibility(props.name);
+  }, [props.onChangeVisibility, props.name])
   return <div className="input-field" style={{width: props.width}}>
-      <span className="input-label">{props.name}</span><br/>
+      <div style={{display: "flex", alignItems: "center"}}>
+        <span className="input-label">{props.name}</span>
+        {(props.onChangeVisibility ? <PropertyVisibility active={props.visible ?? false} onClick={onChangeVisibility}/> : null)}
+      </div>
       <div className={`dropdown ${state.active ? "active": ""}`} tabIndex={-1} onBlur={onBlur} onFocus={onFocus}>
       <div className="selected">{state.current}
         <div className="down-icon">

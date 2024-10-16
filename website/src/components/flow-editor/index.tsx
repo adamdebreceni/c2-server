@@ -501,7 +501,8 @@ function useFlowContext(areaRef: React.RefObject<HTMLDivElement>, state: FlowEdi
           runSchedule: mapDefined(st.flow.manifest.schedulingDefaults.defaultSchedulingPeriodMillis, val => `${val} ms`, ""),
           runDuration: mapDefined(st.flow.manifest.schedulingDefaults.defaultRunDurationNanos, val => `${val} ns`, "")
         },
-        properties: createDefaultProperties(procManifest.propertyDescriptors ?? {})
+        properties: createDefaultProperties(procManifest.propertyDescriptors ?? {}),
+        visibleProperties: []
       };
       return {...st, flow: {...st.flow, processors: [...st.flow.processors, newProcessor]}, newComponent: null};
     })
@@ -523,7 +524,8 @@ function useFlowContext(areaRef: React.RefObject<HTMLDivElement>, state: FlowEdi
         id: uuid.v4() as Uuid,
         name: name,
         type: id,
-        properties: createDefaultProperties(serviceManifest.propertyDescriptors ?? {})
+        properties: createDefaultProperties(serviceManifest.propertyDescriptors ?? {}),
+        visibleProperties: []
       };
       return {...st, flow: {...st.flow, services: [...st.flow.services, newSerivce]}, newComponent: null};
     })

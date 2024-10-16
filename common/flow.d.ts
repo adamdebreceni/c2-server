@@ -22,6 +22,7 @@ interface Component extends Positionable {
   type: string,
   name: string,
   properties: {[name: string]: string|null}
+  visibleProperties?: string[]
 }
 
 interface Funnel extends Positionable {

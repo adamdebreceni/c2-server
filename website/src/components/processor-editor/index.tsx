@@ -12,6 +12,8 @@ import "./index.scss";
 import { CreateDynamicRelationshipModal } from "../create-dynamic-relationship";
 import { DeleteIcon } from "../../icons/delete";
 import { Fill } from "../fill/Fill";
+import { PropertyField } from "../property-input";
+import { PropertyDropdown } from "../property-dropdown";
 
 export function ProcessorEditor(props: {model: Processor, manifest: ProcessorManifest, errors: ErrorObject[]}) {
   const notif = useContext(NotificationContext);
@@ -46,6 +48,17 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
   }, []);
   const openCreateDynRelCb = React.useCallback(()=>{
     openModal(<CreateDynamicRelationshipModal onSubmit={onNewDynamicRelationship}/>);
+  }, []);
+  const onChangeVisibility = React.useCallback((prop: string) => {
+    setModel(curr => {
+      const idx = curr.visibleProperties?.indexOf(prop) ?? -1;
+      if (idx !== -1) {
+        const new_props = curr.visibleProperties!.slice();
+        new_props.splice(idx, 1);
+        return {...curr, visibleProperties: new_props};
+      }
+      return {...curr, visibleProperties: [...(curr.visibleProperties ?? []), prop]}
+    });
   }, []);
   return <div className="component-settings">
     <div className="type">{model.type}</div>
@@ -109,9 +122,11 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
           }
           const values = props.manifest.propertyDescriptors[prop_name].allowableValues;
           if (values) {
-            return <Dropdown key={prop_name} name={prop_name} width="100%" items={values.map(val => val.value)} initial={model.properties[prop_name]} onChange={val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: val}}))}/>
+            return <PropertyDropdown key={prop_name} name={prop_name} width="100%" items={values.map(val => val.value)} initial={model.properties[prop_name]}
+                onChange={val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: val}}))} visible={model.visibleProperties?.includes(prop_name) ?? false} onChangeVisibility={onChangeVisibility}/>
           }
-          return <InputField key={prop_name} name={prop_name} width="100%" default={model.properties[prop_name]} onChange={val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: val}}))}/>
+          return <PropertyField key={prop_name} name={prop_name} width="100%" default={model.properties[prop_name]}
+              onChange={val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: val}}))} visible={model.visibleProperties?.includes(prop_name) ?? false} onChangeVisibility={onChangeVisibility}/>
         })
       }
     </div>
@@ -128,7 +143,7 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
             return null;
           }
           return <div className="dynamic-property">
-            <InputField key={prop_name} name={prop_name} width="100%" default={model.properties[prop_name]} onChange={val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: val}}))}/>
+            <PropertyField key={prop_name} name={prop_name} width="100%" default={model.properties[prop_name]} onChange={val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: val}}))}/>
             <Fill/>
             <DeleteIcon size={24} onClick={() => {
               setModel(model => {
