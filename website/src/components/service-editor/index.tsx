@@ -14,12 +14,10 @@ export function ServiceEditor(props: {model: MiNiFiService, manifest: Controller
   const notif = useContext(NotificationContext);
   const flow_context = useContext(FlowContext);
   const openModal = useContext(ModalContext);
-  const [model, setModel] = React.useState(props.model);
-  console.log(`Properties: ${Object.keys(model.properties).join(', ')}`)
-  React.useEffect(()=>{
-    if (model === props.model) return;
-    flow_context?.updateService(model);
-  }, [props.model, model, flow_context?.updateService]);
+  const setModel = React.useMemo(()=>{
+    return (fn: (curr: MiNiFiService)=>MiNiFiService) => flow_context!.updateService(props.model.id, fn);
+  }, [props.model.id, flow_context!.updateService]);
+  const model = props.model;
   const onNewDynamicProperty = React.useCallback((prop: string) => {
     setModel(curr => {
       if (prop in curr.properties) {

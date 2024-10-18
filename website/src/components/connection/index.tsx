@@ -3,43 +3,60 @@ import { FlowContext } from "../../common/flow-context";
 import { ConnectionErrorBadge } from "../connection-error/badge";
 import "./index.scss";
 
-export function ConnectionView(props: {model?: Connection, id?: Uuid, from: {x: number, y: number}, to: {x: number, y: number}, name?: string, exactEnd?: boolean}) {
-  const padding = 5;
+export function IsInside(area: {x: number, y: number, w: number, h: number, circular: boolean}, x: number, y: number): boolean {
+  if (area.circular) {
+    return (area.x - x) ** 2 + (area.y - y) ** 2 <= (area.w / 2) ** 2;
+  }
+  return area.x - area.w/2 <= x && x <= area.x + area.w/2 && area.y - area.h/2 <= y && y <= area.y + area.h/2;
+}
 
-  const left = Math.min(props.from.x, props.to.x);
-  const top = Math.min(props.from.y, props.to.y);
-  const width = Math.ceil(Math.abs(props.from.x - props.to.x)) + 2*padding;
-  const height = Math.ceil(Math.abs(props.from.y - props.to.y)) + 2*padding;
-
-  let x1 = props.from.x - left + padding;
-  let y1 = props.from.y - top + padding;
-  let x2 = props.to.x - left + padding
-  let y2 = props.to.y - top + padding;
-
-  const d = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
-
-  const off = 30;
-
-  if (d > 1) {
-    [x1, y1, x2, y2] = [
-      x1 + (x2 - x1)/d * (props.exactEnd ? Math.min(off, d) : Math.min(off, d/2)),
-      y1 + (y2 - y1)/d * (props.exactEnd ? Math.min(off, d) : Math.min(off, d/2)),
-      props.exactEnd ? x2 : x2 + (x1 - x2)/d * Math.min(off, d/2),
-      props.exactEnd ? y2 : y2 + (y1 - y2)/d * Math.min(off, d/2)
-    ]
+export function ConnectionView(props: {model?: Connection, id?: Uuid, from: {x: number, y: number, w: number, h: number, circular: boolean}, to: {x: number, y: number, w: number, h: number, circular: boolean}, name?: string}) {
+  let from_x!: number, from_y!: number;
+  {
+    let dt = 0.25;
+    let t = 0.5;
+    for (let i = 0; i < 10; ++i ) {
+      from_x = props.from.x + t * (props.to.x - props.from.x);
+      from_y = props.from.y + t * (props.to.y - props.from.y);
+      if (IsInside(props.from, from_x, from_y)) {
+        t += dt;
+      } else {
+        t -= dt;
+      }
+      dt /= 2;
+    }
+    from_x = Math.ceil(from_x);
+    from_y = Math.ceil(from_y);
   }
 
-  let [v1, v2] = [x2 - x1, y2 - y1];
-  const v_len = Math.sqrt(v1 ** 2 + v2 ** 2);
-  [v1, v2] = [v1 / v_len, v2 / v_len];
-  let [t1, t2] = [-v2, v1];
-  const t_len = 50;
-  let [xt, yt] = [v1 * v_len / 2 + t1 * t_len, v2 * v_len / 2 + t2 * t_len];
 
-  const p1_len = Math.sqrt((x1 - xt) ** 2 + (y1 - yt) ** 2);
-  const p2_len = Math.sqrt((x2 - xt) ** 2 + (y2 - yt) ** 2);
-  let [xc, yc] = [(x1 - xt) / p1_len + (x2 - xt) / p2_len, (y1 - yt) / p1_len + (y2 - yt) / p2_len];
-  [xc, yc] = [xt - Math.sqrt(p1_len * p2_len) / 2 * xc, yt - Math.sqrt(p1_len * p2_len) / 2 * yc];
+  let to_x!: number, to_y!: number;
+  {
+    let dt = 0.25;
+    let t = 0.5;
+    for (let i = 0; i < 10; ++i ) {
+      to_x = props.to.x + t * (props.from.x - props.to.x);
+      to_y = props.to.y + t * (props.from.y - props.to.y);
+      if (IsInside(props.to, to_x, to_y)) {
+        t += dt;
+      } else {
+        t -= dt;
+      }
+      dt /= 2;
+    }
+    to_x = Math.ceil(to_x);
+    to_y = Math.ceil(to_y);
+  }
+  
+  const left = Math.min(from_x, to_x);
+  const top = Math.min(from_y, to_y);
+  const width = Math.ceil(Math.abs(from_x - to_x));
+  const height = Math.ceil(Math.abs(from_y - to_y));
+
+  let x1 = from_x - left;
+  let y1 = from_y - top;
+  let x2 = to_x - left
+  let y2 = to_y - top;
 
   const flow_context = React.useContext(FlowContext);
 
@@ -74,7 +91,7 @@ export function ConnectionView(props: {model?: Connection, id?: Uuid, from: {x: 
   //   }
   // })
 
-  return <div className="connection-view" style={{left: `${left - padding - 500}px`, top: `${top - padding - 500}px`}}>
+  return <div className="connection-view" style={{left: `${left - 500}px`, top: `${top - 500}px`}}>
     <svg ref={svgRef} style={{display: 'block'}} viewBox={`-500 -500 ${width + 1000} ${height + 1000}`} width={width + 1000} height={height + 1000}>
     <defs>
       <marker id='head' orient="auto" markerWidth='6' markerHeight='6' refX='5' refY='3'>

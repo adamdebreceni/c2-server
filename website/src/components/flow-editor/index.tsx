@@ -21,7 +21,6 @@ import { ServiceEditor } from "../service-editor";
 
 interface NewConnection {
   source: Uuid,
-  deg: number,
   to: {x: number, y: number} | Uuid | null
 };
 
@@ -32,11 +31,34 @@ interface FlowEditorState {
   panning: boolean,
   editingComponent: Processor | Connection | MiNiFiService| null,
   newConnection: NewConnection | null,
-  newComponent: {x: number, y: number, type: "PROCESSOR"|"SERVICE"} | null,
+  newComponent: {x: number, y: number, type: "PROCESSOR"|"SERVICE", srcProcessor?: Uuid} | null,
   publish: boolean
 }
 
-const hw = 25;
+function width(proc: Processor) {
+  return proc.size?.width ?? 50;
+}
+
+function height(proc: Processor) {
+  return proc.size?.height ?? 50;
+}
+
+function createDefaultConnection(src: Uuid, dst: Uuid): Connection {
+  return {
+    id: uuid.v4() as Uuid,
+    name: null,
+    source: {id: src, port: null},
+    sourceRelationships: {},
+    destination: {id: dst, port: null},
+    flowFileExpiration: "0 seconds",
+    backpressureThreshold: {count: "10000", size: "10 MB"},
+    swapThreshold: null,
+    errors: [],
+    attributes: []
+  }
+}
+
+const padding = 5;
 
 export function FlowEditor(props: {id: string, flow: FlowObject}) {
   const [state, setState] = useState<FlowEditorState>({saved: true, publish: false, flow: props.flow, panning: false, menu: null, editingComponent: null, newConnection: null, newComponent: null});
@@ -122,8 +144,7 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
             if (!st.newConnection) return st;
             return {...st, newConnection: null}
           }
-          const deg = Math.atan2(y - (proc.position.y + hw), x - (proc.position.x + hw));
-          return {...st, newConnection: {source: proc.id, deg, to: null}};
+          return {...st, newConnection: {source: proc.id, to: null}};
         }
 
         return {
@@ -167,11 +188,13 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
           return {...st, flow: {...st.flow, connections: [...st.flow.connections, newConn]}, newConnection: null};
         }
         const {x, y} = toAreaCoords(areaRef, st, e);
+        if (st.newConnection) {
+          return {...st, newComponent: {x, y, type: "PROCESSOR", srcProcessor: st.newConnection.source}};
+        }
         let newConnection: NewConnection | null = null;
         const proc = findConnSourceProc(st, {x, y});
         if (proc) {
-          const deg = Math.atan2(y - (proc.position.y + hw), x - (proc.position.x + hw));
-          newConnection = {source: proc.id, deg, to: null};
+          newConnection = {source: proc.id, to: null};
         }
         return {...st, panning: false, newConnection};
       })
@@ -207,7 +230,17 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
         flowContext.hideMenu();
       }}
     ])
-  }, [flowContext.showMenu, flowContext.hideMenu])
+  }, [flowContext.showMenu, flowContext.hideMenu]);
+
+  React.useEffect(()=>{
+    if (!state.newConnection || state.newComponent || state.editingComponent) {
+      return;
+    }
+    document.body.classList.add("link-cursor");
+    return () => {
+      document.body.classList.remove("link-cursor");
+    }
+  }, [!!state.newConnection, !!state.newComponent, !!state.editingComponent])
 
   return <FlowContext.Provider value={flowContext}>
     <div className="flow-editor" ref={areaRef} onMouseDown={mousedown}>
@@ -223,28 +256,54 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
               console.error(`Couldn't find processors for connection '${conn.id}'`);
               return null;
             }
-            return <ConnectionView model={conn} key={conn.id} id={conn.id} from={{x: srcProc.position.x + hw, y: srcProc.position.y + hw}}
-              to={{x: dstProc.position.x + hw, y: dstProc.position.y + hw}}
+            return <ConnectionView model={conn} key={conn.id} id={conn.id}
+              from={{
+                x: srcProc.position.x + width(srcProc) / 2,
+                y: srcProc.position.y + height(srcProc) / 2,
+                w: width(srcProc) + 2 * padding,
+                h: height(srcProc) + 2 * padding,
+                circular: srcProc.size?.circular ?? true
+              }}
+              to={{
+                x: dstProc.position.x + width(dstProc) / 2,
+                y: dstProc.position.y + height(dstProc) / 2,
+                w: width(dstProc) + 2 * padding,
+                h: height(dstProc) + 2 * padding,
+                circular: dstProc.size?.circular ?? true
+              }}
               name={conn.name ? conn.name : Object.keys(conn.sourceRelationships).filter(key => conn.sourceRelationships[key]).sort().join(", ")}/>
           })
         }
         {
           !(state.newConnection?.to) ? null : (()=>{
             const src = state.flow.processors.find(proc => proc.id === state.newConnection!.source)!;
-            let to: {x: number, y: number};
+            let to: {x: number, y: number, w: number, h: number, circular: boolean};
             if (typeof state.newConnection.to === "string") {
               const dest = state.flow.processors.find(proc => proc.id === state.newConnection!.to)!;
-              to = {x: dest.position.x + hw, y: dest.position.y + hw};
+              to = {
+                x: dest.position.x + width(dest) / 2,
+                y: dest.position.y + height(dest) / 2,
+                w: width(dest) + 2 * padding,
+                h: height(dest) + 2 * padding,
+                circular: dest.size?.circular ?? true
+              };
             } else {
-              to = state.newConnection.to as any;
+              to = {...state.newConnection.to, w: 0, h: 0, circular: true};
             }
-            return <ConnectionView from={{x: src.position.x + hw, y: src.position.y + hw}} to={to} exactEnd={typeof state.newConnection.to !== "string"}/>
+            return <ConnectionView from={{
+              x: src.position.x + width(src) / 2,
+              y: src.position.y + height(src) / 2,
+              w: width(src) + 2 * padding,
+              h: height(src) + 2 * padding,
+              circular: src.size?.circular ?? true
+            }}
+            to={to}/>
           })()
         }
         {
           state.flow.processors.map(proc => {
             const proc_errors = errors.filter(err => err.component === proc.id);
-            return <Widget key={proc.id} errors={proc_errors} highlight={state.newConnection?.to === proc.id} value={proc} deg={state.newConnection?.source === proc.id && !state.newConnection.to ? state.newConnection.deg : undefined}/>
+            return <Widget key={proc.id} errors={proc_errors} highlight={state.newConnection?.to === proc.id} value={proc} link={state.newConnection?.source === proc.id && !state.newConnection.to}/>
           })
         }
         {
@@ -316,19 +375,45 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
 
 function findConnSourceProc(st: FlowEditorState, pos: {x: number, y: number}) {
   return st.flow.processors.find(proc => {
-    const d = Math.sqrt((proc.position.x + hw - pos.x) ** 2 + (proc.position.y + hw - pos.y) ** 2);
-    return d > 20 && d < 60;
+    const inner = 5;
+    const outer = 20;
+    if (proc.size?.circular || !proc.size) {
+      const d = Math.sqrt((proc.position.x + width(proc) / 2 - pos.x) ** 2 + (proc.position.y + height(proc) / 2 - pos.y) ** 2);
+      return d > width(proc)/2 - inner && d < width(proc)/2 + outer;
+    }
+    // top border
+    if (proc.position.y - outer < pos.y && pos.y < proc.position.y + inner && proc.position.x - outer < pos.x && pos.x < proc.position.x + width(proc) + outer) {
+      return true;
+    }
+    // bottom border
+    if (proc.position.y + height(proc) - inner < pos.y && pos.y < proc.position.y + height(proc) + outer && proc.position.x - outer < pos.x && pos.x < proc.position.x + width(proc) + outer) {
+      return true;
+    }
+    // left border
+     if (proc.position.x - outer < pos.x && pos.x < proc.position.x + inner && proc.position.y - outer < pos.y && pos.y < proc.position.y + height(proc) + outer) {
+      return true;
+    }
+    // bottom border
+    if (proc.position.x + width(proc) - inner < pos.x && pos.x < proc.position.x + width(proc) + outer && proc.position.y - outer < pos.y && pos.y < proc.position.y + height(proc) + outer) {
+      return true;
+    }
+    return false;
   })
 }
 
 function findConnDestProc(st: FlowEditorState, pos: {x: number, y: number}) {
   return st.flow.processors.find(proc => {
-    const d = Math.sqrt((proc.position.x + hw - pos.x) ** 2 + (proc.position.y +hw - pos.y) ** 2);
-    if (proc.id !== st.newConnection!.source) {
-      return d < 80;
-    } else {
-      return d < 25;
+    const limit = 50;
+    if (proc.size?.circular || !proc.size) {
+      const d = Math.sqrt((proc.position.x + width(proc) / 2 - pos.x) ** 2 + (proc.position.y + height(proc) / 2 - pos.y) ** 2);
+      if (proc.id !== st.newConnection!.source) {
+        return d < width(proc) / 2 + limit;
+      } else {
+        return d < width(proc) / 2;
+      }
     }
+    return proc.position.x - limit <= pos.x && pos.x <= proc.position.x + width(proc) + limit && 
+      proc.position.y - limit <= pos.y && pos.y <= proc.position.y + height(proc) + limit;
   })
 }
 
@@ -400,8 +485,11 @@ function useFlowContext(areaRef: React.RefObject<HTMLDivElement>, state: FlowEdi
     })
   }, []);
 
-  const updateProcessor = React.useCallback((updated: Processor)=>{
+  const updateProcessor = React.useCallback((id: Uuid, fn: (curr: Processor)=>Processor)=>{
     setState(st => {
+      const curr = st.flow.processors.find(proc => proc.id === id);
+      if (!curr) return st;
+      const updated = fn(curr);
       const new_procs = st.flow.processors.filter(proc => proc.id !== updated.id);
       new_procs.push(updated);
       let changed_any = false;
@@ -436,16 +524,22 @@ function useFlowContext(areaRef: React.RefObject<HTMLDivElement>, state: FlowEdi
     })
   }, []);
 
-  const updateConnection = React.useCallback((updated: Connection)=>{
+  const updateConnection = React.useCallback((id: Uuid, fn: (curr: Connection)=>Connection)=>{
     setState(st => {
+      const curr = st.flow.connections.find(conn => conn.id === id);
+      if (!curr) return st;
+      const updated = fn(curr);
       const new_conns = st.flow.connections.filter(conn => conn.id !== updated.id);
       new_conns.push(updated);
       return {...st, flow: {...st.flow, connections: new_conns}}
     })
   }, []);
 
-  const updateService = React.useCallback((updated: MiNiFiService)=>{
+  const updateService = React.useCallback((id: Uuid, fn: (curr: MiNiFiService)=>MiNiFiService)=>{
     setState(st => {
+      const curr = st.flow.services.find(serv => serv.id === id);
+      if (!curr) return st;
+      const updated = fn(curr);
       const new_services = st.flow.services.filter(serv => serv.id !== updated.id);
       new_services.push(updated);
       return {...st, flow: {...st.flow, services: new_services}}
@@ -480,11 +574,11 @@ function useFlowContext(areaRef: React.RefObject<HTMLDivElement>, state: FlowEdi
     setState(st => {
       if (!st.newComponent) return st;
       if (id === null) {
-        return {...st, newComponent: null};
+        return {...st, newComponent: null, newConnection: null};
       }
       const procManifest = st.flow.manifest.processors.find(proc => proc.type === id);
       if (!procManifest) {
-        return {...st, newComponent: null};
+        return {...st, newComponent: null, newConnection: null};
       }
       const name = getUnqualifiedName(id);
       const newProcessor: Processor = {
@@ -504,7 +598,12 @@ function useFlowContext(areaRef: React.RefObject<HTMLDivElement>, state: FlowEdi
         properties: createDefaultProperties(procManifest.propertyDescriptors ?? {}),
         visibleProperties: []
       };
-      return {...st, flow: {...st.flow, processors: [...st.flow.processors, newProcessor]}, newComponent: null};
+      let connections = st.flow.connections;
+      if (st.newComponent.srcProcessor) {
+        connections = connections.slice();
+        connections.push(createDefaultConnection(st.newComponent.srcProcessor, newProcessor.id));
+      }
+      return {...st, flow: {...st.flow, processors: [...st.flow.processors, newProcessor], connections}, newComponent: null, newConnection: null};
     })
   }, []);
 

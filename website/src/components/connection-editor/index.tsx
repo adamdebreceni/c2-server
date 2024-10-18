@@ -7,11 +7,10 @@ import "./index.scss"
 
 export function ConnectionEditor(props: {model: Connection}) {
   const flow_context = useContext(FlowContext);
-  const [model, setModel] = React.useState(props.model);
-  React.useEffect(()=>{
-    if (model === props.model) return;
-    flow_context?.updateConnection(model);
-  }, [model, flow_context?.updateProcessor]);
+  const setModel = React.useMemo(()=>{
+    return (fn: (curr: Connection)=>Connection) => flow_context!.updateConnection(props.model.id, fn);
+  }, [props.model.id, flow_context!.updateConnection]);
+  const model = props.model;
   return <div className="component-settings">
     <div className="section">
       <div className="section-title">General</div>

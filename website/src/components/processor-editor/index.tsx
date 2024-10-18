@@ -19,12 +19,10 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
   const notif = useContext(NotificationContext);
   const flow_context = useContext(FlowContext);
   const openModal = useContext(ModalContext);
-  const [model, setModel] = React.useState(props.model);
-  console.log(`Properties: ${Object.keys(model.properties).join(', ')}`)
-  React.useEffect(()=>{
-    if (model === props.model) return;
-    flow_context?.updateProcessor(model);
-  }, [props.model, model, flow_context?.updateProcessor]);
+  const setModel = React.useMemo(()=>{
+    return (fn: (curr: Processor)=>Processor) => flow_context!.updateProcessor(props.model.id, fn);
+  }, [props.model.id, flow_context!.updateProcessor]);
+  const model = props.model;
   const onNewDynamicProperty = React.useCallback((prop: string) => {
     setModel(curr => {
       if (prop in curr.properties) {

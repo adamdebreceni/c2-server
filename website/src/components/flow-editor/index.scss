@@ -22,6 +22,7 @@
 
   .menu-container {
     position: absolute;
+    z-index: 1000;
   }
 
   .component-editor-container {
@@ -101,4 +102,8 @@
       background-color: rgba(0, 0, 0, 0.182);
     }
   }
+}
+
+.link-cursor {
+  cursor: url(link-add.svg) 12 12, auto;
 }

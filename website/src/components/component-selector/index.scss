@@ -1,4 +1,4 @@
-.processor-selector {
+.component-selector {
   position: relative;
   width: 600px;
   max-width: 100%;
@@ -50,13 +50,13 @@
     }
   }
 
-  .processor-list {
+  .component-list {
     height: 500px;
     overflow: scroll;
     --text-color: rgb(55, 55, 55);
 
-    .processor-list-inner {
-      .processor-list-item {
+    .component-list-inner {
+      .component-list-item {
         &.active {
           .header {
             background-color: rgb(241, 241, 241);

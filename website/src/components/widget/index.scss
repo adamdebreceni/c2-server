@@ -7,7 +7,7 @@
   }
   &.highlight {
     .processor-view {
-      border-color: rgb(61, 103, 255);
+      border-color: rgb(61, 103, 255) !important;
     }
   }
   &.service {
@@ -21,6 +21,9 @@
       height: 50px;
       border: 5px solid rgb(83, 83, 83);
       border-radius: 50%;
+    }
+    &.extended {
+      border: 2px solid transparent;
     }
     box-sizing: border-box;
     position: relative;

@@ -2,8 +2,11 @@ type Time = string & {__Time__: "__Time__"};
 type Size = string & {__Size__: "__Size__"};
 type Uuid = string & {__Uuid__: "__Uuid__"};
 
+type WidgetSize = {width: number, height: number, circular?: boolean};
+
 interface Positionable {
-  position: {x: number, y: number}
+  position: {x: number, y: number},
+  size?: WidgetSize
 }
 
 interface FlowObject {

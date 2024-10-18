@@ -1,0 +1,17 @@
+.ai-widget {
+  width: 400px;
+  .header {
+    width: 100%;
+    padding: 20px;
+    padding-bottom: 0px;
+    box-sizing: border-box;
+  }
+  .prompt {
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.318));
+  background-color: white;
+  border-radius: 3px;
+}
