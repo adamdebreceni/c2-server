@@ -21,7 +21,8 @@ import { ServiceEditor } from "../service-editor";
 
 interface NewConnection {
   source: Uuid,
-  to: {x: number, y: number} | Uuid | null
+  to: {x: number, y: number} | Uuid | null,
+  midPoint: {x: number, y: number} | number | null
 };
 
 interface FlowEditorState {
@@ -43,18 +44,32 @@ function height(proc: Processor) {
   return proc.size?.height ?? 50;
 }
 
-function createDefaultConnection(src: Uuid, dst: Uuid): Connection {
+function createDefaultConnection(flow: FlowObject, src: Uuid, dst: Uuid, midPoint?: {x: number, y: number}|number|null): Connection {
+  const proc = flow.processors.find(proc => proc.id === src)!;
+  const rels: {[name: string]: boolean} = {};
+  for (const rel in proc.autoterminatedRelationships) {
+    rels[rel] = false;
+  }
+  const manifest = flow.manifest.processors.find(proc_manifest => proc_manifest.type === proc.type);
+  if (manifest?.supportsDynamicRelationships) {
+    for (const prop in proc.properties) {
+      if (!manifest.propertyDescriptors || !(prop in manifest.propertyDescriptors)) {
+        rels[prop] = false;
+      }
+    }
+  }
   return {
     id: uuid.v4() as Uuid,
     name: null,
     source: {id: src, port: null},
-    sourceRelationships: {},
+    sourceRelationships: rels,
     destination: {id: dst, port: null},
     flowFileExpiration: "0 seconds",
     backpressureThreshold: {count: "10000", size: "10 MB"},
     swapThreshold: null,
     errors: [],
-    attributes: []
+    attributes: [],
+    midPoint: midPoint ?? undefined
   }
 }
 
@@ -132,9 +147,17 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
           const {x, y} = toAreaCoords(areaRef, st, e);
           const proc = findConnDestProc(st, {x, y});
           if (proc) {
-            return {...st, newConnection: {...st.newConnection, to: proc.id}};
+            if (proc.id === st.newConnection.source) {
+              let vx = x - (proc.position.x + width(proc) / 2);
+              let vy = y - (proc.position.y + height(proc) / 2);
+              const d = Math.sqrt(vx ** 2 + vy ** 2);
+              vx = vx * (Math.max(width(proc) / 2, height(proc) / 2) + 50) / d;
+              vy = vy * (Math.max(width(proc) / 2, height(proc) / 2) + 50) / d;
+              return {...st, newConnection: {...st.newConnection, to: proc.id, midPoint: {x: vx, y: vy}}};
+            }
+            return {...st, newConnection: {...st.newConnection, to: proc.id, midPoint: null}};
           }
-          return {...st, newConnection: {...st.newConnection, to: {x, y}}}
+          return {...st, newConnection: {...st.newConnection, to: {x, y}, midPoint: null}}
         }
         if (!st.panning) {
           if (st.menu) return st;
@@ -144,7 +167,7 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
             if (!st.newConnection) return st;
             return {...st, newConnection: null}
           }
-          return {...st, newConnection: {source: proc.id, to: null}};
+          return {...st, newConnection: {source: proc.id, to: null, midPoint: null}};
         }
 
         return {
@@ -159,32 +182,7 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
         if (st.newComponent || st.editingComponent || st.publish) return st;
         if (!st.panning && !st.newConnection) return st;
         if (typeof st.newConnection?.to === "string") {
-          // create new connection
-          const proc = st.flow.processors.find(proc => proc.id === st.newConnection!.source)!;
-          const rels: {[name: string]: boolean} = {};
-          for (const rel in proc.autoterminatedRelationships) {
-            rels[rel] = false;
-          }
-          const manifest = st.flow.manifest.processors.find(proc_manifest => proc_manifest.type === proc.type);
-          if (manifest?.supportsDynamicRelationships) {
-            for (const prop in proc.properties) {
-              if (!manifest.propertyDescriptors || !(prop in manifest.propertyDescriptors)) {
-                rels[prop] = false;
-              }
-            }
-          }
-          const newConn: Connection = {
-            id: uuid.v4() as Uuid,
-            name: null,
-            source: {id: st.newConnection.source, port: null},
-            sourceRelationships: rels,
-            destination: {id: st.newConnection.to, port: null},
-            flowFileExpiration: "0 seconds",
-            backpressureThreshold: {count: "10000", size: "10 MB"},
-            swapThreshold: null,
-            errors: [],
-            attributes: []
-          }
+          const newConn = createDefaultConnection(st.flow, st.newConnection.source, st.newConnection.to, st.newConnection.midPoint);
           return {...st, flow: {...st.flow, connections: [...st.flow.connections, newConn]}, newConnection: null};
         }
         const {x, y} = toAreaCoords(areaRef, st, e);
@@ -194,7 +192,7 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
         let newConnection: NewConnection | null = null;
         const proc = findConnSourceProc(st, {x, y});
         if (proc) {
-          newConnection = {source: proc.id, to: null};
+          newConnection = {source: proc.id, to: null, midPoint: null};
         }
         return {...st, panning: false, newConnection};
       })
@@ -297,7 +295,7 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
               h: height(src) + 2 * padding,
               circular: src.size?.circular ?? true
             }}
-            to={to}/>
+            to={to} midPoint={state.newConnection.midPoint ?? undefined}/>
           })()
         }
         {
@@ -455,6 +453,38 @@ function useFlowContext(areaRef: React.RefObject<HTMLDivElement>, state: FlowEdi
     })
   }, []);
 
+  const moveConnection = React.useCallback((id: Uuid, dx: number, dy: number)=>{
+    setState(st => {
+      const conn = st.flow.connections.find(conn => conn.id === id);
+      if (!conn) return st;
+      const srcProc = st.flow.processors.find(proc => proc.id === conn.source.id);
+      const dstProc = st.flow.processors.find(proc => proc.id === conn.destination.id);
+      if (!srcProc || !dstProc) return st;
+      const src_x = srcProc.position.x + width(srcProc) / 2;
+      const src_y = srcProc.position.y + height(srcProc) / 2;
+      const dst_x = dstProc.position.x + width(dstProc) / 2;
+      const dst_y = dstProc.position.y + height(dstProc) / 2;
+      if (srcProc !== dstProc) {
+        // different processors
+        let vx = dst_x - src_x;
+        let vy = dst_y - src_y;
+        const d = Math.sqrt(vx ** 2 + vy ** 2);
+        vx /= d;
+        vy /= d;
+        let [nx, ny] = [-vy, vx];
+        const new_distance = (typeof conn.midPoint === "number" ? conn.midPoint : 0) + nx * dx + ny * dy;
+        const new_connections = st.flow.connections.filter(conn => conn.id !== id);
+        new_connections.push({...conn, midPoint: new_distance});
+        return {...st, flow: {...st.flow, connections: new_connections}};
+      }
+      // loop connection
+      const new_midpoint = (typeof conn.midPoint === "object") ? {x: conn.midPoint.x + dx, y: conn.midPoint.y + dy} : {x: dx, y: dy};
+      const new_connections = st.flow.connections.filter(conn => conn.id !== id);
+      new_connections.push({...conn, midPoint: new_midpoint});
+      return {...st, flow: {...st.flow, connections: new_connections}};
+    })
+  }, []);
+
   const deleteComponent = React.useCallback((id: Uuid)=>{
     setState(st=>{
       if (st.flow.processors.find(proc => proc.id === id)) {
@@ -601,7 +631,7 @@ function useFlowContext(areaRef: React.RefObject<HTMLDivElement>, state: FlowEdi
       let connections = st.flow.connections;
       if (st.newComponent.srcProcessor) {
         connections = connections.slice();
-        connections.push(createDefaultConnection(st.newComponent.srcProcessor, newProcessor.id));
+        connections.push(createDefaultConnection(st.flow, st.newComponent.srcProcessor, newProcessor.id));
       }
       return {...st, flow: {...st.flow, processors: [...st.flow.processors, newProcessor], connections}, newComponent: null, newConnection: null};
     })
@@ -630,8 +660,8 @@ function useFlowContext(areaRef: React.RefObject<HTMLDivElement>, state: FlowEdi
     })
   }, [])
 
-  return React.useMemo(()=>({showMenu, moveComponent, deleteComponent, hideMenu, editComponent, updateProcessor, updateConnection, updateService, closeComponentEditor, closeNewProcessor, closeNewService}),
-    [showMenu, moveComponent, deleteComponent, hideMenu, editComponent, updateProcessor, updateConnection, updateService, closeComponentEditor, closeNewProcessor, closeNewService]);
+  return React.useMemo(()=>({showMenu, moveComponent, deleteComponent, hideMenu, editComponent, updateProcessor, updateConnection, updateService, closeComponentEditor, closeNewProcessor, closeNewService, moveConnection}),
+    [showMenu, moveComponent, deleteComponent, hideMenu, editComponent, updateProcessor, updateConnection, updateService, closeComponentEditor, closeNewProcessor, closeNewService, moveConnection]);
 }
 
 function getUnqualifiedName(name: string) {

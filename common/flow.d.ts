@@ -74,6 +74,10 @@ interface Connection {
   flowFileExpiration: string,
   swapThreshold: string|null,
   backpressureThreshold: {count: string, size: string}
+  // the distance from the line connecting the source and destination
+  // and when the connection is pointing right (x = 1, y = 0) which way the midPoint should be (positive for right, negative for left)
+  // when the connection is a loop the position relative to the source
+  midPoint?: number | {x: number, y: number}
 }
 
 interface MiNiFiService extends Component {}
