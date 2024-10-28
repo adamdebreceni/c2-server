@@ -2,6 +2,7 @@ import * as React from "react";
 import { FlowContext } from "../../common/flow-context";
 import { ConnectionErrorBadge } from "../connection-error/badge";
 import "./index.scss";
+import { Toggle } from "../component-editor-toggle";
 
 export function IsInside(area: {x: number, y: number, w: number, h: number, circular: boolean}, x: number, y: number): boolean {
   if (area.circular) {
@@ -196,8 +197,10 @@ export function ConnectionView(props: {model?: Connection, id?: Uuid, from: {x: 
 
 function ConnectionName(props: {id: Uuid, model: Connection, x: number, y: number, name?: string}) {
   const [grabbing, setGrabbing] = React.useState(false);
+  const [inline_rels, setInlineRels] = React.useState(false);
   const flow_context = React.useContext(FlowContext);
   const view_ref = React.useRef<HTMLDivElement>(null);
+  const inline_rel_ref = React.useRef<HTMLDivElement>(null);
   const onmousedown = React.useCallback((e: React.MouseEvent)=>{
     if (e.button !== 0) return;
     setGrabbing(true);
@@ -219,6 +222,10 @@ function ConnectionName(props: {id: Uuid, model: Connection, x: number, y: numbe
     }
   }, [grabbing, props.id, flow_context?.updateConnection]);
 
+  const onclick = React.useCallback((e: React.MouseEvent) => {
+    setInlineRels(true);
+  }, []);
+
   const oncontextmenu = React.useCallback((e: React.MouseEvent)=>{
     const id = props.id;
     if (!id) return;
@@ -231,15 +238,32 @@ function ConnectionName(props: {id: Uuid, model: Connection, x: number, y: numbe
       flow_context.deleteComponent(id)
       flow_context.hideMenu();
     }}])
+    setInlineRels(false);
   }, [flow_context?.showMenu, flow_context?.deleteComponent, props.id])
+
+  const onblur = React.useCallback(()=>{
+    setInlineRels(false);
+  }, []);
+
+  React.useEffect(()=>{
+    if (inline_rels && inline_rel_ref.current) {
+      inline_rel_ref.current.focus();
+    }
+  }, [inline_rels])
 
   const ondblclick = React.useCallback(()=>{
     if (!props.id) return;
     flow_context?.editComponent(props.id);
+    setInlineRels(false);
   }, [props.id, flow_context?.editComponent]);
 
-  return <div ref={view_ref} className="name" style={{left: `${props.x}px`, top: `${props.y}px`}} onContextMenu={oncontextmenu} onMouseDown={onmousedown} onDoubleClick={ondblclick}>
+  return <div ref={view_ref} className="name" style={{left: `${props.x}px`, top: `${props.y}px`}} onContextMenu={oncontextmenu} onMouseDown={onmousedown} onDoubleClick={ondblclick} onClick={onclick}>
     {props.name ? props.name : "<unspecified>"}
     {props.model?.errors.length !== 0 ? <ConnectionErrorBadge/> : null}
+    <div ref={inline_rel_ref} className={`inline-relationship-picker ${inline_rels ? 'active': ''}`} tabIndex={-1} onBlur={onblur}>
+      {Object.keys(props.model.sourceRelationships).map(rel => {
+        return <Toggle key={rel} marginBottom="10px" name={rel} initial={props.model.sourceRelationships[rel]} onChange={val => flow_context!.updateConnection(props.model.id, curr => ({...curr, sourceRelationships: {...curr.sourceRelationships, [rel]: val}}))} />
+      })}
+    </div>
   </div>
 }

@@ -3,7 +3,7 @@
   overflow: visible;
   pointer-events: none;
 
-  .name {
+  & > .name {
     z-index: 100;
     position: absolute;
     transform: translate(-50%, -50%);
@@ -13,5 +13,21 @@
     box-shadow: 0 0 3px black;
     white-space: pre;
     pointer-events: all;
+
+    .inline-relationship-picker {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translate(-50%, 10px);
+      background-color: white;
+      box-shadow: 0 0 3px rgba(0, 0, 0, 0.603);
+      padding: 10px;
+      padding-bottom: 0px;
+      border-radius: 3px;
+      outline: none;
+      &:not(.active) {
+        display: none;
+      }
+    }
   }
 }

@@ -15,9 +15,9 @@ export function SerializeFlowToJson(id: string, flow: FlowObject): string {
     result["rootGroup"] = {
         "identifier": id,
         "name": "MiNiFi Flow",
-        "position": {"x": 0.0, "y": 0.0},
+        "position": {"x": flow.view.x, "y": flow.view.y},
         "processors": flow.processors.map(proc => ({
-            "position": {"x": 0.0, "y": 0.0},
+            "position": {"x": proc.position.x, "y": proc.position.y},
             "identifier": proc.id,
             "name": proc.name,
             "type": proc.type,
@@ -44,7 +44,10 @@ export function SerializeFlowToJson(id: string, flow: FlowObject): string {
             const dst = flow.processors.find(proc => conn.destination.id === proc.id)!;
             const rels = Object.keys(conn.sourceRelationships).filter(rel => conn.sourceRelationships[rel]);
             return {
-                "position": {"x": 0.0, "y": 0.0},
+                "position": {
+                    "x": typeof conn.midPoint === "number" ? conn.midPoint : (conn.midPoint?.x ?? 0.0),
+                    "y": (conn.midPoint && typeof conn.midPoint !== "number") ? conn.midPoint.y : 0.0
+                },
                 "labelIndex": 1,
                 "zIndex": 0,
                 "identifier": conn.id,
@@ -78,7 +81,7 @@ export function SerializeFlowToJson(id: string, flow: FlowObject): string {
         "flowFileConcurrency": "UNBOUNDED",
         "flowFileOutboundPolicy": "STREAM_WHEN_AVAILABLE",
         "controllerServices": flow.services.map(serv => ({
-            "position": {"x": 0.0, "y": 0.0},
+            "position": {"x": serv.position.x, "y": serv.position.y},
             "identifier": serv.id,
             "name": serv.name,
             "type": serv.type,
