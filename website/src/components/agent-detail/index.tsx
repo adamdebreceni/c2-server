@@ -11,27 +11,34 @@ import "./index.scss"
 export function AgentDetail() {
   const services = useContext(ServiceContext);
   const notif = useContext(NotificationContext)
-  const flowId = useParams<any>()["id"]!;
-  const [agent, setAgent] = useState<{value: AgentLike, manifest: JsonValue, response: JsonValue}|null|undefined>(undefined);
+  const agentId = useParams<any>()["id"]!;
+  const [agent, setAgent] = useState<{value: AgentLike, manifest: JsonValue, flow_info: JsonValue, response: JsonValue}|null|undefined>(undefined);
   const mounted = React.useRef<boolean>(true);
   useEffect(()=>{
-    services!.agents.fetchAgentInformation(flowId).then(new_agent => {
+    services!.agents.fetchAgentInformation(agentId).then(new_agent => {
       if (!mounted.current) return;
       if (new_agent) {
-        let manifest: JsonValue = null;
+        let manifest: AgentManifest|null = null;
         try {
           console.log("Parsing manifest: ", new_agent.manifest);
           manifest = JSON.parse(new_agent.manifest ?? "null");
         } catch (e) {
           notif.emit("Failed to parse agent manifest", "error");
         }
-        setAgent({value: new_agent, manifest, response: null});
+        let flow_info: FlowInfo|null = null;
+        try {
+          console.log("Parsing flow info: ", new_agent.flow_info);
+          flow_info = JSON.parse(new_agent.flow_info ?? "null");
+        } catch (e) {
+          notif.emit("Failed to parse flow info", "error");
+        }
+        setAgent({value: new_agent, manifest, flow_info, response: null});
       } else {
         setAgent(null);
       }
     })
     return ()=>{mounted.current = false;}
-  }, [flowId])
+  }, [agentId])
   const req_widget = React.useRef<HTMLTextAreaElement|null>(null);
   const req_cb = React.useCallback(()=>{
     if (!agent?.value.id || !req_widget.current) return;
@@ -76,6 +83,7 @@ export function AgentDetail() {
         <div className="property flow"><div className="name">Flow</div><div className="value">{agent.value.flow}</div></div>
       </div>
       <div className="tab"><div className="title">Manifest</div><div className="content"><JsonView value={agent.manifest}/></div></div>
+      <div className="tab"><div className="title">FlowInfo</div><div className="content"><JsonView value={agent.flow_info}/></div></div>
       <div className="tab">
         <div className="title">Request
           <SendButton onClick={req_cb} />

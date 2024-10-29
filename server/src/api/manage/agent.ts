@@ -1,5 +1,5 @@
 import { json, Router } from "express";
-import { PendingDebugInfo, PendingOperationRequest, PendingPropertyUpdates, PendingRestart, PendingUpdates } from "../../services/agent-state";
+import { PendingComponentStart, PendingComponentStop, PendingDebugInfo, PendingOperationRequest, PendingPropertyUpdates, PendingRestart, PendingUpdates } from "../../services/agent-state";
 import { MakeAsyncSafe } from "../../utils/async";
 
 export function CreateManageAgentRouter(services: Services): Router {
@@ -34,6 +34,31 @@ export function CreateManageAgentRouter(services: Services): Router {
       resolve,
       reject
     });
+    await result;
+    res.sendStatus(200);
+  })
+
+  router.post("/:agentId/stop-component/:componentId", async (req, res) => {
+    let resolve: ()=>void = null as any;
+    let reject: ()=>void = null as any;
+    const result = new Promise<void>((res, rej)=>{
+      resolve = res;
+      reject = rej;
+    })
+    console.log(`STOP requested`);
+    PendingComponentStop.set(req.params.agentId, {id: req.params.componentId, resolve, reject});
+    await result;
+    res.sendStatus(200);
+  })
+
+  router.post("/:agentId/start-component/:componentId", async (req, res) => {
+    let resolve: ()=>void = null as any;
+    let reject: ()=>void = null as any;
+    const result = new Promise<void>((res, rej)=>{
+      resolve = res;
+      reject = rej;
+    })
+    PendingComponentStart.set(req.params.agentId, {id: req.params.componentId, resolve, reject});
     await result;
     res.sendStatus(200);
   })

@@ -19,7 +19,24 @@ interface AgentLike {
   flow: string|null,
   metrics: AgentMetrics|null,
   manifest?: string|null
-  last_heartbeat: Date|null
+  last_heartbeat: Date|null,
+  flow_info: string|null
+}
+
+interface FlowInfo {
+  flowId: Uuid,
+  queues: {[id: Uuid]: {
+    dataSize: number,
+    dataSizeMax: number,
+    name: string,
+    size: number,
+    sizeMax: number,
+    uuid: Uuid
+  }},
+  components: {[name: string]: {
+    running: boolean,
+    uuid: Uuid
+  }}
 }
 
 interface AgentMetrics {}
@@ -48,6 +65,8 @@ interface AgentService {
   fetchAgentInformation(id: string): Promise<AgentLike|null>;
   dumpDebugInfo(id: string): Promise<{file: string}>
   sendRequest(id: string, req: JsonValue): Promise<string>
+  stopComponent(agentId: string, componentId: string): Promise<void>
+  startComponent(agentId: string, componentId: string): Promise<void>
   // fetchManifestForAgent(id: string): Promise<AgentManifest|null>;
   // fetchManifestForClass(name: string): Promise<AgentManifest|null>;
 }

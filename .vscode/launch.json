@@ -16,7 +16,8 @@
       "outFiles": [
         "${workspaceFolder}/server/build/**/*.js"
       ],
-      "preLaunchTask": "Build Server"
+      "preLaunchTask": "Build Server",
+      "runtimeExecutable": "/opt/homebrew/bin/node"
     }
   ]
 }

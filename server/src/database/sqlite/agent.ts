@@ -1,13 +1,13 @@
 import * as sqlite from "sqlite3";
 
-const selected_fields = ["id", "class", "flow", "last_heartbeat", "target_flow"] as const;
+const selected_fields = ["id", "class", "flow", "last_heartbeat", "target_flow", "flow_info"] as const;
 
 export class AgentDatabase {
   constructor(private db: sqlite.Database) {}
 
   async insert(agent: Agent): Promise<void> {
     return new Promise((resolve, reject)=>{
-      this.db.run(`INSERT INTO agents (id, class, flow, target_flow, manifest) values (?, ?, ?, ?, ?)`, [agent.id, agent.class, agent.flow, agent.target_flow, agent.manifest], (err: Error|null)=>{
+      this.db.run(`INSERT INTO agents (id, class, flow, target_flow, manifest, flow_info) values (?, ?, ?, ?, ?, ?)`, [agent.id, agent.class, agent.flow, agent.target_flow, agent.manifest, agent.flow_info], (err: Error|null)=>{
         if (!err) {
           console.log(`Registered agent ${serialize(agent)}`);
           resolve();
@@ -87,7 +87,7 @@ export class AgentDatabase {
 export function createWhereClause(agent: Partial<Agent>): {query: string, params: any[]}|null {
   const conditions: string[] = [];
   const params: any[] = [];
-  for (const field of ["id", "class", "flow", "last_heartbeat", "target_flow", "manifest"]) {
+  for (const field of ["id", "class", "flow", "last_heartbeat", "target_flow", "manifest", "flow_info"]) {
     if (field in agent) {
       conditions.push(`${field} = ?`);
       params.push((agent as any)[field]);
@@ -102,7 +102,7 @@ export function createWhereClause(agent: Partial<Agent>): {query: string, params
 function createUpdateClause(new_agent: Partial<Agent>): {update: string, params: any[]}|null {
   const setter: string[] = [];
   const params: any[] = [];
-  for (const field of ["class", "flow", "last_heartbeat", "target_flow", "manifest"]) {
+  for (const field of ["class", "flow", "last_heartbeat", "target_flow", "manifest", "flow_info"]) {
     if (field in new_agent) {
       setter.push(`${field} = ?`);
       params.push((new_agent as any)[field]);

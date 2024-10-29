@@ -5,6 +5,12 @@
   flex-direction: column;
   padding-bottom: 100px;
 
+  .uuid {
+    font-family: monospace;
+    margin-top: 10px;
+    color: rgb(114, 114, 114);
+  }
+
   .section {
     margin-top: 20px;
     .section-title {

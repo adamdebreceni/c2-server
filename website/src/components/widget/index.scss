@@ -12,7 +12,7 @@
   }
   &.service {
     .processor-view {
-      border-color: rgb(145, 61, 255);
+      border-color: rgb(145, 61, 255) !important;
     }
   }
   .processor-view{
@@ -32,6 +32,46 @@
       position: absolute;
       right: -5px;
       bottom: -5px;
+    }
+
+    .processor-state {
+      display: inline-block;
+      cursor: pointer;
+      position: absolute;
+      right: -12px;
+      top: -12px;
+      border-radius: 50%;
+      background-color: white;
+      border: 4px solid;
+
+      &.STARTED {
+        border-color: #008A00;
+      }
+
+      &.STOPPED {
+        border-color: #8a8a8a;
+      }
+
+      .pause-icon {
+        fill:  #8a8a8a;
+      }
+
+      .play-icon {
+        fill: #008A00;
+      }
+
+      &.STARTING, &.STOPPING, &.UNKNOWN {
+        border-color: #f4f4f4;
+        border-top-color: #389fe3;
+        width: 28px;
+        height: 28px;
+        animation: spin 2s linear infinite;
+      }
+        
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
     }
 
     .name {

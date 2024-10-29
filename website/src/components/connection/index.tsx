@@ -11,7 +11,7 @@ export function IsInside(area: {x: number, y: number, w: number, h: number, circ
   return area.x - area.w/2 <= x && x <= area.x + area.w/2 && area.y - area.h/2 <= y && y <= area.y + area.h/2;
 }
 
-export function ConnectionView(props: {model?: Connection, id?: Uuid, from: {x: number, y: number, w: number, h: number, circular: boolean}, to: {x: number, y: number, w: number, h: number, circular: boolean}, name?: string, midPoint?: {x: number, y: number}|number}) {
+export function ConnectionView(props: {model?: Connection, id?: Uuid, from: {x: number, y: number, w: number, h: number, circular: boolean}, to: {x: number, y: number, w: number, h: number, circular: boolean}, name?: string, midPoint?: {x: number, y: number}|number, readonly?: boolean}) {
   const midPoint = props.model?.midPoint ?? props.midPoint;
   
   let v_x = props.to.x - props.from.x;
@@ -195,6 +195,28 @@ export function ConnectionView(props: {model?: Connection, id?: Uuid, from: {x: 
   </div>
 }
 
+const usage_colors = [
+  {bg: "#01A701", color: "#000000"}, 
+  {bg: "#1DAD01", color: "#000000"}, 
+  {bg: "#39B302", color: "#000000"}, 
+  {bg: "#56B902", color: "#000000"}, 
+  {bg: "#72BF02", color: "#000000"}, 
+  {bg: "#8EC603", color: "#000000"}, 
+  {bg: "#AACC03", color: "#000000"}, 
+  {bg: "#C7D203", color: "#000000"}, 
+  {bg: "#E3D804", color: "#000000"}, 
+  {bg: "#FFDE04", color: "#000000"}, 
+  {bg: "#F9C504", color: "#000000"}, 
+  {bg: "#F4AD03", color: "#000000"}, 
+  {bg: "#EE9403", color: "#000000"}, 
+  {bg: "#E97B02", color: "#000000"}, 
+  {bg: "#E36302", color: "#000000"}, 
+  {bg: "#DE4A01", color: "#000000"}, 
+  {bg: "#D83101", color: "#ffffff"}, 
+  {bg: "#D31900", color: "#ffffff"}, 
+  {bg: "#CD0000", color: "#ffffff"}, 
+]
+
 function ConnectionName(props: {id: Uuid, model: Connection, x: number, y: number, name?: string}) {
   const [grabbing, setGrabbing] = React.useState(false);
   const [inline_rels, setInlineRels] = React.useState(false);
@@ -223,8 +245,11 @@ function ConnectionName(props: {id: Uuid, model: Connection, x: number, y: numbe
   }, [grabbing, props.id, flow_context?.updateConnection]);
 
   const onclick = React.useCallback((e: React.MouseEvent) => {
+    if (!flow_context?.editable) {
+      return;
+    }
     setInlineRels(true);
-  }, []);
+  }, [flow_context?.editable]);
 
   const oncontextmenu = React.useCallback((e: React.MouseEvent)=>{
     const id = props.id;
@@ -265,5 +290,38 @@ function ConnectionName(props: {id: Uuid, model: Connection, x: number, y: numbe
         return <Toggle key={rel} marginBottom="10px" name={rel} initial={props.model.sourceRelationships[rel]} onChange={val => flow_context!.updateConnection(props.model.id, curr => ({...curr, sourceRelationships: {...curr.sourceRelationships, [rel]: val}}))} />
       })}
     </div>
+    {props.model.size ? 
+      <div className="inline-usage">
+        <div className="size">{asSize(props.model.size!.data)}B / {asSize(props.model.size!.dataMax)}B</div>
+        <div className="count">{asSize(props.model.size!.count)} / {asSize(props.model.size!.countMax)}</div>
+        <div className="scale" style={getColor(props.model.size)}></div>
+      </div>
+      : null
+    }
   </div>
+}
+
+function getColor(size: ConnectionSize): {backgroundColor: string, width: string} {
+  let scale: number;
+  if (size.countMax === 0 || size.dataMax === 0) {
+    scale = 0.0;
+  } else {
+    scale = Math.min(Math.max(size.count / size.countMax, size.data / size.dataMax, 0.0), 1.0);
+  }
+  const index = Math.min(Math.floor(usage_colors.length * scale), usage_colors.length - 1);
+  return {backgroundColor: usage_colors[index].bg, width: `${Math.floor(scale * 100)}%`};
+}
+
+function asSize(val: number): string {
+  if (val < 10000) {
+    return `${val}`;
+  }
+  const suffices = ['K', 'M', 'G', 'T', 'P'];
+  for (let i = 0; i < suffices.length; ++i) {
+    val /= 1000;
+    if (val < 10000) {
+      return `${val.toPrecision(4)}${suffices[i]}`;
+    }
+  }
+  return `${val}${suffices[suffices.length - 1]}`;
 }

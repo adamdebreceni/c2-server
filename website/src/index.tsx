@@ -12,6 +12,7 @@ import { AgentList } from './components/agent-list';
 import { NotificationLayer } from './components/notification';
 import { ModalLayer } from './components/modal-layer';
 import { AgentDetail } from './components/agent-detail';
+import { AgentFlow } from './components/agent-flow';
 
 const services = CreateServices();
 
@@ -26,8 +27,10 @@ function App() {
               <Route path="/agent-classes" element={<AgentClasses/>} />
               <Route path="/agents" element={<AgentList/>} />
               <Route path="/agent/:id" element={<AgentDetail/>} />
+              <Route path="/agent/:id/flow" element={<AgentFlow/>} />
               <Route path="/flows" element={<Flows/>} />
-              <Route path="/flow/:id" element={<FlowView/>} />
+              <Route path="/flow/:id" element={<FlowView editable={true}/>} />
+              <Route path="/flow/edit/:id" element={<FlowView editable={false}/>} />
             </Routes>
           </div>
         </ModalLayer>

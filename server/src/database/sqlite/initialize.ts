@@ -25,7 +25,8 @@ export async function initialize(): Promise<Database> {
         flow TEXT,
         target_flow TEXT,
         last_heartbeat TEXT,
-        manifest TEXT
+        manifest TEXT,
+        flow_info TEXT
       )
     `, (err: Error|null)=>{
       if (err) {

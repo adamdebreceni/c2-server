@@ -4,8 +4,10 @@ import "./index.scss"
 import { Tooltip } from "../tooltip";
 import { WarningIcon } from "../../icons/warning";
 import { ExtendedWidget, IsExtended } from "../extended-widget";
+import { PlayIcon } from "../../icons/play";
+import { PauseIcon } from "../../icons/pause";
 
-export function Widget(props: {highlight?: boolean, service?: boolean, value: Component, link?: boolean, errors?: ErrorObject[]}) {
+export function Widget(props: {highlight?: boolean, service?: boolean, value: Component, link?: boolean, errors?: ErrorObject[], readonly?: boolean}) {
   const [grabbing, setGrabbing] = React.useState(false);
   const flow_context = React.useContext(FlowContext);
   const onmousedown = React.useCallback((e: React.MouseEvent)=>{
@@ -70,6 +72,21 @@ export function Widget(props: {highlight?: boolean, service?: boolean, value: Co
   return <div className={`widget ${!grabbing && props.link ? "active": ""} ${props.highlight ? "highlight" : ""} ${props.service ? "service" : ""}`} style={{left: `${props.value.position.x}px`, top: `${props.value.position.y}px`}} onMouseDown={onmousedown} onContextMenu={oncontextmenu} onDoubleClick={ondblclick}>
     <div ref={view_ref} className={`processor-view ${IsExtended(props.value) ? "extended" : ""}`}>
       {(IsExtended(props.value) ? <ExtendedWidget value={props.value} /> : null)}
+      {props.value.running !== undefined ?
+        <ComponentState state={props.value.running} onClick={(()=>{
+          if (props.value.running !== "STARTED" && props.value.running !== "STOPPED") {
+            return undefined;
+          }
+          if (props.value.running === "STARTED" && flow_context?.stopProcessor) {
+            return ()=>flow_context!.stopProcessor!(props.value.id);
+          }
+          if (props.value.running === "STOPPED" && flow_context?.startProcessor) {
+            return ()=>flow_context!.startProcessor!(props.value.id);
+          }
+          return undefined;
+        })()} /> 
+        : null
+      }
       {(props.errors?.length ?? 0) === 0 ? null : <div className="processor-errors"><Tooltip message={(()=>{
         const messages = [];
         let first = true;
@@ -84,5 +101,12 @@ export function Widget(props: {highlight?: boolean, service?: boolean, value: Co
       })()}><WarningIcon size={20}/></Tooltip></div>}
       <div className="name">{props.value.name}</div>
     </div>
+  </div>
+}
+
+function ComponentState(props: {state: ComponentState, onClick?: ()=>void}) {
+  return <div className={`processor-state ${props.state}`} onClick={props.onClick}>
+    {props.state === "STARTED" ? <PlayIcon size={20} /> : null}
+    {props.state === "STOPPED" ? <PauseIcon size={20} /> : null}
   </div>
 }

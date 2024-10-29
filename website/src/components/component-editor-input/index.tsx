@@ -8,10 +8,11 @@ import { ModalContext } from "../../common/modal-context";
 import { VisibilityIcon } from "../../icons/visibility";
 import { PropertyVisibility } from "../property-visibility";
 
-export function InputField(props: {name: string, width?: string, default?: string|null, labelPaddingBottom?: number, onChange: (value: string)=>void, visible?: boolean, onChangeVisibility?: (name: string)=>void}) {
+export function InputField(props: {name: string, width?: string, default?: string|null, labelPaddingBottom?: number, onChange?: (value: string)=>void, visible?: boolean, onChangeVisibility?: (name: string)=>void}) {
   const openModal = useContext(ModalContext);
   const onChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>)=>{
-    props.onChange?.(e.currentTarget.value);
+    if (!props.onChange) return;
+    props.onChange(e.currentTarget.value);
   }, [props.onChange])
   const openTextEditor = React.useCallback(()=>{
     openModal(<TextEditorModal title={props.name} value={props.default ?? ""} onChange={props.onChange}/>);
@@ -26,7 +27,7 @@ export function InputField(props: {name: string, width?: string, default?: strin
       {(props.onChangeVisibility ? <PropertyVisibility active={props.visible ?? false} onClick={onChangeVisibility}/> : null)}
     </div>
     <div className="inner">
-      <input value={props.default ?? ""} onChange={onChange}/>
+      <input value={props.default ?? ""} onChange={onChange} readOnly={!props.onChange}/>
       <EditTextIcon size={24} onClick={openTextEditor}/>
     </div>
   </label>

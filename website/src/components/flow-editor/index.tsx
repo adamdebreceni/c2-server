@@ -660,7 +660,7 @@ function useFlowContext(areaRef: React.RefObject<HTMLDivElement>, state: FlowEdi
     })
   }, [])
 
-  return React.useMemo(()=>({showMenu, moveComponent, deleteComponent, hideMenu, editComponent, updateProcessor, updateConnection, updateService, closeComponentEditor, closeNewProcessor, closeNewService, moveConnection}),
+  return React.useMemo(()=>({showMenu, moveComponent, deleteComponent, hideMenu, editComponent, updateProcessor, updateConnection, updateService, closeComponentEditor, closeNewProcessor, closeNewService, moveConnection, editable: true}),
     [showMenu, moveComponent, deleteComponent, hideMenu, editComponent, updateProcessor, updateConnection, updateService, closeComponentEditor, closeNewProcessor, closeNewService, moveConnection]);
 }
 

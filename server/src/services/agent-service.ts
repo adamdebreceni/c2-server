@@ -21,19 +21,22 @@ export async function CreateAgentService(db: Database): Promise<AgentService> {
     fetchClasses(): Promise<AgentClass[]> {
       return db.classes.select({});
     },
-    async heartbeat(agent_hb: {id: string, class: string|null, flow: string | null, manifest: string|null}): Promise<{flow: FlowId|null, manifest: string|null}> {
+    async heartbeat(agent_hb: {id: string, class: string|null, flow: string | null, manifest: string|null, flow_info: string|null}): Promise<{flow: FlowId|null, manifest: string|null}> {
       const agent = {...agent_hb, last_heartbeat: new Date().toISOString()};
       const agents = await db.agents.select({id: agent.id}, true);
       if (agents.length > 1) {
         throw new Error("More than one agent with the same id in the database?");
       }
-      let manifest: string|null = agent_hb.manifest ?? agents[0].manifest ?? null;
+      let manifest: string|null = agent_hb.manifest ?? agents[0]?.manifest ?? null;
       let target_flow: string|null = null;
       if (agents.length === 1) {
         // console.log(`Updating agent id: ${agent.id}`);
         const agent_update: Partial<Agent> = {...agent};
         if (agent_update.manifest === null) {
           delete agent_update.manifest;
+        }
+        if (agent_update.flow_info === null) {
+          delete agent_update.flow_info;
         }
         await db.agents.update({id: agent.id}, agent_update);
         target_flow = agents[0].target_flow;

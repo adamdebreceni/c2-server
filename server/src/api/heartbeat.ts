@@ -1,6 +1,6 @@
 import {Router, json} from 'express';
 import { PORT } from '../server-options';
-import { PendingDebugInfo, PendingOperationRequest, PendingOperations, PendingPropertyUpdates, PendingRestart, PendingUpdates } from '../services/agent-state';
+import { PendingComponentStart, PendingComponentStop, PendingDebugInfo, PendingOperationRequest, PendingOperations, PendingPropertyUpdates, PendingRestart, PendingUpdates } from '../services/agent-state';
 import { MakeAsyncSafe } from '../utils/async';
 import * as uuid from 'uuid';
 
@@ -104,6 +104,32 @@ export function CreateHeartbeatRouter(services: Services) {
       }]})
     }
 
+    const component_stop = PendingComponentStop.get(id);
+    PendingComponentStop.delete(id);
+    if (component_stop) {
+      const opId = `${nextOperationId++}`;
+      PendingOperations.set(opId, component_stop);
+      return res.json({requestedOperations: [{
+        operationId: opId,
+        operation: "stop",
+        name: component_stop.id,
+        args: {}
+      }]})
+    }
+
+    const component_start = PendingComponentStart.get(id);
+    PendingComponentStart.delete(id);
+    if (component_start) {
+      const opId = `${nextOperationId++}`;
+      PendingOperations.set(opId, component_start);
+      return res.json({requestedOperations: [{
+        operationId: opId,
+        operation: "start",
+        name: component_start.id,
+        args: {}
+      }]})
+    }
+
     const manifest: AgentManifest|null = transformManifest(req.body.agentInfo?.agentManifest ?? null);
     if (manifest) {
       manifest.raw = req.body;
@@ -120,7 +146,12 @@ export function CreateHeartbeatRouter(services: Services) {
     if (flow !== null && typeof flow !== "string") {
       throw new Error(`Invalid agent flow: ${flow}`);
     }
-    const hb_result = await services.agentService.heartbeat({id, flow, class: class_name, manifest: manifest ? stableStringify(manifest) : null});
+    let flow_info_str = null;
+    if (req.body.flowInfo) {
+      flow_info_str = JSON.stringify(req.body.flowInfo);
+    }
+
+    const hb_result = await services.agentService.heartbeat({id, flow, class: class_name, manifest: manifest ? stableStringify(manifest) : null, flow_info: flow_info_str});
     const target_flow = hb_result.flow;
     const agent_manifest = hb_result.manifest;
     if (target_flow !== null && target_flow !== flow) {
@@ -152,12 +183,12 @@ export function CreateHeartbeatRouter(services: Services) {
         const class_name = response.agentInfo.agentClass;
         const manifest: AgentManifest|null = transformManifest(response.agentInfo.agentManifest);
         if (manifest) {
-          manifest.raw = resp_str;
+          manifest.raw = response;
         }
         if (response.agentInfo.agentManifestHash && manifest) {
           manifest.hash = response.agentInfo.agentManifestHash;
         }
-        return services.agentService.heartbeat({id, flow: null, class: class_name, manifest: manifest ? stableStringify(manifest) : null})
+        return services.agentService.heartbeat({id, flow: null, class: class_name, manifest: manifest ? stableStringify(manifest) : null, flow_info: null})
       })
       PendingOperations.set(opId, {resolve, reject});
       return res.json({requestedOperations: [

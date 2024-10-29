@@ -11,6 +11,7 @@ import { AgentMenu } from "../agent-menu";
 export function Agent(props: {value: AgentLike}) {
   const services = React.useContext(ServiceContext);
   const navigate = useNavigate();
+  const notif = React.useContext(NotificationContext);
   const goToAgent = React.useCallback(() => {
     navigate(`/agent/${props.value.id}`);
   }, [props.value.id]);
@@ -31,11 +32,9 @@ export function Agent(props: {value: AgentLike}) {
         if (props.value.flow) {
           services?.flows.fetch(props.value.flow).then(flow=>{
             if (!flow) {
-              services?.flows.create({agent: props.value.id}).then(id => {
-                navigate(`/flow/${id}`);
-              })
+              notif.emit(`Flow ${props.value.flow} is not available`, "error");
             } else {
-              navigate(`/flow/${props.value.flow}`)
+              navigate(`/agent/${props.value.id}/flow`)
             }
           })
         } else {

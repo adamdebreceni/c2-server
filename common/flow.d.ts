@@ -20,12 +20,15 @@ interface FlowObject {
   funnels: Funnel[]
 }
 
+type ComponentState = "UNKNOWN"|"STARTING"|"STARTED"|"STOPPING"|"STOPPED";
+
 interface Component extends Positionable {
   id: Uuid,
   type: string,
   name: string,
   properties: {[name: string]: string|null}
   visibleProperties?: string[]
+  running?: ComponentState
 }
 
 interface Funnel extends Positionable {
@@ -63,6 +66,13 @@ interface RPC extends Positionable {
   yield: Time
 }
 
+interface ConnectionSize {
+  data: number
+  count: number
+  dataMax: number
+  countMax: number
+}
+
 interface Connection {
   id: Uuid,
   name: string|null,
@@ -78,6 +88,7 @@ interface Connection {
   // and when the connection is pointing right (x = 1, y = 0) which way the midPoint should be (positive for right, negative for left)
   // when the connection is a loop the position relative to the source
   midPoint?: number | {x: number, y: number}
+  size?: ConnectionSize
 }
 
 interface MiNiFiService extends Component {}

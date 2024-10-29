@@ -13,4 +13,7 @@ export const FlowContext = React.createContext<{
   closeComponentEditor: ()=>void,
   closeNewProcessor: (name: string|null)=>void,
   closeNewService: (name: string|null)=>void,
+  editable: boolean
+  startProcessor?: (id: Uuid)=>void
+  stopProcessor?: (id: Uuid)=>void
 }|null>(null);
