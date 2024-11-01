@@ -14,8 +14,11 @@ import { DeleteIcon } from "../../icons/delete";
 import { Fill } from "../fill/Fill";
 import { PropertyField } from "../property-input";
 import { PropertyDropdown } from "../property-dropdown";
+import { ConfirmModal } from "../confirm-modal";
+import { ServiceContext } from "website/src/common/service-context";
+import { Loader } from "../loader";
 
-export function ProcessorEditor(props: {model: Processor, manifest: ProcessorManifest, errors: ErrorObject[]}) {
+export function ProcessorEditor(props: {model: Processor, manifest: ProcessorManifest, errors: ErrorObject[], state?: ComponentExtendedState}) {
   const notif = useContext(NotificationContext);
   const flow_context = useContext(FlowContext);
   const openModal = useContext(ModalContext);
@@ -58,9 +61,35 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
       return {...curr, visibleProperties: [...(curr.visibleProperties ?? []), prop]}
     });
   }, []);
+  const onClearState = React.useCallback(()=>{
+    if (!props.state) {
+      return;
+    }
+    openModal(<ConfirmModal confirmLabel="Delete" text={`Warning, you are about to irrevocably delete all state for the processor ${props.model.id} on this agent. Are you sure?`} onConfirm={()=>{
+      flow_context?.clearProcessorState?.(props.model.id);
+    }}/>)
+  }, [!!props.state, props.model.id]);
+  const [style_version, setStyleVersion] = React.useState<number>(4);
   return <div className="component-settings">
     <div className="type">{model.type}</div>
     <div className="uuid">{model.id}</div>
+    {props.state ?
+    <div className={`section processor-state version-${style_version}`}>
+      <div className="section-title"><span onClick={()=>setStyleVersion(v => (v + 1) % 5)}>Processor State</span><Fill/><DeleteIcon size={20} onClick={onClearState}/></div>
+        {
+          typeof props.state === "string" ?
+          <div className="state-loader-container"><div className="state-loader"></div></div>
+          : Object.keys(props.state).map(key => {
+            // return <InputField key={key} name={key} width="100%" default={props.state![key]}/>
+            return <div key={key} className="component-state-entry">
+              <div className="key">{key}</div>
+              <div className="value">{(props.state as ComponentKVState)[key]}</div>
+            </div>
+          })
+        }
+      </div>
+      : null
+    }
     <div className="section">
       <div className="section-title">General</div>
       <InputField name="NAME" width="100%" default={model.name} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, name: val})) : undefined}/>

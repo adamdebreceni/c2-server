@@ -5,6 +5,10 @@ export const PendingOperationRequest = new Map<string, {request: object, resolve
 
 export const PendingComponentStop = new Map<string, {id: string, resolve: ()=>void, reject: ()=>void}>();
 export const PendingComponentStart = new Map<string, {id: string, resolve: ()=>void, reject: ()=>void}>();
+export const PendingComponentRun = new Map<string, {id: string, input: RunInput, resolve: (result: string)=>void, reject: ()=>void}>();
+
+export const PendingComponentStateQuery = new Map<string, {resolve: (data?: any)=>void, reject: (reason?: string)=>void}>();
+export const PendingComponentStateClear = new Map<string, {components: string[], resolve: ()=>void, reject: (reason?: string)=>void}>();
 
 export const PendingOperations = new Map<string, {resolve: (data?: any)=>void, reject: (reason?: string)=>void}>()
 export const PendingPropertyUpdates = new Map<string, {properties: {name: string, value: string, persist: boolean}[], cb: {resolve: ()=>void, reject: ()=>void}}>();

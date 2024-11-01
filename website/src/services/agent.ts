@@ -48,8 +48,16 @@ export class AgentServiceImpl implements AgentService {
   }
 
   async sendRequest(id: string, req: JsonValue): Promise<string> {
-    return SendRequest("POST", this.api + `/agent/${id}`, req);
+    return SendRequest("POST", this.api + `/agent/${encodeURIComponent(id)}`, req);
   }
+  async fetchAgentComponentState(agentId: string): Promise<ComponentKVStateMap | null> {
+    return SendRequest("GET", this.api + `/agent/${encodeURIComponent(agentId)}/componentstate`)
+  }
+
+  async clearComponentState(agentId: string, componentId: string): Promise<void> {
+    return SendRequest("DELETE", this.api + `/agent/${encodeURIComponent(agentId)}/componentstate`, [componentId])
+  }
+
   // async fetchManifestForAgent(id: string): Promise<AgentManifest|null> {
   //   const response = await SendRequest("GET", this.api + "/agent/manifest/" + encodeURIComponent(id));
   //   return JSON.parse(response);

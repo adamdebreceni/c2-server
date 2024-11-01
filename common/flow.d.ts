@@ -9,6 +9,11 @@ interface Positionable {
   size?: WidgetSize
 }
 
+type ComponentState = "UNKNOWN"|"STARTING"|"STARTED"|"STOPPING"|"STOPPED";
+type ComponentKVState = {[k: string]: string};
+type ComponentExtendedState = ComponentKVState|"DELETING"
+type ComponentKVStateMap = {[id: string]: ComponentExtendedState}
+
 interface FlowObject {
   manifest: AgentManifest,
   view: {x: number, y: number, zoom: number}
@@ -18,9 +23,8 @@ interface FlowObject {
   services: MiNiFiService[]
   parameters: Parameter[]
   funnels: Funnel[]
+  state?: ComponentKVStateMap;
 }
-
-type ComponentState = "UNKNOWN"|"STARTING"|"STARTED"|"STOPPING"|"STOPPED";
 
 interface Component extends Positionable {
   id: Uuid,

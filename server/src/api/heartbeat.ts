@@ -1,6 +1,6 @@
 import {Router, json} from 'express';
 import { PORT } from '../server-options';
-import { PendingComponentStart, PendingComponentStop, PendingDebugInfo, PendingOperationRequest, PendingOperations, PendingPropertyUpdates, PendingRestart, PendingUpdates } from '../services/agent-state';
+import { PendingComponentRun, PendingComponentStart, PendingComponentStateClear, PendingComponentStateQuery, PendingComponentStop, PendingDebugInfo, PendingOperationRequest, PendingOperations, PendingPropertyUpdates, PendingRestart, PendingUpdates } from '../services/agent-state';
 import { MakeAsyncSafe } from '../utils/async';
 import * as uuid from 'uuid';
 
@@ -127,6 +127,45 @@ export function CreateHeartbeatRouter(services: Services) {
         operation: "start",
         name: component_start.id,
         args: {}
+      }]})
+    }
+
+    const component_state_query = PendingComponentStateQuery.get(id);
+    PendingComponentStateQuery.delete(id);
+    if (component_state_query) {
+      const opId = `${nextOperationId++}`;
+      PendingOperations.set(opId, component_state_query);
+      return res.json({requestedOperations: [{
+        operationId: opId,
+        operation: "describe",
+        name: "corecomponentstate",
+        args: {}
+      }]})
+    }
+
+    const component_state_clear = PendingComponentStateClear.get(id);
+    PendingComponentStateClear.delete(id);
+    if (component_state_clear) {
+      const opId = `${nextOperationId++}`;
+      PendingOperations.set(opId, component_state_clear);
+      return res.json({requestedOperations: [{
+        operationId: opId,
+        operation: "clear",
+        name: "corecomponentstate",
+        args: {...component_state_clear.components}
+      }]})
+    }
+
+    const component_run = PendingComponentRun.get(id);
+    PendingComponentRun.delete(id);
+    if (component_run) {
+      const opId = `${nextOperationId++}`;
+      PendingOperations.set(opId, component_run);
+      return res.json({requestedOperations: [{
+        operationId: opId,
+        operation: "trigger",
+        name: component_run.id,
+        args: component_run.input
       }]})
     }
 

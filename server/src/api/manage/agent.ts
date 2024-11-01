@@ -1,5 +1,5 @@
 import { json, Router } from "express";
-import { PendingComponentStart, PendingComponentStop, PendingDebugInfo, PendingOperationRequest, PendingPropertyUpdates, PendingRestart, PendingUpdates } from "../../services/agent-state";
+import { PendingComponentRun, PendingComponentStart, PendingComponentStateClear, PendingComponentStateQuery, PendingComponentStop, PendingDebugInfo, PendingOperationRequest, PendingPropertyUpdates, PendingRestart, PendingUpdates } from "../../services/agent-state";
 import { MakeAsyncSafe } from "../../utils/async";
 
 export function CreateManageAgentRouter(services: Services): Router {
@@ -19,6 +19,43 @@ export function CreateManageAgentRouter(services: Services): Router {
     const manifest = await services.agentService.fetchManifestForAgent(req.params.id)
     res.setHeader("Content-Type", "application/json");
     res.send(manifest ?? 'null');
+  })
+
+  router.get("/:id/componentstate", async (req, res)=>{
+    console.log(`Scheduling component state query for ${req.params.id}`);
+    let resolve: (state: string)=>void = null as any;
+    let reject: (reason?: string)=>void = null as any;
+    const result = new Promise<string>((res, rej)=>{
+      resolve = res;
+      reject = rej;
+    })
+    PendingComponentStateQuery.set(req.params.id, {
+      resolve,
+      reject
+    });
+    res.json(JSON.parse(await result)["corecomponentstate"]);
+  })
+
+  router.delete("/:agentId/componentstate", json(), async (req, res)=>{
+    for (const id of req.body) {
+      if (typeof id !== "string") {
+        throw `Component id is not a string got ${typeof id}`;
+      }
+    }
+    console.log(`Clearing component state on agent ${req.params.agentId} for components [${req.body.join(', ')}]`);
+    let resolve: ()=>void = null as any;
+    let reject: (reason?: string)=>void = null as any;
+    const result = new Promise<void>((res, rej)=>{
+      resolve = res;
+      reject = rej;
+    })
+    PendingComponentStateClear.set(req.params.agentId, {
+      components: req.body,
+      resolve,
+      reject
+    });
+    await result;
+    res.sendStatus(200);
   })
 
   router.post("/update", json(), async (req, res) => {
@@ -61,6 +98,17 @@ export function CreateManageAgentRouter(services: Services): Router {
     PendingComponentStart.set(req.params.agentId, {id: req.params.componentId, resolve, reject});
     await result;
     res.sendStatus(200);
+  })
+
+  router.post("/:agentId/run-component/:componentId", json(), async (req, res) => {
+    let resolve: ()=>void = null as any;
+    let reject: ()=>void = null as any;
+    const result = new Promise<void>((res, rej)=>{
+      resolve = res;
+      reject = rej;
+    })
+    PendingComponentRun.set(req.params.agentId, {id: req.params.componentId, input: req.body, resolve, reject});
+    res.json(await result);
   })
 
   router.post("/restart/:id", async (req, res) => {

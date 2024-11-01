@@ -63,10 +63,12 @@ interface AgentService {
   configure(id: string, properties: {name: string, value: string, persist: boolean}[]): Promise<void>
   restart(id: string): Promise<void>
   fetchAgentInformation(id: string): Promise<AgentLike|null>;
+  fetchAgentComponentState(agentId: string): Promise<ComponentKVStateMap|null>; 
   dumpDebugInfo(id: string): Promise<{file: string}>
   sendRequest(id: string, req: JsonValue): Promise<string>
   stopComponent(agentId: string, componentId: string): Promise<void>
   startComponent(agentId: string, componentId: string): Promise<void>
+  clearComponentState(agentId: string, componentId: string): Promise<void>
   // fetchManifestForAgent(id: string): Promise<AgentManifest|null>;
   // fetchManifestForClass(name: string): Promise<AgentManifest|null>;
 }

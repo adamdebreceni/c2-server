@@ -53,8 +53,15 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
     if (!props.agentId) {
       return;
     }
-    const id = setInterval(() => {
+    const flow_info_timeout = 1000;
+    let mounted = true;
+
+    let flow_info_id: any;
+    const update_flow_info = () => {
       services?.agents.fetchAgentInformation(props.agentId!).then(agent => {
+        if (mounted) {
+          flow_info_id = setTimeout(update_flow_info, flow_info_timeout);
+        }
         if (!agent || !agent.flow_info) {
           return;
         }
@@ -132,8 +139,38 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
           return st;
         })
       })
-    }, 2000);
-    return () => clearInterval(id);
+    };
+    flow_info_id = setTimeout(update_flow_info, flow_info_timeout);
+
+    const component_state_timeout = 1000;
+    let compoent_state_id: any;
+    const update_component_state = () => {
+      services?.agents.fetchAgentComponentState(props.agentId!).then(state => {
+        if (mounted) {
+          compoent_state_id = setTimeout(update_component_state, component_state_timeout);
+        }
+        if (!state) {
+          return;
+        }
+        setState(st => {
+          const new_state = {...state};
+          if (st.flow.state) {
+            for (const id in st.flow.state) {
+              if (st.flow.state[id] === "DELETING") {
+                new_state[id] = "DELETING";
+              }
+            }
+          }
+          return {...st, flow: {...st.flow, state: new_state}};
+        })
+      })
+    };
+    compoent_state_id = setTimeout(update_component_state, component_state_timeout);
+    return () => {
+      mounted = false;
+      clearTimeout(flow_info_id);
+      clearTimeout(compoent_state_id);
+    }
   }, [props.agentId])
 
   React.useEffect(()=>{
@@ -239,7 +276,7 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
               } else if ("scheduling" in state.editingComponent) {
                 const proc_manifest = state.flow.manifest.processors.find(proc => proc.type === (state.editingComponent as Processor).type)!;
                 const proc_errors = errors.filter(err => err.component === (state.editingComponent as Processor).id);
-                return <ProcessorEditor model={state.editingComponent as Processor} manifest={proc_manifest} errors={proc_errors} />
+                return <ProcessorEditor model={state.editingComponent as Processor} manifest={proc_manifest} errors={proc_errors} state={state.flow.state?.[state.editingComponent.id]}/>
               } else {
                 // service
                 const service_manifest = state.flow.manifest.controllerServices.find(service => service.type === (state.editingComponent as MiNiFiService).type)!;
@@ -255,6 +292,8 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
 }
 
 function useFlowContext(services: Services|null, agentId: string|undefined, areaRef: React.RefObject<HTMLDivElement>, state: FlowEditorState, setState: (value: React.SetStateAction<FlowEditorState>)=>void) {
+  const notif = React.useContext(NotificationContext);
+  
   const showMenu = React.useCallback((position: {clientX: number, clientY: number}, items: {name: string, on: ()=>void}[])=>{
     setState(st => st)
   }, [])
@@ -358,7 +397,27 @@ function useFlowContext(services: Services|null, agentId: string|undefined, area
     }, [])
   }
 
+  let clearProcessorState = undefined;
+  if (agentId && services) {
+    clearProcessorState = React.useCallback((id: Uuid) => {
+      setState(st => {
+        return {...st, flow: {...st.flow, state: {...st.flow.state, [id]: "DELETING"}}};
+      });
+      services.agents.clearComponentState(agentId, id).then(() => {
+        notif.emit(`Cleared processor state: ${id}`, "success")
+        setState(st => {
+          return {...st, flow: {...st.flow, state: {...st.flow.state, [id]: {}}}};
+        });
+      })
+    }, [])
+  }
 
-  return React.useMemo(()=>({showMenu, moveComponent, deleteComponent, hideMenu, editComponent, updateProcessor, updateConnection, updateService, closeComponentEditor, closeNewProcessor, closeNewService, moveConnection, startProcessor, stopProcessor, editable: false}),
-    [showMenu, moveComponent, deleteComponent, hideMenu, editComponent, updateProcessor, updateConnection, updateService, closeComponentEditor, closeNewProcessor, closeNewService, moveConnection, startProcessor, stopProcessor]);
+
+  return React.useMemo(()=>(
+      {showMenu, moveComponent, deleteComponent, hideMenu, editComponent, updateProcessor,
+      updateConnection, updateService, closeComponentEditor, closeNewProcessor, closeNewService,
+      moveConnection, startProcessor, stopProcessor, clearProcessorState, editable: false}),
+    [showMenu, moveComponent, deleteComponent, hideMenu, editComponent, updateProcessor,
+    updateConnection, updateService, closeComponentEditor, closeNewProcessor, closeNewService,
+    moveConnection, startProcessor, stopProcessor, clearProcessorState]);
 }
