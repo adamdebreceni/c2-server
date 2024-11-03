@@ -101,14 +101,22 @@ export function CreateManageAgentRouter(services: Services): Router {
   })
 
   router.post("/:agentId/run-component/:componentId", json(), async (req, res) => {
-    let resolve: ()=>void = null as any;
+    let resolve: (result: string)=>void = null as any;
     let reject: ()=>void = null as any;
-    const result = new Promise<void>((res, rej)=>{
+    const result = new Promise<string>((res, rej)=>{
       resolve = res;
       reject = rej;
     })
     PendingComponentRun.set(req.params.agentId, {id: req.params.componentId, input: req.body, resolve, reject});
-    res.json(await result);
+    const run_result: RunResult = JSON.parse(await result) as any;
+    const processed_result: RunResult = {'results': run_result['results']};
+    if (run_result.schedule_error !== undefined) {
+      processed_result.schedule_error = run_result.schedule_error;
+    }
+    if (run_result.trigger_error !== undefined) {
+      processed_result.trigger_error = run_result.trigger_error;
+    }
+    res.json(processed_result);
   })
 
   router.post("/restart/:id", async (req, res) => {

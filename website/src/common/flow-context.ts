@@ -14,7 +14,9 @@ export const FlowContext = React.createContext<{
   closeNewProcessor: (name: string|null)=>void,
   closeNewService: (name: string|null)=>void,
   editable: boolean
+  agentId?: string
   startProcessor?: (id: Uuid)=>void
   stopProcessor?: (id: Uuid)=>void
   clearProcessorState?: (id: Uuid)=>void
+  updateRun?: (proc_id: Uuid, run_id: Uuid, fn: (run: ProcessorRun)=>ProcessorRun|undefined)=>void
 }|null>(null);

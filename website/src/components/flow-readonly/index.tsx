@@ -412,12 +412,46 @@ function useFlowContext(services: Services|null, agentId: string|undefined, area
     }, [])
   }
 
+  let updateRun = React.useCallback((proc_id: Uuid, run_id: Uuid, fn: (run: ProcessorRun)=>ProcessorRun|undefined)=>{
+    setState(st => {
+      const proc = st.flow.processors.find(proc => proc.id === proc_id);
+      if (!proc) return st;
+      let prev_run = proc.runs?.find(run => run.id === run_id);
+      let run = prev_run;
+      let created_run = false;
+      if (!run) {
+        created_run = true;
+        run = {id: run_id, input: {state: {}, triggers: []}};
+      }
+      const new_run = fn(run);
+      if (new_run === prev_run) return st;
+      if (!new_run) {
+        if (created_run) return st;
+        return {...st, flow: {...st.flow, processors: st.flow.processors.map(curr_proc => {
+          if (curr_proc !== proc) return curr_proc;
+          return {...curr_proc, runs: curr_proc.runs?.filter(curr_run => curr_run !== prev_run)}
+        })}}
+      }
+      const new_runs = (proc.runs ?? [])!.map(curr_run => {
+        if (curr_run !== run) return curr_run;
+        return new_run;
+      });
+      if (created_run) {
+        new_runs.push(new_run);
+      }
+      return {...st, flow: {...st.flow, processors: st.flow.processors.map(curr_proc => {
+        if (curr_proc !== proc) return curr_proc;
+        return {...curr_proc, runs: new_runs}
+      })}}
+    })
+  }, [])
+
 
   return React.useMemo(()=>(
       {showMenu, moveComponent, deleteComponent, hideMenu, editComponent, updateProcessor,
       updateConnection, updateService, closeComponentEditor, closeNewProcessor, closeNewService,
-      moveConnection, startProcessor, stopProcessor, clearProcessorState, editable: false}),
+      moveConnection, startProcessor, stopProcessor, clearProcessorState, updateRun, editable: false, agentId}),
     [showMenu, moveComponent, deleteComponent, hideMenu, editComponent, updateProcessor,
     updateConnection, updateService, closeComponentEditor, closeNewProcessor, closeNewService,
-    moveConnection, startProcessor, stopProcessor, clearProcessorState]);
+    moveConnection, startProcessor, stopProcessor, clearProcessorState, updateRun, agentId]);
 }

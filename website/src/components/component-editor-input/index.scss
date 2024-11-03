@@ -22,7 +22,17 @@
       &:focus {
         border-color: rgb(53, 53, 255);
       }
+
+      &.error {
+        border-color: rgb(211, 19, 19);
+      }
     }
+    .input-error {
+      position: absolute;
+      color: rgb(205, 31, 31);
+      font-size: 0.7em;
+    }
+
     .edit-text-icon {
       position: absolute;
       right: 7px;

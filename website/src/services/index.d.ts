@@ -69,6 +69,7 @@ interface AgentService {
   stopComponent(agentId: string, componentId: string): Promise<void>
   startComponent(agentId: string, componentId: string): Promise<void>
   clearComponentState(agentId: string, componentId: string): Promise<void>
+  triggerComponent(agentId: string, componentId: string, args: RunInput): Promise<RunResult>
   // fetchManifestForAgent(id: string): Promise<AgentManifest|null>;
   // fetchManifestForClass(name: string): Promise<AgentManifest|null>;
 }

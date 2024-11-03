@@ -5,10 +5,10 @@ import { ModalContext } from "../../common/modal-context";
 import { NotificationContext } from "../../common/notification-context";
 import { InputField } from "../component-editor-input";
 import { Toggle } from "../component-editor-toggle";
-import { CreateDynamicPropertyModal } from "../create-dynamic-property";
 import { Dropdown } from "../dropdown";
 
 import "./index.scss";
+import { CreateStringModal } from "../create-string-modal";
 
 export function ServiceEditor(props: {model: MiNiFiService, manifest: ControllerServiceManifest}) {
   const notif = useContext(NotificationContext);
@@ -28,7 +28,7 @@ export function ServiceEditor(props: {model: MiNiFiService, manifest: Controller
     });
   }, []);
   const openModalCb = React.useCallback(()=>{
-    openModal(<CreateDynamicPropertyModal onSubmit={onNewDynamicProperty}/>);
+    openModal(<CreateStringModal text="Add Dynamic Property" onSubmit={onNewDynamicProperty}/>);
   }, []);
   return <div className="component-settings">
     <div className="type">{model.type}</div>

@@ -5,6 +5,34 @@
   flex-direction: column;
   padding-bottom: 100px;
 
+  .tab-headers {
+    margin-top: 40px;
+    margin-bottom: 40px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    .tab-header {
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      cursor: pointer;
+      color: rgb(108, 108, 108);
+      border-bottom: 2px solid transparent;
+      &:hover {
+        color: rgb(52, 77, 219);
+      }
+      &.active {
+        border-bottom-color: rgb(52, 77, 219);
+      }
+    }
+  }
+
+  .tab {
+    &:not(.active) {
+      display: none;
+    }
+  }
+
   .uuid {
     font-family: monospace;
     margin-top: 10px;
@@ -81,11 +109,260 @@
     }
   }
 
+  .component-state-entry {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    .delete-icon {
+      margin-left: 10px;
+      cursor: pointer;
+      &:hover svg {
+        fill: #dd2222 !important;
+      }
+      &:not(:hover) {
+        opacity: 0.5;
+      }
+    }
+  }
+
+  // .run-item, .trigger-item {
+  //   padding: 13px 20px;
+  //   background-color: white;
+  //   border-radius: 3px;
+  //   filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.244));
+  //   // border: 1px solid rgb(229, 229, 229);
+  //   cursor: pointer;
+  //   margin-top: 20px;
+  //   &:hover {
+  //     filter: drop-shadow(1px 1px 4px rgba(0, 0, 0, 0.244));
+  //   }
+  // }
+
+  .run-item, .trigger-item {
+    padding: 13px 20px;
+    background-color: white;
+    border-radius: 3px;
+    border: 1px solid rgb(229, 229, 229);
+    border-left: 4px solid rgb(229, 229, 229);
+    cursor: pointer;
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    &:hover {
+      border-color: rgb(116, 116, 255);
+    }
+  }
+
+  .run-header {
+    .delete-icon {
+      margin-left: 10px;
+      cursor: pointer;
+      &:hover svg {
+        fill: #dd2222 !important;
+      }
+      &:not(:hover) {
+        opacity: 0.5;
+      }
+    }
+  }
+
+  .run-navigation-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 50px;
+    .arrow-right-icon {
+      fill: rgb(66, 66, 66);
+      margin: 0px 10px;
+    }
+    .navigation-item {
+      cursor: pointer;
+      padding: 5px 15px;
+      border-radius: 3px;
+      &:hover {
+        background-color: rgb(240, 240, 240);
+        color: rgb(5, 5, 5);
+      }
+      color: rgb(84, 84, 84);
+    }
+  }
+
+  .delete-run {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+    & > div {
+      cursor: pointer;
+      padding: 10px 30px;
+      color: rgb(197, 0, 0);
+      background-color: rgb(255, 232, 232);
+      border-radius: 3px;
+      &:hover {
+        background-color: rgb(197, 0, 0);
+        color: white;
+      }
+    }
+  }
+
+  .execute-run-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+    .execute-run {
+      padding: 10px 30px;
+      color: rgb(3, 102, 0);
+      background-color: rgb(232, 255, 241);
+      border-radius: 3px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      &:hover:not(.pending) {
+        background-color: rgb(0, 164, 5);
+        color: white;
+        cursor: pointer;
+      }
+
+      &.pending {
+        .label {
+          opacity: 0;
+          pointer-events: none;
+        }
+        .loader {
+          position: absolute;
+          border: 5px solid #8cffae;
+          border-top: 5px solid rgb(3, 102, 0);
+          border-radius: 50%;
+          width: 25px;
+          height: 25px;
+          animation: spin 2s linear infinite;
+        }
+      }
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  }
+
+  .new-run {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+    & > div {
+      cursor: pointer;
+      padding: 10px 30px;
+      color: green;
+      background-color: rgb(232, 255, 232);
+      border-radius: 3px;
+      &:hover {
+        background-color: rgb(20, 133, 10);
+        color: white;
+      }
+    }
+  }
+
+  .add-ff-attribute, .add-state-entry, .add-input-entry, .add-trigger-entry {
+    border-radius: 50%;
+    cursor: pointer;
+    svg {
+      fill: #b5b5b5;
+    }
+    &:hover {
+      background-color: rgb(187, 255, 187);
+      svg {
+        fill: rgb(30, 161, 12);
+      }
+    }
+  }
+
+  .run-tag {
+    display: inline-block;
+    font-size: 14px;
+    border-radius: 10px;
+    padding: 0px 5px;
+    &.success {
+      background-color: #ceffdd;
+      color: green;
+    }
+    &.failure {
+      background-color: #ffb6b6;
+      color: rgb(128, 0, 0);
+    }
+    &.skipped {
+      background-color: #eeeeee;
+      color: rgb(64, 64, 64);
+    }
+  }
+
+  .component-run-input {
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 3px;
+    border: 1px solid rgb(231, 231, 231);
+    border-left: 4px solid rgb(174, 174, 255);
+    margin-top: 40px;
+    & > .run-input-header {
+      display: flex;
+      flex-direction: row;
+      padding: 10px 20px;
+      border-bottom: 1px solid rgb(231, 231, 231);
+      // border-left: 2px solid rgb(84, 84, 255);
+      box-sizing: border-box;
+      // background-color: rgb(246, 246, 246);
+      .delete-icon {
+        margin-left: 10px;
+        cursor: pointer;
+        background-color: transparent !important;
+        &:hover svg {
+          fill: #dd2222 !important;
+        }
+        &:not(:hover) {
+          opacity: 0.5;
+        }
+      }
+    }
+    & > .run-input-body {
+      padding: 10px 20px;
+
+      .ff-attribute-entry {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        .delete-icon {
+          margin-left: 10px;
+          cursor: pointer;
+          &:hover svg {
+            fill: #dd2222 !important;
+          }
+          &:not(:hover) {
+            opacity: 0.5;
+          }
+        }
+      }
+    }
+  }
+
   .processor-state {
     .delete-icon {
       cursor: pointer;
       &:hover svg{
         fill: rgb(214, 37, 37);
+      }
+    }
+  }
+  .copy-state, .paste-state {
+    margin-left: 10px;
+    cursor: pointer;
+    svg {
+      fill: rgb(186, 186, 186);
+    }
+    &:hover {
+      svg {
+        fill: rgb(20, 20, 20);
       }
     }
   }

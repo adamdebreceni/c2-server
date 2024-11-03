@@ -6,10 +6,11 @@ type FlowFileData = {
   content: string
 }
 
+type TriggerInfo = FlowFileData[];
+
 type RunInput = {
   state?: ComponentKVState,
-  inputs: FlowFileData[],
-  count: number
+  triggers: TriggerInfo[]
 }
 
 type TriggerResult = {

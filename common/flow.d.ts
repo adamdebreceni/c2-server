@@ -46,11 +46,19 @@ interface Parameter {
   description: string
 }
 
+interface ProcessorRun {
+  id: Uuid
+  input: RunInput
+  output?: RunResult|"PENDING"
+  expected?: RunResult
+}
+
 interface Processor extends Component {
   penalty: string,
   yield: string,
   autoterminatedRelationships: {[name: string]: boolean},
-  scheduling: Scheduling
+  scheduling: Scheduling,
+  runs?: ProcessorRun[]
 }
 
 interface Scheduling {
