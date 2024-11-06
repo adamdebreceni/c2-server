@@ -28,6 +28,8 @@ interface AgentService {
   deleteAlertsBefore(id: AgentId, time: Date): Promise<void>
   pushAlerts( alerts: Alert[]): Promise<void>
   getAlertsAfter(id: AgentId, time: Date): Promise<Alert[]>
+  saveConfig(id: AgentId, config: string): Promise<void>
+  saveFlowUpdateFailure(id: AgentId, targetFlow: string, error: string): Promise<void>
 }
 
 interface Alert {
@@ -44,6 +46,8 @@ interface Agent {
   last_heartbeat: string|null,
   manifest: string|null,
   flow_info: string|null
+  config: string|null,
+  flow_update_error: string|null
 }
 
 interface AgentClass {

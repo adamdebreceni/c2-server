@@ -151,6 +151,17 @@
     &:hover {
       border-color: rgb(116, 116, 255);
     }
+
+    .delete-icon {
+      margin-left: 10px;
+      cursor: pointer;
+      &:hover svg {
+        fill: #dd2222 !important;
+      }
+      &:not(:hover) {
+        opacity: 0.5;
+      }
+    }
   }
 
   .run-header {
@@ -164,6 +175,18 @@
         opacity: 0.5;
       }
     }
+  }
+
+  .run-error {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 10px;
+    overflow-wrap: break-word;
+    color: rgb(226, 29, 29);
+    border-radius: 3px;
+    border: 1px solid rgb(226, 29, 29);
+    border-left: 4px solid rgb(226, 29, 29);
+    background-color: rgb(255, 224, 224);
   }
 
   .run-navigation-header {
@@ -288,9 +311,9 @@
       background-color: #ceffdd;
       color: green;
     }
-    &.failure {
-      background-color: #ffb6b6;
-      color: rgb(128, 0, 0);
+    &.failed {
+      background-color: #ffc8c8;
+      color: rgb(180, 14, 14);
     }
     &.skipped {
       background-color: #eeeeee;
@@ -303,8 +326,20 @@
     box-sizing: border-box;
     border-radius: 3px;
     border: 1px solid rgb(231, 231, 231);
-    border-left: 4px solid rgb(174, 174, 255);
     margin-top: 40px;
+    &.ignored {
+      border-left: 4px solid rgb(231, 231, 231);
+      .label {
+        background-color: rgb(243, 243, 243);
+      }
+    }
+    &:not(.ignored) {
+      border-left: 4px solid rgb(174, 174, 255);
+      .label {
+        background-color: rgb(206, 206, 255);
+        color: rgb(41, 41, 219);
+      }
+    }
     & > .run-input-header {
       display: flex;
       flex-direction: row;
@@ -322,6 +357,15 @@
         }
         &:not(:hover) {
           opacity: 0.5;
+        }
+      }
+      .label {
+        display: inline-block;
+        font-size: 14px;
+        border-radius: 10px;
+        padding: 0px 5px;
+        &:not(:first-child) {
+          margin-left: 10px;
         }
       }
     }
@@ -354,7 +398,7 @@
       }
     }
   }
-  .copy-state, .paste-state {
+  .copy-state, .paste-state, .duplicate-run, .edit-run {
     margin-left: 10px;
     cursor: pointer;
     svg {

@@ -20,7 +20,9 @@ interface AgentLike {
   metrics: AgentMetrics|null,
   manifest?: string|null
   last_heartbeat: Date|null,
-  flow_info: string|null
+  flow_info: string|null,
+  config: string|null,
+  flow_update_error: {target_flow: string, error: string}|null
 }
 
 interface FlowInfo {
@@ -70,6 +72,7 @@ interface AgentService {
   startComponent(agentId: string, componentId: string): Promise<void>
   clearComponentState(agentId: string, componentId: string): Promise<void>
   triggerComponent(agentId: string, componentId: string, args: RunInput): Promise<RunResult>
+  saveConfig(agentId: string, data: any): Promise<void>
   // fetchManifestForAgent(id: string): Promise<AgentManifest|null>;
   // fetchManifestForClass(name: string): Promise<AgentManifest|null>;
 }

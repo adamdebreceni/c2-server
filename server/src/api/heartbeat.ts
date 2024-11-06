@@ -195,9 +195,14 @@ export function CreateHeartbeatRouter(services: Services) {
     const agent_manifest = hb_result.manifest;
     if (target_flow !== null && target_flow !== flow) {
       console.log(`Sending flow update request, expected flow: ${target_flow}, actual: ${flow}`);
+      const opId = `${nextOperationId++}`;
+      PendingOperations.set(opId, {resolve: ()=>{}, reject: (reason: any) => {
+        services.agentService.saveFlowUpdateFailure(id, target_flow, reason);
+        // agentId: id, flowId: target_flow
+      }});
       return res.json({requestedOperations: [
         {
-          identifier: `${nextOperationId++}`,
+          identifier: opId,
           operation: "UPDATE",
           operand: "configuration",
           args: {

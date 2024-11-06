@@ -12,3 +12,4 @@ export const PendingComponentStateClear = new Map<string, {components: string[],
 
 export const PendingOperations = new Map<string, {resolve: (data?: any)=>void, reject: (reason?: string)=>void}>()
 export const PendingPropertyUpdates = new Map<string, {properties: {name: string, value: string, persist: boolean}[], cb: {resolve: ()=>void, reject: ()=>void}}>();
+

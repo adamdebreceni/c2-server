@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-export function DeleteIcon(props: {size: number, onClick: ()=>void}) {
+export function DeleteIcon(props: {size: number, onClick: (e: React.MouseEvent)=>void}) {
   return <div className="delete-icon" style={{display: "flex", borderRadius: "50%", background: "#ffffff"}} onClick={props.onClick}>
     <svg xmlns="http://www.w3.org/2000/svg" height={props.size} viewBox="0 0 24 24" width={props.size} fill="#dddddd">
       <path d="M0 0h24v24H0z" fill="none"/>

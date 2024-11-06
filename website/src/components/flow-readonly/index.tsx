@@ -12,7 +12,6 @@ import { ProcessorEditor } from "../processor-editor";
 import { ConnectionEditor } from "../connection-editor";
 import { ProcessorSelector } from "../processor-selector";
 import { ServiceContext } from "../../common/service-context";
-import { PublishModal } from "../publish-modal";
 import { useNavigate } from "react-router";
 import { NotificationContext } from "../../common/notification-context";
 import { Eval } from "../../utils/attribute-expression";
@@ -41,13 +40,29 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
   const areaRef = React.useRef<HTMLDivElement>(null);
   const services = React.useContext(ServiceContext);
   const notif = React.useContext(NotificationContext);
+  const navigate = useNavigate();
+  const goToAgent = React.useCallback(() => {
+    if (!props.agentId) return;
+    navigate(`/agent/${props.agentId}`);
+  }, [props.agentId]);
   const mousedown = React.useCallback((e: React.MouseEvent)=>{
     if (e.button !== 0) return;
     setState(st => {
       if (st.editingComponent) return st;
       return {...st, panning: true}
     });
-  }, [])
+  }, []);
+
+  React.useEffect(()=>{
+    if (!props.agentId) return;
+    if (state.flow.runs === props.flow.runs) return;
+    let id = setTimeout(()=>{
+      services?.agents.saveConfig(props.agentId!, state.flow.runs);
+    }, 1000);
+    return ()=>{
+      clearTimeout(id);
+    }
+  }, [props.agentId, state.flow.runs]);
 
   React.useEffect(()=>{
     if (!props.agentId) {
@@ -265,6 +280,14 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
           })
         }
       </Surface>
+      <div className="absolute right-0 top-0 px-5 py-2 text-gray-400 bg-white hover:text-gray-800 cursor-pointer m-5 border-gray-400 hover:border-gray-800 border-solid border-[1px] rounded-[3px]" onClick={()=>{
+        navigate(`/flow/${props.id}`);
+      }}>Edit</div>
+      {
+        props.agentId ?
+        <div className="agent-identifier" onClick={goToAgent}>{props.agentId}</div>
+        : null
+      }
       {
         !state.editingComponent ? null :
         <div className="component-editor-container">
@@ -276,7 +299,7 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
               } else if ("scheduling" in state.editingComponent) {
                 const proc_manifest = state.flow.manifest.processors.find(proc => proc.type === (state.editingComponent as Processor).type)!;
                 const proc_errors = errors.filter(err => err.component === (state.editingComponent as Processor).id);
-                return <ProcessorEditor model={state.editingComponent as Processor} manifest={proc_manifest} errors={proc_errors} state={state.flow.state?.[state.editingComponent.id]}/>
+                return <ProcessorEditor model={state.editingComponent as Processor} manifest={proc_manifest} errors={proc_errors} state={state.flow.state?.[state.editingComponent.id]} runs={state.flow.runs?.[state.editingComponent.id]}/>
               } else {
                 // service
                 const service_manifest = state.flow.manifest.controllerServices.find(service => service.type === (state.editingComponent as MiNiFiService).type)!;
@@ -412,37 +435,36 @@ function useFlowContext(services: Services|null, agentId: string|undefined, area
     }, [])
   }
 
-  let updateRun = React.useCallback((proc_id: Uuid, run_id: Uuid, fn: (run: ProcessorRun)=>ProcessorRun|undefined)=>{
+  let updateRun = React.useCallback((proc_id: Uuid, run_id: Uuid, fn: (run: ProcessorRun)=>ProcessorRun|ProcessorRun[]|undefined)=>{
     setState(st => {
-      const proc = st.flow.processors.find(proc => proc.id === proc_id);
-      if (!proc) return st;
-      let prev_run = proc.runs?.find(run => run.id === run_id);
+      const runs = st.flow.runs?.[proc_id];
+      const prev_run_idx = runs?.findIndex(run => run.id === run_id) ?? -1;
+      const prev_run = runs?.[prev_run_idx] ?? undefined;
       let run = prev_run;
-      let created_run = false;
       if (!run) {
-        created_run = true;
         run = {id: run_id, input: {state: {}, triggers: []}};
       }
       const new_run = fn(run);
       if (new_run === prev_run) return st;
       if (!new_run) {
-        if (created_run) return st;
-        return {...st, flow: {...st.flow, processors: st.flow.processors.map(curr_proc => {
-          if (curr_proc !== proc) return curr_proc;
-          return {...curr_proc, runs: curr_proc.runs?.filter(curr_run => curr_run !== prev_run)}
-        })}}
+        if (!prev_run) return st;
+        return {...st, flow: {...st.flow, runs: {...st.flow.runs, [proc_id]: runs?.filter(curr_run => curr_run !== prev_run)}}}
       }
-      const new_runs = (proc.runs ?? [])!.map(curr_run => {
-        if (curr_run !== run) return curr_run;
-        return new_run;
-      });
-      if (created_run) {
-        new_runs.push(new_run);
+      const new_runs = (runs ?? []).slice();
+      if (prev_run_idx !== -1) {
+        if (new_run instanceof Array) {
+          new_runs.splice(prev_run_idx, 1, ...new_run);
+        } else {
+          new_runs.splice(prev_run_idx, 1, new_run);
+        }
+      } else {
+        if (new_run instanceof Array) {
+          new_runs.push(...new_run);
+        } else {
+          new_runs.push(new_run);
+        }
       }
-      return {...st, flow: {...st.flow, processors: st.flow.processors.map(curr_proc => {
-        if (curr_proc !== proc) return curr_proc;
-        return {...curr_proc, runs: new_runs}
-      })}}
+      return {...st, flow: {...st.flow, runs: {...st.flow.runs, [proc_id]: new_runs}}};
     })
   }, [])
 

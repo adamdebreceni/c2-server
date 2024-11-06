@@ -1,13 +1,17 @@
 import * as React from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { ServiceContext } from "../../common/service-context";
 import { FlowEditor } from "../flow-editor";
 import { FlowReadonlyEditor } from "../flow-readonly";
+
+import "./index.scss"
+import { NotificationContext } from "../../common/notification-context";
 
 export function AgentFlow() {
   const [flow, setFlow] = React.useState<{id: string, value: FlowObject}|null>(null);
   const agentId = useParams<any>()["id"]!;
   const services = React.useContext(ServiceContext);
+  const notif = React.useContext(NotificationContext);
   React.useEffect(()=>{
     let mounted = true;
     services!.agents.fetchAgentInformation(agentId).then(agent => {
@@ -17,7 +21,16 @@ export function AgentFlow() {
       if (!agent?.flow) return;
       services!.flows.fetch(agent.flow).then(flow => {
         if (!mounted) return;
+        let agent_config: AgentConfig = {};
+        if (agent.config) {
+          try {
+            agent_config = JSON.parse(agent.config);
+          } catch (e) {
+            notif.emit("Failed to parse agent config", "error");
+          }
+        }
         if (flow) {
+          flow.runs = agent_config;
           for (const proc of flow.processors) {
             proc.running = "UNKNOWN";
           }

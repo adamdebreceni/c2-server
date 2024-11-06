@@ -15,6 +15,13 @@ export class AgentServiceImpl implements AgentService {
       if (agent.last_heartbeat) {
         agent.last_heartbeat = new Date(agent.last_heartbeat);
       }
+      if (agent.flow_update_error) {
+        try {
+          agent.flow_update_error = JSON.parse(agent.flow_update_error as any) as any;
+        } catch (e) {
+          console.error(`Failed to parse flow update error: '${agent.flow_update_error}'`)
+        }
+      }
       return agent;
     });
   }
@@ -60,6 +67,10 @@ export class AgentServiceImpl implements AgentService {
 
   async triggerComponent(agentId: string, componentId: string, args: RunInput): Promise<RunResult> {
     return SendRequest("POST", this.api + `/agent/${encodeURIComponent(agentId)}/run-component/${encodeURIComponent(componentId)}`, args);
+  }
+
+  async saveConfig(agentId: string, data: any): Promise<void> {
+    return SendRequest("POST", this.api + `/agent/${encodeURIComponent(agentId)}/config`, data);
   }
 
   // async fetchManifestForAgent(id: string): Promise<AgentManifest|null> {

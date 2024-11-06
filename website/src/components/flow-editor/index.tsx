@@ -33,7 +33,7 @@ interface FlowEditorState {
   editingComponent: Processor | Connection | MiNiFiService| null,
   newConnection: NewConnection | null,
   newComponent: {x: number, y: number, type: "PROCESSOR"|"SERVICE", srcProcessor?: Uuid} | null,
-  publish: boolean
+  publish: PublishState
 }
 
 function width(proc: Processor) {
@@ -76,14 +76,14 @@ function createDefaultConnection(flow: FlowObject, src: Uuid, dst: Uuid, midPoin
 const padding = 5;
 
 export function FlowEditor(props: {id: string, flow: FlowObject}) {
-  const [state, setState] = useState<FlowEditorState>({saved: true, publish: false, flow: props.flow, panning: false, menu: null, editingComponent: null, newConnection: null, newComponent: null});
+  const [state, setState] = useState<FlowEditorState>({saved: true, publish: {agents: [], classes: [], targetFlow: null, modal: false, pending: false}, flow: props.flow, panning: false, menu: null, editingComponent: null, newConnection: null, newComponent: null});
   const [errors, setErrors] = useState<ErrorObject[]>([]);
   const areaRef = React.useRef<HTMLDivElement>(null);
   const mousedown = React.useCallback((e: React.MouseEvent)=>{
     if (e.button !== 0) return;
     const {clientX, clientY} = e;
     setState(st => {
-      if (st.newComponent || st.editingComponent || st.publish) return st;
+      if (st.newComponent || st.editingComponent || st.publish.modal) return st;
       if (st.newConnection) {
         const {x, y} = toAreaCoords(areaRef, st, {clientX, clientY});
         return {...st, newConnection: {...st.newConnection, to: {x, y}}};
@@ -142,7 +142,7 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
   React.useEffect(()=>{
     const mousemove = (e: MouseEvent)=>{
       setState(st=>{
-        if (st.newComponent || st.editingComponent || st.publish) return st;
+        if (st.newComponent || st.editingComponent || st.publish.modal) return st;
         if (st.newConnection && st.newConnection.to) {
           const {x, y} = toAreaCoords(areaRef, st, e);
           const proc = findConnDestProc(st, {x, y});
@@ -179,7 +179,7 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
   
     const mouseup = (e: MouseEvent)=>{
       setState(st=> {
-        if (st.newComponent || st.editingComponent || st.publish) return st;
+        if (st.newComponent || st.editingComponent || st.publish.modal) return st;
         if (!st.panning && !st.newConnection) return st;
         if (typeof st.newConnection?.to === "string") {
           const newConn = createDefaultConnection(st.flow, st.newConnection.source, st.newConnection.to, st.newConnection.midPoint);
@@ -239,6 +239,104 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
       document.body.classList.remove("link-cursor");
     }
   }, [!!state.newConnection, !!state.newComponent, !!state.editingComponent])
+
+  const setPublishState = React.useCallback((fn: (val: PublishState)=>PublishState)=>{
+    setState(state => {
+      const new_publish_state = fn(state.publish);
+      if (new_publish_state === state.publish) {
+        return state;
+      }
+      return {...state, publish: new_publish_state};
+    })
+  }, [setState])
+
+  React.useEffect(()=>{
+    let mounted = true;
+    const recurring = !!(state.publish?.targetFlow);
+    let id: any;
+    const updateAgentState = ()=>{
+      if (!mounted) return;
+      services?.agents.fetchAll().then(agents => {
+        if (!mounted) return;
+        setPublishState(curr => {
+          let newState: PublishState = {...curr, agents: [], classes: []};
+          for (const agent of agents) {
+            if (typeof agent.class !== "string") {
+              newState.agents.push({type: "agent", id: agent.id, class: null, selected: false, last_heartbeat: agent.last_heartbeat, flow: agent.flow, flow_update_error: agent.flow_update_error});
+            } else {
+              let clazz = newState.classes.find(clazz => clazz.id === agent.class);
+              if (!clazz) {
+                clazz = {type: "class", id: agent.class!, selected: false, agents: []};
+                newState.classes.push(clazz);
+              }
+              clazz.agents.push({type: "agent", id: agent.id, class: agent.class, selected: false, last_heartbeat: agent.last_heartbeat, flow: agent.flow, flow_update_error: agent.flow_update_error});
+            }
+          }
+          newState.agents = newState.agents.sort((a, b) => StringCmp(a.id, b.id));
+          newState.classes = newState.classes.map(clazz => ({...clazz, agents: clazz.agents.sort((a, b)=>StringCmp(a.id, b.id))})).sort((a, b)=> StringCmp(a.id, b.id));
+
+          if (curr) {
+            newState.agents = newState.agents.map(new_agent => {
+              const prev = curr.agents.find(agent => agent.id === new_agent.id);
+              if (!prev) {
+                return new_agent;
+              }
+              return {...new_agent, selected: prev.selected};
+            });
+            newState.classes = newState.classes.map(new_class => {
+              const prev_class = curr.classes.find(clazz => clazz.id === new_class.id);
+              if (!prev_class) {
+                return new_class;
+              }
+              return {...new_class, selected: prev_class.selected, agents: new_class.agents.map(new_agent => {
+                const prev = prev_class.agents.find(agent => agent.id === new_agent.id);
+                if (!prev) {
+                  return new_agent;
+                }
+                return {...new_agent, selected: prev.selected};
+              })};
+            });
+          }
+
+          let has_pending_agent = false;
+          for (const agent of newState.agents) {
+            if (agent.flow === newState.targetFlow) {
+              continue;
+            }
+            if (agent.flow_update_error?.target_flow === newState.targetFlow) {
+              continue;
+            }
+            has_pending_agent = true;
+          }
+          for (const clazz of newState.classes) {
+            for (const agent of clazz.agents) {
+              if (agent.flow === newState.targetFlow) {
+                continue;
+              }
+              if (agent.flow_update_error?.target_flow === newState.targetFlow) {
+                continue;
+              }
+              has_pending_agent = true;
+            }
+          }
+
+          if (!has_pending_agent) {
+            newState.pending = false;
+          }
+
+          return newState;
+        });
+        if (recurring) {
+          id = setTimeout(updateAgentState, 1000);
+        }
+      })
+    };
+    updateAgentState();
+    return ()=>{
+      mounted = false;
+      clearTimeout(id);
+    }
+  }, [!!(state.publish?.targetFlow), setPublishState]);
 
   return <FlowContext.Provider value={flowContext}>
     <div className="flow-editor" ref={areaRef} onMouseDown={mousedown}>
@@ -316,17 +414,20 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
           </div> : null
         }
       </Surface>
-      <div className="open-publish" onClick={()=>setState(st => ({...st, publish: true}))}>Publish</div>
+      <div className={`open-publish ${state.publish?.pending ? 'pending': ''}`} onClick={()=>setState(st => ({...st, publish: {...st.publish, modal: true}}))}>
+        <span className="label">Publish</span>
+        <div className="publish-loader"/>
+      </div>
       {
-        !state.publish ? null :
+        !state.publish.modal ? null :
         <div className="publish-container">
-          <div className="overlay" onClick={()=>setState(st => ({...st, publish: false}))}/>
-          <PublishModal onCancel={()=>setState(st => ({...st, publish: false}))} onPublish={(agents, classes)=>{
+          <div className="overlay" onClick={()=>setState(st => ({...st, publish: {...st.publish, modal: false}}))}/>
+          <PublishModal state={state.publish} setPublishState={setPublishState} onCancel={()=>setState(st => ({...st, publish: {...st.publish, modal: false}}))} onPublish={!state.publish.pending ? (agents, classes)=>{
+            setPublishState(st => ({...st, targetFlow: props.id, pending: true}));
             services?.flows.publish(props.id, agents, classes).then(()=>{
-              notif.emit("Flow published successfully", "success");
-              setState(st => ({...st, publish: false}));
+              notif.emit("Flow update triggered", "success");
             })
-          }}/>
+          } : undefined}/>
         </div>
       }
       {
@@ -805,4 +906,10 @@ function Intersect(sets: string[][]): string[] {
     result = result.filter(val => sets[idx].includes(val));
   }
   return result;
+}
+
+function StringCmp(a: string, b: string) {
+  if (a < b) return -1;
+  if (a === b) return 0;
+  return 1;
 }

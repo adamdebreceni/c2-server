@@ -42,7 +42,7 @@ export async function CreateAgentService(db: Database): Promise<AgentService> {
         target_flow = agents[0].target_flow;
       } else {
         console.log(`Registering agent with id: "${agent.id}"`);
-        await db.agents.insert({...agent, target_flow: null});
+        await db.agents.insert({...agent, target_flow: null, config: null, flow_update_error: null});
       }
       if (agent.class === null) {
         return {flow: null, manifest};
@@ -80,6 +80,12 @@ export async function CreateAgentService(db: Database): Promise<AgentService> {
     },
     async getAlertsAfter(id: AgentId, time: Date): Promise<Alert[]> {
       return db.alerts.selectAfter(id, time);
-    }
+    },
+    async saveConfig(id: AgentId, config: string): Promise<void> {
+      return db.agents.update({id: id}, {config: config});
+    },
+    async saveFlowUpdateFailure(id, targetFlow, error): Promise<void> {
+      return db.agents.update({id}, {flow_update_error: JSON.stringify({target_flow: targetFlow, error})});
+    },
   }
 }

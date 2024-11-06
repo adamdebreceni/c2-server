@@ -20,10 +20,11 @@ import * as uuid from 'uuid';
 import { ArrowRightIcon } from "../../icons/arrow-right";
 import { CopyIcon } from "../../icons/copy";
 import { PasteIcon } from "../../icons/paste";
+import { EditIcon } from "../../icons/edit";
 
 type ActiveRunInfo = {runIdx: number, triggerIdx: number|null}|null;
 
-export function ProcessorEditor(props: {model: Processor, manifest: ProcessorManifest, errors: ErrorObject[], state?: ComponentExtendedState}) {
+export function ProcessorEditor(props: {model: Processor, manifest: ProcessorManifest, errors: ErrorObject[], state?: ComponentExtendedState, runs?: ProcessorRun[]|undefined}) {
   const notif = useContext(NotificationContext);
   const flow_context = useContext(FlowContext);
   const openModal = useContext(ModalContext);
@@ -35,7 +36,7 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
     return (fn: (curr: Processor)=>Processor) => flow_context!.updateProcessor(props.model.id, fn);
   }, [props.model.id, flow_context!.updateProcessor]);
   const updateRun = React.useMemo(()=>{
-    return (runId: Uuid, fn: (curr: ProcessorRun)=>ProcessorRun|undefined) => flow_context!.updateRun!(props.model.id, runId, fn);
+    return (runId: Uuid, fn: (curr: ProcessorRun)=>ProcessorRun|ProcessorRun[]|undefined) => flow_context!.updateRun!(props.model.id, runId, fn);
   }, [props.model.id, flow_context!.updateRun]);
   const updateTrigger = React.useMemo(()=>{
     return (runId: Uuid, triggerIdx: number, fn: (curr: TriggerInfo)=>TriggerInfo|undefined) => {
@@ -271,8 +272,23 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
     <div className={`tab ${activeTab === "runs" && activeRunInfo === null ? 'active': ''}`}>
       {flow_context?.agentId !== undefined ? 
         <>
-          {(props.model.runs ?? []).map((run, idx) => {
-            return <div key={run.id} className="run-item" onClick={()=>setActiveRunInfo({runIdx: idx, triggerIdx: null})}>Run {idx + 1}<Fill/>
+          {(props.runs ?? []).map((run, idx) => {
+            return <div key={run.id} className="run-item" onClick={()=>setActiveRunInfo({runIdx: idx, triggerIdx: null})}>Run {idx + 1}
+              <div className="duplicate-run" onClick={(e) => {
+                e.stopPropagation();
+                updateRun(run.id, (curr)=>[curr, {...curr, id: uuid.v4() as Uuid}])
+              }}><CopyIcon size={20}/></div>
+              {
+                run.output ?
+                <div className="edit-run" onClick={(e)=>{
+                  e.stopPropagation();
+                  openModal(<ConfirmModal confirmLabel="Edit" text={`Warning, you are about to delete the output of this run. Are you sure?`} onConfirm={()=>{
+                    updateRun(run.id, curr => ({...curr, output: undefined})); setActiveRunInfo(null)
+                  }}/>)
+                }}><EditIcon size={20}/></div>
+                : null
+              }
+              <Fill/>
               {
                 (()=>{
                   if (!run.output || run.output === "PENDING") return null;
@@ -281,6 +297,14 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
                   }
                   return <div className="run-tag success">success</div>
                 })()
+              }
+              {
+                <DeleteIcon size={20} onClick={(e)=>{
+                  e.stopPropagation();
+                  openModal(<ConfirmModal confirmLabel="Delete" text={`Warning, you are about to irrevocably delete this run. Are you sure?`} onConfirm={()=>{
+                    updateRun(run.id, curr => undefined); setActiveRunInfo(null)
+                  }}/>)
+                }} />
               }
             </div>
           })}
@@ -292,7 +316,7 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
     <div className={`tab ${activeTab === "runs" ? 'active': ''}`}>
       {(()=>{
         if (activeRunInfo === null) return null;
-        const activeRun = props.model.runs?.[activeRunInfo.runIdx];
+        const activeRun = props.runs?.[activeRunInfo.runIdx];
         if (!activeRun) return null;
         const activeTrigger = activeRunInfo.triggerIdx !== null ? activeRun.input.triggers[activeRunInfo.triggerIdx] : null;
         if (activeTrigger) {
@@ -302,14 +326,14 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
               <ArrowRightIcon size={20} />
               <div className="navigation-item">Trigger {activeRunInfo.triggerIdx! + 1}</div>
             </div>
-            <RunTriggerInstance run={activeRun} model={activeTrigger} runId={activeRun.id} triggerIdx={activeRunInfo.triggerIdx!} updateTrigger={updateTrigger} updateTriggerFF={updateTriggerFF} setActiveRunInfo={setActiveRunInfo} />
+            <RunTriggerInstance run={activeRun} model={activeTrigger} runId={activeRun.id} triggerIdx={activeRunInfo.triggerIdx!} updateTrigger={activeRun.output ? undefined : updateTrigger} updateTriggerFF={activeRun.output ? undefined : updateTriggerFF} />
           </>
         }
         return <>
           <div className="run-navigation-header">
               <div className="navigation-item">Run {activeRunInfo.runIdx + 1}</div>
           </div>
-          <RunInstance model={activeRun} updateRun={updateRun} setActiveRunInfo={setActiveRunInfo} idx={activeRunInfo.runIdx} updateTrigger={updateTrigger} updateTriggerFF={updateTriggerFF} triggerRun={triggerRun}/>
+          <RunInstance model={activeRun} updateRun={activeRun.output ? undefined : updateRun} setActiveRunInfo={setActiveRunInfo} idx={activeRunInfo.runIdx} updateTrigger={activeRun.output ? undefined : updateTrigger} updateTriggerFF={activeRun.output ? undefined : updateTriggerFF} triggerRun={activeRun.output ? undefined : triggerRun}/>
         </>
       })()}
     </div>
@@ -322,11 +346,11 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
 }
 
 function RunInstance(props: {model: ProcessorRun, idx: number,
-      updateRun: (runId: Uuid, fn: (curr: ProcessorRun)=>ProcessorRun|undefined)=>void,
-      updateTrigger: (runId: Uuid, triggerIdx: number, fn: (curr: TriggerInfo)=>TriggerInfo|undefined)=>void,
-      updateTriggerFF: (runId: Uuid, triggerIdx: number, ffIdx: number, fn: (curr: FlowFileData)=>FlowFileData|undefined)=>void,
+      updateRun?: (runId: Uuid, fn: (curr: ProcessorRun)=>ProcessorRun|undefined)=>void,
+      updateTrigger?: (runId: Uuid, triggerIdx: number, fn: (curr: TriggerInfo)=>TriggerInfo|undefined)=>void,
+      updateTriggerFF?: (runId: Uuid, triggerIdx: number, ffIdx: number, fn: (curr: FlowFileData)=>FlowFileData|undefined)=>void,
       setActiveRunInfo: (fn: ActiveRunInfo|((curr: ActiveRunInfo)=>ActiveRunInfo))=>void,
-      triggerRun: (args: RunInput)=>Promise<RunResult>
+      triggerRun?: (args: RunInput)=>Promise<RunResult>
     }) {
   const openModal = useContext(ModalContext);
   const services = useContext(ServiceContext);
@@ -341,47 +365,72 @@ function RunInstance(props: {model: ProcessorRun, idx: number,
       })()
     }
     <div className="section">
-      <div className="section-title">State<div className="paste-state" onClick={() => {
+      <div className="section-title">State<div className="copy-state" onClick={() => {
+              navigator.clipboard.writeText(JSON.stringify(props.model.input.state ?? {})).then(()=>{
+                notif.emit("Copied state to clipboard", "success");
+              }).catch(()=>{
+                notif.emit("Failed to copy state", "error");
+              });
+            }}><CopyIcon size={20}/></div>{props.updateRun ? <div className="paste-state" onClick={() => {
             navigator.clipboard.readText().then((state_str) => {
               const new_state = JSON.parse(state_str);
-              props.updateRun(props.model.id, (curr)=>({...curr, input: {...curr.input, state: new_state}}));
+              props.updateRun!(props.model.id, (curr)=>({...curr, input: {...curr.input, state: new_state}}));
             }).catch(()=>{
               notif.emit("Failed to paste state", "error");
             });
-          }}><PasteIcon size={20}/></div><Fill/>
-        <div className="add-state-entry" onClick={()=>{
-          openModal(<CreateStringModal text="Add Run State Entry" onSubmit={(key) => {
-            props.updateRun(props.model.id, (curr) => ({...curr, input: {...curr.input, state: {...curr.input.state, [key]: ''}}}));
-          }}/>);
-        }}>
-          <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-        </div>
+          }}><PasteIcon size={20}/></div> : null}<Fill/>
+        {props.updateRun ?
+          <div className="add-state-entry" onClick={()=>{
+            openModal(<CreateStringModal text="Add Run State Entry" onSubmit={(key) => {
+              props.updateRun!(props.model.id, (curr) => ({...curr, input: {...curr.input, state: {...curr.input.state, [key]: ''}}}));
+            }}/>);
+          }}>
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          </div>
+          : null
+        }
       </div>
       {
+        props.updateRun ?
         Object.entries(props.model.input.state ?? {}).map(([key, value]) => {
           return <div key={key} className="component-state-entry">
-          <InputField name={key} width="100%" default={value} onChange={val=>props.updateRun(props.model.id, curr => {
-              return {...curr, input: {...curr.input, state: {...curr.input.state, [key]: val}}};
-          })}/>
-          <Fill/>
-          <DeleteIcon size={24} onClick={() => {
-            props.updateRun(props.model.id, curr => {
-                const new_state = {...curr.input.state};
-                delete new_state[key];
-                return {...curr, input: {...curr.input, state: new_state}};
-            })
-          }}/>
-        </div>;
+            <InputField name={key} width="100%" default={value} onChange={val=>props.updateRun!(props.model.id, curr => {
+                return {...curr, input: {...curr.input, state: {...curr.input.state, [key]: val}}};
+            })}/>
+            <Fill/>
+            <DeleteIcon size={24} onClick={() => {
+              props.updateRun!(props.model.id, curr => {
+                  const new_state = {...curr.input.state};
+                  delete new_state[key];
+                  return {...curr, input: {...curr.input, state: new_state}};
+              })
+            }}/>
+          </div>;
         })
+        :
+        <div className={`processor-state version-4`}>
+          {
+            Object.entries(props.model.input.state ?? {}).map(([key, value]) => {
+              return <div key={key} className="component-state-entry">
+                <div className="key">{key}</div>
+                <div className="value">{value}</div>
+              </div>;
+            })
+          }
+        </div>
       }
     </div>
     <div className="section">
       <div className="section-title">Triggers<Fill/>
-        <div className="add-trigger-entry" onClick={()=>{
-          props.updateRun(props.model.id, (curr) => ({...curr, input: {...curr.input, triggers: [...curr.input.triggers, []]}}));
-        }}>
-          <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-        </div>
+        {
+          props.updateRun ?
+          <div className="add-trigger-entry" onClick={()=>{
+            props.updateRun!(props.model.id, (curr) => ({...curr, input: {...curr.input, triggers: [...curr.input.triggers, []]}}));
+          }}>
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          </div>
+          : null
+        }
       </div>
       {
         props.model.input.triggers.map((trigger, idx) => {
@@ -400,29 +449,41 @@ function RunInstance(props: {model: ProcessorRun, idx: number,
                 return <div className="run-tag skipped">skipped</div>;
               })()
             }
+            {
+              props.updateTrigger ?
+              <DeleteIcon size={20} onClick={(e)=>{
+                e.stopPropagation();
+                openModal(<ConfirmModal confirmLabel="Delete" text={`Warning, you are about to irrevocably delete this trigger. Are you sure?`} onConfirm={()=>{
+                  props.updateTrigger!(props.model.id, idx, curr => undefined); props.setActiveRunInfo(curr => (curr ? {...curr, triggerIdx: null} : null))
+                }}/>)
+              }} />
+              : null
+            }
           </div>;
           // return <RunTriggerInstance key={idx} model={trigger} runId={props.model.id} updateTrigger={props.updateTrigger} updateTriggerFF={props.updateTriggerFF} triggerIdx={idx}/>
         })
       }
     </div>
-    <div className="execute-run-container">{
-      <div className={`execute-run ${props.model.output === "PENDING" ? "pending" : ''}`} onClick={() => {
-        if (props.model.output === "PENDING") return;
-        props.updateRun(props.model.id, curr => ({...curr, output: "PENDING"}))
-        props.triggerRun(props.model.input).then(result => {
-          props.updateRun(props.model.id, curr => ({...curr, output: result}))
-        })
-      }}><span className="label">Execute run</span>{props.model.output === "PENDING" ? <Loader/> : null}</div>
-    }</div>
-    <div className="delete-run"><div onClick={() => {
-      openModal(<ConfirmModal confirmLabel="Delete" text={`Warning, you are about to irrevocably delete this run. Are you sure?`} onConfirm={()=>{
-        props.updateRun(props.model.id, curr => undefined); props.setActiveRunInfo(null)
-      }}/>)
-    }}>Delete run</div></div>
+    {
+      props.triggerRun || props.model.output === "PENDING" ?
+      <div className="execute-run-container">{
+        <div className={`execute-run ${props.model.output === "PENDING" ? "pending" : ''}`} onClick={() => {
+          if (props.model.output === "PENDING") return;
+          props.updateRun!(props.model.id, curr => ({...curr, output: "PENDING"}))
+          props.triggerRun!(props.model.input).then(result => {
+            props.updateRun!(props.model.id, curr => ({...curr, output: result}))
+          })
+        }}><span className="label">Execute run</span>{props.model.output === "PENDING" ? <Loader/> : null}</div>
+      }</div>
+      : null
+    }
   </div>;
 }
 
-function RunTriggerInstance(props: {run: ProcessorRun, model: TriggerInfo, runId: Uuid, triggerIdx: number, updateTrigger: (runId: Uuid, triggerIdx: number, fn: (curr: TriggerInfo)=>TriggerInfo|undefined)=>void, updateTriggerFF: (runId: Uuid, triggerIdx: number, ffIdx: number, fn: (curr: FlowFileData)=>FlowFileData|undefined)=>void, setActiveRunInfo: (fn: ActiveRunInfo|((curr: ActiveRunInfo)=>ActiveRunInfo))=>void}) {
+function RunTriggerInstance(props: {
+        run: ProcessorRun, model: TriggerInfo, runId: Uuid, triggerIdx: number,
+        updateTrigger?: (runId: Uuid, triggerIdx: number, fn: (curr: TriggerInfo)=>TriggerInfo|undefined)=>void,
+        updateTriggerFF?: (runId: Uuid, triggerIdx: number, ffIdx: number, fn: (curr: FlowFileData)=>FlowFileData|undefined)=>void}) {
   const notif = useContext(NotificationContext);
   
   return <div className="section">
@@ -436,16 +497,47 @@ function RunTriggerInstance(props: {run: ProcessorRun, model: TriggerInfo, runId
     }
     <div className="section">
       <div className="section-title">Inputs<Fill/>
+      {
+        props.updateTrigger ? 
         <div className="add-input-entry" onClick={()=>{
-          props.updateTrigger(props.runId, props.triggerIdx, (curr) => [...curr, {attributes: {}, content: ''}])
+          props.updateTrigger!(props.runId, props.triggerIdx, (curr) => [...curr, {attributes: {}, content: ''}])
         }}>
           <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
         </div>
+        : null
+      }
       </div>
       {
-        props.model.map((ff, idx) => {
-          return <RunInputFF key={idx} model={ff} runId={props.runId} triggerIdx={props.triggerIdx} updateTriggerFF={props.updateTriggerFF} idx={idx}/>
-        })
+        (()=>{
+          if (props.run.output && props.run.output !== "PENDING") {
+            const trigger_results = props.run.output.results[props.triggerIdx];
+            let all_prev_processed = 0;
+            for (let trigger_idx = 0; trigger_idx < props.triggerIdx; ++trigger_idx) {
+              all_prev_processed += props.run.output.results[trigger_idx].processed_input;
+            }
+            const ff_upto_trigger: {data: FlowFileData, triggerIdx: number}[] = [];
+            for (let trigger_idx = 0; trigger_idx <= props.triggerIdx; ++trigger_idx) {
+              for (const ff of props.run.input.triggers[trigger_idx]) {
+                ff_upto_trigger.push({data: ff, triggerIdx: trigger_idx});
+              }
+            }
+            return ff_upto_trigger.slice(all_prev_processed).map((ff, idx) => {
+              const labels: string[] = [];
+              if (ff.triggerIdx !== props.triggerIdx) {
+                // transferred from previous trigger input
+                labels.push(`Trigger ${ff.triggerIdx + 1}`);
+              }
+              if (idx < trigger_results.processed_input) {
+                return <RunInputFF key={idx} model={ff.data} runId={props.runId} triggerIdx={props.triggerIdx} idx={idx} labels={labels}/>
+              }
+              labels.push("ignored");
+              return <RunInputFF key={idx} className="ignored" model={ff.data} runId={props.runId} triggerIdx={props.triggerIdx} idx={idx} labels={labels}/>
+            })
+          }
+          return props.model.map((ff, idx) => {
+            return <RunInputFF key={idx} model={ff} runId={props.runId} triggerIdx={props.triggerIdx} updateTriggerFF={props.updateTriggerFF} idx={idx}/>
+          })
+        })()
       }
     </div>
     {
@@ -464,25 +556,52 @@ function RunTriggerInstance(props: {run: ProcessorRun, model: TriggerInfo, runId
         if (props.run.output === "PENDING") return null;
         const trigger_result = props.run.output?.results[props.triggerIdx];
         if (!trigger_result) return null;
-        return <div className="section">
-          <div className="section-title">End State<div className="copy-state" onClick={() => {
-            navigator.clipboard.writeText(JSON.stringify(trigger_result.end_state)).then(()=>{
-              notif.emit("Copied state to clipboard", "success");
-            }).catch(()=>{
-              notif.emit("Failed to copy state", "error");
-            });
-          }}><CopyIcon size={20}/></div></div>
-          <div className={`processor-state version-4`}>
-          {
-            Object.entries(trigger_result.end_state ?? {}).map(([key, value]) => {
-              return <div key={key} className="component-state-entry">
-                <div className="key">{key}</div>
-                <div className="value">{value}</div>
-              </div>;
-            })
-          }
+        let input_state: ComponentKVState|undefined;
+        if (props.triggerIdx > 0) {
+          input_state = props.run.output!.results[props.triggerIdx - 1].end_state;
+        } else {
+          input_state = props.run.input.state;
+        }
+        return <>
+          <div className="section">
+            <div className="section-title">Input State<div className="copy-state" onClick={() => {
+              navigator.clipboard.writeText(JSON.stringify(input_state)).then(()=>{
+                notif.emit("Copied state to clipboard", "success");
+              }).catch(()=>{
+                notif.emit("Failed to copy state", "error");
+              });
+            }}><CopyIcon size={20}/></div></div>
+            <div className={`processor-state version-4`}>
+            {
+              Object.entries(input_state ?? {}).map(([key, value]) => {
+                return <div key={key} className="component-state-entry">
+                  <div className="key">{key}</div>
+                  <div className="value">{value}</div>
+                </div>;
+              })
+            }
+            </div>
           </div>
-        </div>
+          <div className="section">
+            <div className="section-title">Output State<div className="copy-state" onClick={() => {
+              navigator.clipboard.writeText(JSON.stringify(trigger_result.end_state)).then(()=>{
+                notif.emit("Copied state to clipboard", "success");
+              }).catch(()=>{
+                notif.emit("Failed to copy state", "error");
+              });
+            }}><CopyIcon size={20}/></div></div>
+            <div className={`processor-state version-4`}>
+            {
+              Object.entries(trigger_result.end_state ?? {}).map(([key, value]) => {
+                return <div key={key} className="component-state-entry">
+                  <div className="key">{key}</div>
+                  <div className="value">{value}</div>
+                </div>;
+              })
+            }
+            </div>
+          </div>
+        </>;
       })()
     }
     {
@@ -502,14 +621,22 @@ function RunTriggerInstance(props: {run: ProcessorRun, model: TriggerInfo, runId
         })
       })()
     }
-    <div className="delete-run"><div onClick={() => {props.updateTrigger(props.runId, props.triggerIdx, curr => undefined); props.setActiveRunInfo(curr => (curr ? {...curr, triggerIdx: null} : null))}}>Delete trigger</div></div>
   </div>
 }
 
-function RunInputFF(props: {model: FlowFileData, runId: Uuid, triggerIdx: number, idx: number, updateTriggerFF?: (runId: Uuid, triggerIdx: number, ffIdx: number, fn: (curr: FlowFileData)=>FlowFileData|undefined)=>void}) {
+function RunInputFF(props: {
+      model: FlowFileData, runId: Uuid, triggerIdx: number, idx: number, labels?: string[], className?: string
+      updateTriggerFF?: (runId: Uuid, triggerIdx: number, ffIdx: number, fn: (curr: FlowFileData)=>FlowFileData|undefined)=>void}) {
   const openModal = useContext(ModalContext);
   
-  return <div className="component-run-input">
+  return <div className={`component-run-input ${props.className ?? ''}`}>
+    {
+      (props.labels?.length ?? 0) !== 0 ?
+      <div className="run-input-header">{
+        props.labels!.map(label => <div key={label} className="label">{label}</div>)
+      }</div>
+      : null
+    }
     {
       props.updateTriggerFF ? 
       <div className="run-input-header">Flow File {props.idx + 1}<Fill/>

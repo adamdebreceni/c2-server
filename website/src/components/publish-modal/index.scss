@@ -82,6 +82,30 @@
             border-color: rgb(14, 149, 14);
           }
         }
+        .agent-publish-loader {
+          margin-left: 20px;
+          border: 4px solid #f4f4f4;
+          border-top: 4px solid #389fe3;
+          border-radius: 50%;
+          width: 20px;
+          height: 20px;
+          animation: spin 2s linear infinite;
+        }
+        
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
+        svg.success-icon {
+          margin-left: 20px;
+          fill: green;
+        }
+
+        svg.error-icon {
+          margin-left: 20px;
+          fill: red;
+        }
       }
       .class-agents {
         color: var(--text-color);

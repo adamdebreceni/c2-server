@@ -24,6 +24,34 @@ interface FlowObject {
   parameters: Parameter[]
   funnels: Funnel[]
   state?: ComponentKVStateMap;
+  runs?: {[id: Uuid]: ProcessorRun[]|undefined}
+}
+
+type AgentConfig = {[id: Uuid]: ProcessorRun[]|undefined}
+
+interface AgentState {
+  type: "agent"
+  id: string
+  class: string|null
+  selected: boolean
+  last_heartbeat: Date|null,
+  flow: string|null,
+  flow_update_error: {target_flow: string, error: string}|null
+}
+
+interface ClassState {
+  type: "class"
+  id: string
+  selected: boolean
+  agents: AgentState[]
+}
+
+interface PublishState {
+  modal: boolean,
+  pending: boolean,
+  targetFlow: string|null,
+  classes: ClassState[]
+  agents: AgentState[]
 }
 
 interface Component extends Positionable {
@@ -57,8 +85,7 @@ interface Processor extends Component {
   penalty: string,
   yield: string,
   autoterminatedRelationships: {[name: string]: boolean},
-  scheduling: Scheduling,
-  runs?: ProcessorRun[]
+  scheduling: Scheduling
 }
 
 interface Scheduling {

@@ -27,6 +27,11 @@ export function AgentClass(props: {value: AgentClassLike}) {
           })
         }
       }}>{props.value.flow ?? "No flow is published yet"}</div>
+      <div className="new-flow" onClick={()=>{
+        services?.flows.create({class: props.value.name}).then(id => {
+          navigate(`/flow/${id}`);
+        })
+      }}>Create flow</div>
     </div>
     <div className="fill"/>
     <div className="agent-count" onClick={()=>navigate(`/agents?class=${props.value.name}`)}>{props.value.agent_count ?? "-"}</div>

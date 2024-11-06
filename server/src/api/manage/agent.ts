@@ -1,4 +1,4 @@
-import { json, Router } from "express";
+import { json, raw, Router, text } from "express";
 import { PendingComponentRun, PendingComponentStart, PendingComponentStateClear, PendingComponentStateQuery, PendingComponentStop, PendingDebugInfo, PendingOperationRequest, PendingPropertyUpdates, PendingRestart, PendingUpdates } from "../../services/agent-state";
 import { MakeAsyncSafe } from "../../utils/async";
 
@@ -117,6 +117,11 @@ export function CreateManageAgentRouter(services: Services): Router {
       processed_result.trigger_error = run_result.trigger_error;
     }
     res.json(processed_result);
+  })
+
+  router.post("/:agentId/config", json(), async (req, res) => {
+    await services.agentService.saveConfig(req.params.agentId, JSON.stringify(req.body));
+    res.sendStatus(200);
   })
 
   router.post("/restart/:id", async (req, res) => {

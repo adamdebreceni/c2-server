@@ -6,6 +6,7 @@ import { WarningIcon } from "../../icons/warning";
 import { ExtendedWidget, IsExtended } from "../extended-widget";
 import { PlayIcon } from "../../icons/play";
 import { PauseIcon } from "../../icons/pause";
+import { SparkleIcon } from "../../icons/sparkle";
 
 export function Widget(props: {highlight?: boolean, service?: boolean, value: Component, link?: boolean, errors?: ErrorObject[], readonly?: boolean}) {
   const [grabbing, setGrabbing] = React.useState(false);
@@ -99,7 +100,7 @@ export function Widget(props: {highlight?: boolean, service?: boolean, value: Co
         }
         return messages;
       })()}><WarningIcon size={20}/></Tooltip></div>}
-      <div className="name">{props.value.name}</div>
+      <div className="name flex items-center"><WidgetIcon type={props.value.type}/>{props.value.name}</div>
     </div>
   </div>
 }
@@ -109,4 +110,11 @@ function ComponentState(props: {state: ComponentState, onClick?: ()=>void}) {
     {props.state === "STARTED" ? <PlayIcon size={20} /> : null}
     {props.state === "STOPPED" ? <PauseIcon size={20} /> : null}
   </div>
+}
+
+function WidgetIcon(props: {type: string}) {
+  if (props.type.endsWith("AiProcessor")) {
+    return <div className="inline-block mr-2"><SparkleIcon size={20} /></div>
+  }
+  return null;
 }
