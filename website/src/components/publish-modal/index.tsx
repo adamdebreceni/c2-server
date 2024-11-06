@@ -60,14 +60,21 @@ function AgentInstance(props: {targetFlow: string|null, model: AgentState, onTog
             return <SuccessIcon size={20} />
           }
           if (props.model.flow_update_error?.target_flow === props.targetFlow) {
-            return <Tooltip message={props.model.flow_update_error.error}>
-              <ErrorIcon size={20} />
-            </Tooltip>
+            return <ErrorIcon size={20} />
           }
           return <div className="agent-publish-loader" />
         })()
       }
     </div>
+    {
+      (()=>{
+        if (!props.targetFlow) return null;
+        if (props.model.flow === props.targetFlow) return null;
+        if (props.model.flow_update_error?.target_flow === props.targetFlow) {
+          return <div className="update-error"><div>{props.model.flow_update_error.error}</div></div>
+        }
+      })()
+    }
   </div>
 }
 

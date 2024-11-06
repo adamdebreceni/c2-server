@@ -1,0 +1,112 @@
+.transform-example {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 5px;
+  border: 1px solid rgb(203, 203, 203);
+  border-left-color: transparent;
+  overflow: hidden;
+  margin-bottom: 40px;
+  & > .header {
+    border-left: 4px solid rgb(203, 203, 203);
+    display: flex;
+    flex-direction: row;
+    padding: 10px;
+    .delete-icon {
+      margin-left: 10px;
+      cursor: pointer;
+      &:hover svg {
+        fill: rgb(216, 34, 34);
+      }
+    }
+  }
+  .input {
+    border-top: 1px solid rgb(203, 203, 203);
+    border-left: 4px solid rgb(203, 203, 203);
+    // border-left: 4px solid rgb(20, 198, 20);
+    box-sizing: border-box;
+    padding: 10px;
+    .ff-attributes .title {
+      display: flex;
+      flex-direction: row;
+      padding-bottom: 10px;
+      color: rgb(20, 198, 20);
+    }
+    .ff-attribute-entry {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      .delete-icon {
+        cursor: pointer;
+        padding: 3px;
+        &:hover svg {
+          fill: rgb(216, 34, 34);
+        }
+      }
+    }
+  }
+
+  .outputs {
+    .output-ff {
+      border-top: 1px solid rgb(203, 203, 203);
+      // border-left: 4px solid rgb(84, 92, 251);
+      border-left: 4px solid rgb(203, 203, 203);
+      box-sizing: border-box;
+      padding: 10px;
+      .ff-attributes .title {
+        display: flex;
+        flex-direction: row;
+        padding-bottom: 10px;
+        color: rgb(84, 92, 251);
+        .delete-icon {
+          margin-left: 10px;
+          cursor: pointer;
+          &:hover svg {
+            fill: rgb(216, 34, 34);
+          }
+        }
+      }
+      .ff-attribute-entry {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        .delete-icon {
+          cursor: pointer;
+          padding: 3px;
+          &:hover svg {
+            fill: rgb(216, 34, 34);
+          }
+        }
+      }
+    }
+  }
+
+  .copy-ff {
+    cursor: pointer;
+    margin-left: 5px;
+    &:hover {
+      svg {
+        fill: rgb(27, 27, 27);
+      }
+    }
+  }
+
+  .paste-ff {
+    cursor: pointer;
+    margin-left: 5px;
+    &:hover {
+      svg {
+        fill: rgb(27, 27, 27);
+      }
+    }
+  }
+
+  &:not(:hover) {
+    .delete-icon, .copy-ff, .paste-ff, .add-ff-attribute {
+      display: none !important;
+    }
+  }
+
+  .ff-content > .title, .ff-relationship > .title {
+    // font-size: 0.8em;
+  }
+}

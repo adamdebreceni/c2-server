@@ -21,6 +21,7 @@ import { ArrowRightIcon } from "../../icons/arrow-right";
 import { CopyIcon } from "../../icons/copy";
 import { PasteIcon } from "../../icons/paste";
 import { EditIcon } from "../../icons/edit";
+import { isSpecialInputField, SpecialInputField } from "../special-input";
 
 type ActiveRunInfo = {runIdx: number, triggerIdx: number|null}|null;
 
@@ -222,6 +223,9 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
               // dynamic property
               return null;
             }
+            if (isSpecialInputField(props.model.type, prop_name)) {
+              return null;
+            }
             const values = props.manifest.propertyDescriptors[prop_name].allowableValues;
             if (values) {
               return <PropertyDropdown key={prop_name} name={prop_name} width="100%" items={values.map(val => val.value)} initial={model.properties[prop_name]}
@@ -267,6 +271,15 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
           })
         }
       </div>
+      }
+      {
+        Object.keys(model.properties).sort().map(prop_name => {
+          if (!isSpecialInputField(props.model.type, prop_name)) {
+            return null;
+          }
+          return <SpecialInputField key={prop_name} name={prop_name} width="100%" default={model.properties[prop_name]}
+              onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: val}})) : undefined} visible={model.visibleProperties?.includes(prop_name) ?? false} onChangeVisibility={onChangeVisibility}/>
+        })
       }
     </div>
     <div className={`tab ${activeTab === "runs" && activeRunInfo === null ? 'active': ''}`}>

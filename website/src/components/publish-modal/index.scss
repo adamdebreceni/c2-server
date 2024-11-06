@@ -42,6 +42,17 @@
     height: 500px;
     overflow: scroll;
     .instance {
+      .update-error {
+        width: 100%;
+        padding: 20px;
+        box-sizing: border-box;
+        & > div {
+          border-radius: 3px;
+          border: 1px solid rgb(222, 26, 26);
+          border-left-width: 4px;
+          color: rgb(222, 26, 26);
+        }
+      }
       .instance-header {
         padding: 15px;
         border-bottom: 1px solid rgb(241, 241, 241);
