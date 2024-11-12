@@ -139,3 +139,19 @@
 .link-cursor {
   cursor: url(link-add.svg) 12 12, auto;
 }
+
+.top-bottom-cursor {
+  cursor: ns-resize;
+}
+
+.left-right-cursor {
+  cursor: ew-resize;
+}
+
+.top-left-cursor {
+  cursor: nwse-resize;
+}
+
+.top-right-cursor {
+  cursor: nesw-resize;
+}

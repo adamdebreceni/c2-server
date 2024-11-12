@@ -1,5 +1,6 @@
 .widget{
   position: absolute;
+  pointer-events: all;
   &:not(.active) {
     .connection-icon-container {
       display: none;
@@ -15,12 +16,58 @@
       border-color: rgb(145, 61, 255) !important;
     }
   }
+  &.input-port {
+    .ripple-1, .ripple-2, .ripple-3 {
+      animation: in 2s linear infinite;
+    }
+  }
+
+  &.output-port {
+    .ripple-1, .ripple-2, .ripple-3 {
+      animation: out 2s linear infinite;
+    }
+  }
+  
+  @keyframes out {
+    0% { width: 4px; height: 4px; opacity: 0.5; }
+    100% { width: 50px; height: 50px; opacity: 0; }
+  }
+
+  @keyframes in {
+    0% { width: 50px; height: 50px; opacity: 0; }
+    100% { width: 4px; height: 4px; opacity: 0.5; }
+  }
   .processor-view{
     &:not(.extended) {
+      display: flex;
+      justify-content: center;
+      align-items: center;
       width: 50px;
       height: 50px;
       border: 5px solid rgb(83, 83, 83);
       border-radius: 50%;
+      .merge-icon {
+        fill: rgb(80, 80, 80);
+        path {
+          stroke-width: 4px;
+        }
+      }
+      .arrow-left-icon, .arrow-right-icon {
+        fill: rgb(26, 26, 26);
+      }
+      .ripple-1, .ripple-2, .ripple-3 {
+        position: absolute;
+        border-radius: 50%;
+        border: 2px solid rgb(40, 40, 40);
+      }
+
+      .ripple-2 {
+        animation-delay: 666ms;
+      }
+
+      .ripple-3 {
+        animation-delay: 1333ms;
+      }
     }
     &.extended {
       border: 2px solid transparent;
@@ -98,5 +145,13 @@
         transform: translate(-50%, 0);
       }
     }
+  }
+}
+
+.widget-container {
+  position: absolute;
+  pointer-events: none;
+  &.active {
+    overflow: hidden;
   }
 }

@@ -7,30 +7,19 @@ import { ExtendedWidget, IsExtended } from "../extended-widget";
 import { PlayIcon } from "../../icons/play";
 import { PauseIcon } from "../../icons/pause";
 import { SparkleIcon } from "../../icons/sparkle";
+import { MergeIcon } from "../../icons/merge-icon";
+import { ArrowRightIcon } from "../../icons/arrow-right";
+import { ArrowLeftIcon } from "../../icons/arrow-left";
+import { Fill } from "../fill/Fill";
 
-export function Widget(props: {highlight?: boolean, service?: boolean, value: Component, link?: boolean, errors?: ErrorObject[], readonly?: boolean}) {
+export function Widget(props: {highlight?: boolean, kind: string, value: Component, link?: boolean, errors?: ErrorObject[], readonly?: boolean, container?: Positionable|null}) {
   const [grabbing, setGrabbing] = React.useState(false);
   const flow_context = React.useContext(FlowContext);
   const onmousedown = React.useCallback((e: React.MouseEvent)=>{
     if (e.button !== 0 || props.link) return;
-    setGrabbing(true);
+    flow_context?.setMovingComponent(props.value.id, true);
     e.stopPropagation();
-  }, [props.link]);
-  React.useEffect(()=>{
-    if (!grabbing) return;
-    const onmousemove = (e: MouseEvent)=>{
-      flow_context?.moveComponent(props.value.id, e.movementX, e.movementY);
-    }
-    const onmouseup = (e: MouseEvent)=>{
-      setGrabbing(false);
-    }
-    document.addEventListener('mousemove', onmousemove);
-    document.addEventListener('mouseup', onmouseup);
-    return ()=>{
-      document.removeEventListener('mousemove', onmousemove);
-      document.removeEventListener('mouseup', onmouseup);
-    }
-  }, [grabbing, props.value.id, flow_context?.moveComponent]);
+  }, [props.link, props.value.id, flow_context?.setMovingComponent]);
   const oncontextmenu = React.useCallback((e: React.MouseEvent)=>{
     e.preventDefault();
     const {clientX, clientY} = e;
@@ -70,7 +59,8 @@ export function Widget(props: {highlight?: boolean, service?: boolean, value: Co
     }
     flow_context?.updateProcessor(props.value.id, curr => ({...curr, size: current_size}));
   }, [props.value, flow_context?.updateProcessor]);
-  return <div className={`widget ${!grabbing && props.link ? "active": ""} ${props.highlight ? "highlight" : ""} ${props.service ? "service" : ""}`} style={{left: `${props.value.position.x}px`, top: `${props.value.position.y}px`}} onMouseDown={onmousedown} onContextMenu={oncontextmenu} onDoubleClick={ondblclick}>
+  return <div className={`widget-container ${props.container ? 'active' : ''}`} style={{left: `${props.container?.position.x ?? 0}px`, top: `${props.container?.position.y ?? 0}px`, width: `${props.container?.size?.width ?? 0}px`, height: `${props.container?.size?.height ?? 0}px`}}>
+    <div className={`widget ${!grabbing && props.link ? "active": ""} ${props.highlight ? "highlight" : ""} ${props.kind}`} style={{left: `${props.value.position.x - (props.container?.position.x ?? 0)}px`, top: `${props.value.position.y - (props.container?.position.y ?? 0)}px`}} onMouseDown={onmousedown} onContextMenu={oncontextmenu} onDoubleClick={ondblclick}>
     <div ref={view_ref} className={`processor-view ${IsExtended(props.value) ? "extended" : ""}`}>
       {(IsExtended(props.value) ? <ExtendedWidget value={props.value} /> : null)}
       {props.value.running !== undefined ?
@@ -88,6 +78,39 @@ export function Widget(props: {highlight?: boolean, service?: boolean, value: Co
         })()} /> 
         : null
       }
+      {
+        props.kind === 'funnel' ? <MergeIcon size={28} /> : null
+      }
+      {
+        props.kind === 'input-port' ? <>
+          <Fill/>
+          <ArrowRightIcon size={18}/>
+          <ArrowLeftIcon size={18}/>
+          <Fill/>
+        </> : null
+      }
+      {
+        props.kind === 'output-port' ? <>
+          <Fill/>
+          <ArrowLeftIcon size={18}/>
+          <ArrowRightIcon size={18}/>
+          <Fill/>
+        </> : null
+      }
+      {
+        props.kind === 'parameter-context' ? <>
+          <svg xmlns="http://www.w3.org/2000/svg" height='20' viewBox="0 0 24 24" width='20' fill="#333333">
+            <path d="M3 18h12v-2H3zM3 6v2h18V6zm0 7h18v-2H3z"></path>
+          </svg>
+        </> : null
+      }
+      {/* {
+        props.kind === 'input-port' || props.kind === 'output-port' ? <>
+          <div className="ripple-1" />
+          <div className="ripple-2" />
+          <div className="ripple-3" />
+        </> : null
+      } */}
       {(props.errors?.length ?? 0) === 0 ? null : <div className="processor-errors"><Tooltip message={(()=>{
         const messages = [];
         let first = true;
@@ -102,6 +125,7 @@ export function Widget(props: {highlight?: boolean, service?: boolean, value: Co
       })()}><WarningIcon size={20}/></Tooltip></div>}
       <div className="name flex items-center"><WidgetIcon type={props.value.type}/>{props.value.name}</div>
     </div>
+  </div>
   </div>
 }
 

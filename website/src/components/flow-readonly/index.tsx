@@ -270,13 +270,13 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
         {
           state.flow.processors.map(proc => {
             const proc_errors = errors.filter(err => err.component === proc.id);
-            return <Widget key={proc.id} errors={proc_errors} value={proc} />
+            return <Widget key={proc.id} errors={proc_errors} value={proc} kind='processor' />
           })
         }
         {
           state.flow.services.map(service => {
             const service_errors = errors.filter(err => err.component === service.id);
-            return <Widget key={service.id} value={service} service errors={service_errors} />
+            return <Widget key={service.id} value={service} errors={service_errors} kind='service' />
           })
         }
       </Surface>
@@ -325,6 +325,10 @@ function useFlowContext(services: Services|null, agentId: string|undefined, area
     setState(st => st)
   }, [])
 
+  const setMovingComponent = React.useCallback((id: Uuid, moving: boolean)=>{
+    setState(st => st)
+  }, []);
+
   const moveComponent = React.useCallback((id: Uuid, dx: number, dy: number)=>{
     setState(st => st)
   }, []);
@@ -355,17 +359,7 @@ function useFlowContext(services: Services|null, agentId: string|undefined, area
     })
   }, []);
 
-  const updateProcessor = React.useCallback((id: Uuid, fn: (curr: Processor)=>Processor)=>{
-    setState(st => st)
-  }, []);
-
-  const updateConnection = React.useCallback((id: Uuid, fn: (curr: Connection)=>Connection)=>{
-    setState(st => st)
-  }, []);
-
-  const updateService = React.useCallback((id: Uuid, fn: (curr: MiNiFiService)=>MiNiFiService)=>{
-    setState(st => st)
-  }, []);
+  const noopUpdate = React.useCallback((id: Uuid, fn: (curr: any)=>any)=>{}, []);
 
   const closeComponentEditor = React.useCallback(()=>{
     setState(st => ({...st, editingComponent: null}))
@@ -470,10 +464,9 @@ function useFlowContext(services: Services|null, agentId: string|undefined, area
 
 
   return React.useMemo(()=>(
-      {showMenu, moveComponent, deleteComponent, hideMenu, editComponent, updateProcessor,
-      updateConnection, updateService, closeComponentEditor, closeNewProcessor, closeNewService,
-      moveConnection, startProcessor, stopProcessor, clearProcessorState, updateRun, editable: false, agentId}),
-    [showMenu, moveComponent, deleteComponent, hideMenu, editComponent, updateProcessor,
-    updateConnection, updateService, closeComponentEditor, closeNewProcessor, closeNewService,
-    moveConnection, startProcessor, stopProcessor, clearProcessorState, updateRun, agentId]);
+      {showMenu, moveComponent, deleteComponent, hideMenu, editComponent, updateProcessor: noopUpdate,
+      updateConnection: noopUpdate, updateService: noopUpdate, updateGroup: noopUpdate, updateFunnel: noopUpdate, updateParameterContext: noopUpdate, updatePort: noopUpdate, closeComponentEditor, closeNewProcessor, closeNewService,
+      moveConnection, startProcessor, stopProcessor, clearProcessorState, updateRun, setMovingComponent, editable: false, agentId}),
+    [showMenu, moveComponent, deleteComponent, hideMenu, editComponent, noopUpdate, closeComponentEditor, closeNewProcessor, closeNewService,
+    moveConnection, startProcessor, stopProcessor, clearProcessorState, updateRun, setMovingComponent, agentId]);
 }

@@ -5,7 +5,7 @@ import "./index.scss";
 import { VisibilityIcon } from "../../icons/visibility";
 import { PropertyVisibility } from "../property-visibility";
 
-export function Dropdown(props: {name: string, items: string[], initial?: string|null, onChange?: (item: string)=>void, width?: string, visible?: boolean, onChangeVisibility?: (name: string)=>void}) {
+export function Dropdown(props: {name: string, items: string[], initial?: string|null, onChange?: (item: string, idx: number)=>void, width?: string, visible?: boolean, onChangeVisibility?: (name: string)=>void}) {
   const [state, setState] = useState({current: props.initial ?? props.items[0], active: false});
   const onBlur = React.useCallback(()=>{
     if (!props.onChange) return;
@@ -35,10 +35,10 @@ export function Dropdown(props: {name: string, items: string[], initial?: string
         }
       </div>
       <div className="dropdown-menu">
-        {props.items.map(item=>{
+        {props.items.map((item, idx)=>{
           return <div key={item} className="dropdown-item" onClick={(e)=>{
             setState(curr => ({...curr, current: item}));
-            props.onChange?.(item);
+            props.onChange?.(item, idx);
             e.currentTarget.parentElement?.parentElement?.blur();
           }}>{item}</div>
         })}

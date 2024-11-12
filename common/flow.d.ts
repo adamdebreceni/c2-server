@@ -25,6 +25,33 @@ interface FlowObject {
   funnels: Funnel[]
   state?: ComponentKVStateMap;
   runs?: {[id: Uuid]: ProcessorRun[]|undefined}
+  processGroups?: ProcessGroup[],
+  processGroupsPorts?: ProcessGroupPort[],
+  parameterContexts?: ParameterContext[]
+}
+
+interface ParameterContextParam {
+  name: string,
+  value: string,
+  sensitive: boolean,
+  description: string|null
+}
+
+interface ParameterContext extends Component {
+  description: string|null,
+  parameters: ParameterContextParam[]
+}
+
+interface ProcessGroupPort extends Component {
+  parentGroup: Uuid|null,
+  type: 'INPUT'|'OUTPUT'
+}
+
+interface ProcessGroup extends Positionable {
+  id: Uuid,
+  name: string,
+  parentGroup: Uuid|null,
+  parameterContext: Uuid|null
 }
 
 type AgentConfig = {[id: Uuid]: ProcessorRun[]|undefined}
@@ -61,10 +88,11 @@ interface Component extends Positionable {
   properties: {[name: string]: string|null}
   visibleProperties?: string[]
   running?: ComponentState
+  parentGroup?: Uuid|null
 }
 
-interface Funnel extends Positionable {
-  id: Uuid
+interface Funnel extends Component {
+  parentGroup: Uuid|null
 }
 
 interface Parameter {
@@ -85,7 +113,8 @@ interface Processor extends Component {
   penalty: string,
   yield: string,
   autoterminatedRelationships: {[name: string]: boolean},
-  scheduling: Scheduling
+  scheduling: Scheduling,
+  parentGroup: Uuid|null
 }
 
 interface Scheduling {
@@ -102,7 +131,8 @@ interface RPC extends Positionable {
   proxy: {host: string, port: number},
   localNetworkInterface: string
   connectionTimeout: Time,
-  yield: Time
+  yield: Time,
+  parentGroup: Uuid|null
 }
 
 interface ConnectionSize {

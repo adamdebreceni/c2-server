@@ -11,7 +11,10 @@ export function IsInside(area: {x: number, y: number, w: number, h: number, circ
   return area.x - area.w/2 <= x && x <= area.x + area.w/2 && area.y - area.h/2 <= y && y <= area.y + area.h/2;
 }
 
-export function ConnectionView(props: {model?: Connection, id?: Uuid, from: {x: number, y: number, w: number, h: number, circular: boolean}, to: {x: number, y: number, w: number, h: number, circular: boolean}, name?: string, midPoint?: {x: number, y: number}|number, readonly?: boolean}) {
+export function ConnectionView(props: {model?: Connection, id?: Uuid,
+      from: {x: number, y: number, w: number, h: number, circular: boolean},
+      to: {x: number, y: number, w: number, h: number, circular: boolean}, name?: string,
+      midPoint?: {x: number, y: number}|number, readonly?: boolean, container?: Positionable|null}) {
   const midPoint = props.model?.midPoint ?? props.midPoint;
   
   let v_x = props.to.x - props.from.x;
@@ -171,7 +174,8 @@ export function ConnectionView(props: {model?: Connection, id?: Uuid, from: {x: 
   // })
 
 
-  return <div className="connection-view" style={{left: `${left - 500}px`, top: `${top - 500}px`}}>
+  return <div className={`widget-container ${props.container ? 'active' : ''}`} style={{left: `${props.container?.position.x ?? 0}px`, top: `${props.container?.position.y ?? 0}px`, width: `${props.container?.size?.width ?? 0}px`, height: `${props.container?.size?.height ?? 0}px`}}>
+    <div className="connection-view" style={{left: `${left - 500 - (props.container?.position.x ?? 0)}px`, top: `${top - 500 - (props.container?.position.y ?? 0)}px`}}>
     <svg ref={svgRef} style={{display: 'block'}} viewBox={`-500 -500 ${width + 1000} ${height + 1000}`} width={width + 1000} height={height + 1000}>
     <defs>
       <marker id='head' orient="auto" markerWidth='6' markerHeight='6' refX='5' refY='3'>
@@ -192,6 +196,7 @@ export function ConnectionView(props: {model?: Connection, id?: Uuid, from: {x: 
       props.id === undefined ? null :
       <ConnectionName id={props.id} model={props.model!} x={name_pos.x - (left - 500)} y={name_pos.y - (top - 500)} name={props.name} />
     }
+  </div>
   </div>
 }
 
@@ -218,31 +223,15 @@ const usage_colors = [
 ]
 
 function ConnectionName(props: {id: Uuid, model: Connection, x: number, y: number, name?: string}) {
-  const [grabbing, setGrabbing] = React.useState(false);
   const [inline_rels, setInlineRels] = React.useState(false);
   const flow_context = React.useContext(FlowContext);
   const view_ref = React.useRef<HTMLDivElement>(null);
   const inline_rel_ref = React.useRef<HTMLDivElement>(null);
   const onmousedown = React.useCallback((e: React.MouseEvent)=>{
     if (e.button !== 0) return;
-    setGrabbing(true);
+    flow_context?.setMovingComponent(props.id, true);
     e.stopPropagation();
-  }, []);
-  React.useEffect(()=>{
-    if (!grabbing) return;
-    const onmousemove = (e: MouseEvent)=>{
-      flow_context?.moveConnection(props.id, e.movementX, e.movementY);
-    }
-    const onmouseup = (e: MouseEvent)=>{
-      setGrabbing(false);
-    }
-    document.addEventListener('mousemove', onmousemove);
-    document.addEventListener('mouseup', onmouseup);
-    return ()=>{
-      document.removeEventListener('mousemove', onmousemove);
-      document.removeEventListener('mouseup', onmouseup);
-    }
-  }, [grabbing, props.id, flow_context?.updateConnection]);
+  }, [props.id, flow_context?.setMovingComponent]);
 
   const onclick = React.useCallback((e: React.MouseEvent) => {
     if (!flow_context?.editable) {
