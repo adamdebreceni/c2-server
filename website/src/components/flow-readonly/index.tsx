@@ -17,11 +17,16 @@ import { NotificationContext } from "../../common/notification-context";
 import { Eval } from "../../utils/attribute-expression";
 import { ServiceSelector } from "../service-selector";
 import { ServiceEditor } from "../service-editor";
+import { emitProcessGroupItems, PositionableGroup } from "../flow-editor";
+import { FunnelEditor } from "../funnel-editor";
+import { ProcessGroupEditor } from "../process-group-editor";
+import { ProcessGroupPortEditor } from "../port-editor";
+import { ParameterContextEditor } from "../parameter-context-editor";
 
 interface FlowEditorState {
   flow: FlowObject,
   panning: boolean,
-  editingComponent: Processor | Connection | MiNiFiService| null,
+  editingComponent: Uuid | null,
 }
 
 function width(proc: Processor) {
@@ -242,42 +247,26 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
       </div>
       <Surface {...state.flow.view}>
         {
-          state.flow.connections.map(conn => {
-            const srcProc = state.flow.processors.find(proc => proc.id === conn.source.id);
-            const dstProc = state.flow.processors.find(proc => proc.id === conn.destination.id);
-            if (!srcProc || !dstProc) {
-              console.error(`Couldn't find processors for connection '${conn.id}'`);
-              return null;
-            }
-            return <ConnectionView model={conn} key={conn.id} id={conn.id}
-              from={{
-                x: srcProc.position.x + width(srcProc) / 2,
-                y: srcProc.position.y + height(srcProc) / 2,
-                w: width(srcProc) + 2 * padding,
-                h: height(srcProc) + 2 * padding,
-                circular: srcProc.size?.circular ?? true
-              }}
-              to={{
-                x: dstProc.position.x + width(dstProc) / 2,
-                y: dstProc.position.y + height(dstProc) / 2,
-                w: width(dstProc) + 2 * padding,
-                h: height(dstProc) + 2 * padding,
-                circular: dstProc.size?.circular ?? true
-              }}
-              name={conn.name ? conn.name : Object.keys(conn.sourceRelationships).filter(key => conn.sourceRelationships[key]).sort().join(", ")}/>
-          })
-        }
-        {
-          state.flow.processors.map(proc => {
-            const proc_errors = errors.filter(err => err.component === proc.id);
-            return <Widget key={proc.id} errors={proc_errors} value={proc} kind='processor' />
-          })
-        }
-        {
           state.flow.services.map(service => {
             const service_errors = errors.filter(err => err.component === service.id);
             return <Widget key={service.id} value={service} errors={service_errors} kind='service' />
           })
+        }
+        {
+          state.flow.parameterContexts?.map(ctx => {
+            return <Widget key={ctx.id} value={ctx} kind='parameter-context' />
+          })
+        }
+        {
+          emitProcessGroupItems(state, errors, null, null)
+        }
+        {
+          (()=>{
+            const group_containers = new Map<Uuid, PositionableGroup>();
+            return state.flow.processGroups?.map(group => {
+              return emitProcessGroupItems(state, errors, group, group_containers);
+            }).flat()
+          })()
         }
       </Surface>
       <div className="absolute right-0 top-0 px-5 py-2 text-gray-400 bg-white hover:text-gray-800 cursor-pointer m-5 border-gray-400 hover:border-gray-800 border-solid border-[1px] rounded-[3px]" onClick={()=>{
@@ -294,17 +283,38 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
           <div className="overlay" onClick={flowContext.closeComponentEditor}/>
           <div className="component-editor">{
             (()=>{
-              if ("source" in state.editingComponent!) {
-                return <ConnectionEditor model={state.editingComponent}/>;
-              } else if ("scheduling" in state.editingComponent) {
-                const proc_manifest = state.flow.manifest.processors.find(proc => proc.type === (state.editingComponent as Processor).type)!;
-                const proc_errors = errors.filter(err => err.component === (state.editingComponent as Processor).id);
-                return <ProcessorEditor model={state.editingComponent as Processor} manifest={proc_manifest} errors={proc_errors} state={state.flow.state?.[state.editingComponent.id]} runs={state.flow.runs?.[state.editingComponent.id]}/>
-              } else {
-                // service
-                const service_manifest = state.flow.manifest.controllerServices.find(service => service.type === (state.editingComponent as MiNiFiService).type)!;
-                return <ServiceEditor model={state.editingComponent as MiNiFiService} manifest={service_manifest}/>
+              const conn = state.flow.connections.find(conn => conn.id === state.editingComponent);
+              if (conn) {
+                return <ConnectionEditor model={conn}/>;
               }
+              const proc = state.flow.processors.find(proc => proc.id === state.editingComponent);
+              if (proc) {
+                const proc_manifest = state.flow.manifest.processors.find(proc_manifest => proc_manifest.type === proc.type)!;
+                const proc_errors = errors.filter(err => err.component === proc.id);
+                return <ProcessorEditor model={proc} manifest={proc_manifest} errors={proc_errors} state={state.flow.state?.[state.editingComponent]} runs={state.flow.runs?.[state.editingComponent]} />
+              }
+              const serv = state.flow.services.find(serv => serv.id === state.editingComponent);
+              if (serv) {
+                const service_manifest = state.flow.manifest.controllerServices.find(serv_manifest => serv_manifest.type === serv.type)!;
+                return <ServiceEditor model={serv} manifest={service_manifest}/>
+              }
+              const funnel = state.flow.funnels.find(funnel => funnel.id === state.editingComponent);
+              if (funnel) {
+                return <FunnelEditor model={funnel} />
+              }
+              const group = state.flow.processGroups?.find(group => group.id === state.editingComponent);
+              if (group) {
+                return <ProcessGroupEditor model={group} contexts={state.flow.parameterContexts ?? []}/>
+              }
+              const port = state.flow.processGroupsPorts?.find(port => port.id === state.editingComponent);
+              if (port) {
+                return <ProcessGroupPortEditor model={port} />
+              }
+              const ctx = state.flow.parameterContexts?.find(ctx => ctx.id === state.editingComponent);
+              if (ctx) {
+                return <ParameterContextEditor model={ctx} />
+              }
+              return null;
             })()
           }
           </div>
@@ -343,19 +353,7 @@ function useFlowContext(services: Services|null, agentId: string|undefined, area
 
   const editComponent = React.useCallback((id: Uuid)=>{
     setState(st => {
-      const proc = st.flow.processors.find(proc => proc.id === id);
-      if (proc) {
-        return {...st, editingComponent: proc};
-      }
-      const conn = st.flow.connections.find(conn => conn.id === id);
-      if (conn) {
-        return {...st, editingComponent: conn};
-      }
-      const serv = st.flow.services.find(serv => serv.id === id);
-      if (serv) {
-        return {...st, editingComponent: serv};
-      }
-      return st;
+      return {...st, editingComponent: id};
     })
   }, []);
 
@@ -364,21 +362,6 @@ function useFlowContext(services: Services|null, agentId: string|undefined, area
   const closeComponentEditor = React.useCallback(()=>{
     setState(st => ({...st, editingComponent: null}))
   }, [])
-
-  React.useEffect(()=>{
-    setState(st => {
-      if (!state.editingComponent) return st;
-      const proc = state.flow.processors.find(proc => proc.id === state.editingComponent!.id);
-      if (proc && proc !== state.editingComponent) {
-        return {...st, editingComponent: proc};
-      }
-      const conn = state.flow.connections.find(conn => conn.id === state.editingComponent!.id);
-      if (conn && conn !== state.editingComponent) {
-        return {...st, editingComponent: conn};
-      }
-      return st;
-    })
-  }, [state.flow.processors, state.flow.connections])
 
   const closeNewProcessor = React.useCallback((id: string|null)=>{
     setState(st => st)

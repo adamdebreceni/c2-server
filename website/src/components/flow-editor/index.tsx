@@ -30,7 +30,7 @@ interface NewConnection {
   midPoint: {x: number, y: number} | number | null
 };
 
-type PositionableGroup = Positionable & {id: Uuid, parentGroup: Uuid|null}
+export type PositionableGroup = Positionable & {id: Uuid, parentGroup: Uuid|null}
 
 export type ResizeDir = 'top'|'top-left'|'left'|'bottom-left'|'bottom'|'bottom-right'|'right'|'top-right';
 
@@ -723,7 +723,7 @@ function addDependencies(groups: ProcessGroup[], group: ProcessGroup, result: Pr
   result.push(parentGroup);
 }
 
-function emitProcessGroupItems(state: FlowEditorState, errors: ErrorObject[], group: ProcessGroup|null, containers: Map<Uuid, PositionableGroup>|null) {
+export function emitProcessGroupItems(state: {flow: FlowObject, newConnection?: NewConnection|null, resizeGroup?: {id: Uuid, direction: ResizeDir, active: boolean}|null}, errors: ErrorObject[], group: ProcessGroup|null, containers: Map<Uuid, PositionableGroup>|null) {
   let container: PositionableGroup|null = group;
   if (group && containers) {
     if (group.parentGroup) {
