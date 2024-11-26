@@ -5,28 +5,29 @@ import { InputField } from "../component-editor-input";
 import { Toggle } from "../component-editor-toggle";
 import "./index.scss"
 
-export function ConnectionEditor(props: {model: Connection}) {
+export function ConnectionEditor(props: {model: Connection, readonly?: boolean}) {
   const flow_context = useContext(FlowContext);
-  const [model, setModel] = React.useState(props.model);
-  React.useEffect(()=>{
-    if (model === props.model) return;
-    flow_context?.updateConnection(model);
-  }, [model, flow_context?.updateProcessor]);
+  const setModel = React.useMemo(()=>{
+    return (fn: (curr: Connection)=>Connection) => flow_context!.updateConnection(props.model.id, fn);
+  }, [props.model.id, flow_context!.updateConnection]);
+  const model = props.model;
   return <div className="component-settings">
+    <div className="type">Connection</div>
+    <div className="uuid">{props.model.id}</div>
     <div className="section">
       <div className="section-title">General</div>
       {props.model.errors.map(err => <div key={err} className="connection-error">{err}</div>)}
-      <InputField name="NAME" width="100%" default={props.model.name} onChange={val=>setModel(curr => ({...curr, name: val}))}/>
-      <InputField name="FLOWFILE EXPIRATION" width="100%" default={props.model.flowFileExpiration} onChange={val=>setModel(curr => ({...curr, flowFileExpiration: val}))}/>
-      <InputField name="BACK PRESSURE COUNT THRESHOLD" width="100%" default={props.model.backpressureThreshold.count} onChange={val => setModel(curr => ({...curr, backpressureThreshold: {...curr.backpressureThreshold, count: val}}))}/>
-      <InputField name="BACK PRESSURE SIZE THRESHOLD" width="100%" default={props.model.backpressureThreshold.size} onChange={val => setModel(curr => ({...curr, backpressureThreshold: {...curr.backpressureThreshold, size: val}}))}/>
-      <InputField name="SWAP THRESHOLD" width="100%" default={props.model.swapThreshold} onChange={val => setModel(curr => ({...curr, swapThreshold: val}))}/>
+      <InputField name="NAME" width="100%" default={props.model.name} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, name: val})) : undefined}/>
+      <InputField name="FLOWFILE EXPIRATION" width="100%" default={props.model.flowFileExpiration} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, flowFileExpiration: val})) : undefined}/>
+      <InputField name="BACK PRESSURE COUNT THRESHOLD" width="100%" default={props.model.backpressureThreshold.count} onChange={flow_context?.editable ? val => setModel(curr => ({...curr, backpressureThreshold: {...curr.backpressureThreshold, count: val}})) : undefined}/>
+      <InputField name="BACK PRESSURE SIZE THRESHOLD" width="100%" default={props.model.backpressureThreshold.size} onChange={flow_context?.editable ? val => setModel(curr => ({...curr, backpressureThreshold: {...curr.backpressureThreshold, size: val}})) : undefined}/>
+      <InputField name="SWAP THRESHOLD" width="100%" default={props.model.swapThreshold} onChange={flow_context?.editable ? val => setModel(curr => ({...curr, swapThreshold: val})) : undefined}/>
     </div>
     <div className="section">
       <div className="section-title">Source relationships</div>
       {
         Object.keys(props.model.sourceRelationships).sort().map(rel=>{
-          return <Toggle key={rel} marginBottom="10px" name={rel} initial={props.model.sourceRelationships[rel]} onChange={val => setModel(curr => ({...curr, sourceRelationships: {...curr.sourceRelationships, [rel]: val}}))} />
+          return <Toggle key={rel} marginBottom="10px" name={rel} initial={props.model.sourceRelationships[rel]} onChange={flow_context?.editable ? val => setModel(curr => ({...curr, sourceRelationships: {...curr.sourceRelationships, [rel]: val}})) : undefined} />
         })
       }
     </div>

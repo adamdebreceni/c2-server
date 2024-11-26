@@ -15,6 +15,13 @@ export class AgentServiceImpl implements AgentService {
       if (agent.last_heartbeat) {
         agent.last_heartbeat = new Date(agent.last_heartbeat);
       }
+      if (agent.flow_update_error) {
+        try {
+          agent.flow_update_error = JSON.parse(agent.flow_update_error as any) as any;
+        } catch (e) {
+          console.error(`Failed to parse flow update error: '${agent.flow_update_error}'`)
+        }
+      }
       return agent;
     });
   }
@@ -35,13 +42,37 @@ export class AgentServiceImpl implements AgentService {
     return SendRequest("POST", this.api + "/agent/debug/" + encodeURIComponent(id));
   }
 
+  async stopComponent(agentId: string, componentId: string): Promise<void> {
+    return SendRequest("POST", this.api + "/agent/" + encodeURIComponent(agentId) + "/stop-component/" + encodeURIComponent(componentId));
+  }
+
+  async startComponent(agentId: string, componentId: string): Promise<void> {
+    return SendRequest("POST", this.api + "/agent/" + encodeURIComponent(agentId) + "/start-component/" + encodeURIComponent(componentId));
+  }
+
   async configure(id: string, properties: {name: string, value: string, persist: boolean}[]): Promise<void> {
     return SendRequest("POST", this.api + `/agent/configure/${id}`, properties);
   }
 
   async sendRequest(id: string, req: JsonValue): Promise<string> {
-    return SendRequest("POST", this.api + `/agent/${id}`, req);
+    return SendRequest("POST", this.api + `/agent/${encodeURIComponent(id)}`, req);
   }
+  async fetchAgentComponentState(agentId: string): Promise<ComponentKVStateMap | null> {
+    return SendRequest("GET", this.api + `/agent/${encodeURIComponent(agentId)}/componentstate`)
+  }
+
+  async clearComponentState(agentId: string, componentId: string): Promise<void> {
+    return SendRequest("DELETE", this.api + `/agent/${encodeURIComponent(agentId)}/componentstate`, [componentId])
+  }
+
+  async triggerComponent(agentId: string, componentId: string, args: RunInput): Promise<RunResult> {
+    return SendRequest("POST", this.api + `/agent/${encodeURIComponent(agentId)}/run-component/${encodeURIComponent(componentId)}`, args);
+  }
+
+  async saveConfig(agentId: string, data: any): Promise<void> {
+    return SendRequest("POST", this.api + `/agent/${encodeURIComponent(agentId)}/config`, data);
+  }
+
   // async fetchManifestForAgent(id: string): Promise<AgentManifest|null> {
   //   const response = await SendRequest("GET", this.api + "/agent/manifest/" + encodeURIComponent(id));
   //   return JSON.parse(response);

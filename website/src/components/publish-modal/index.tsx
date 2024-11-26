@@ -3,110 +3,86 @@ import { useContext, useEffect, useState } from "react";
 import { ServiceContext } from "../../common/service-context";
 import { Loader } from "../loader";
 import "./index.scss";
+import { SuccessIcon } from "../../icons/success";
+import { Tooltip } from "../tooltip";
+import { ErrorIcon } from "../../icons/error";
 
-interface AgentState {
-  type: "agent"
-  id: string
-  class: string|null
-  selected: boolean
-  last_heartbeat: Date|null
-}
-
-interface ClassState {
-  type: "class"
-  id: string
-  selected: boolean
-  agents: AgentState[]
-}
-
-interface PublishModalState {
-  classes: ClassState[]
-  agents: AgentState[]
-}
-
-export function PublishModal(props: {onCancel: ()=>void, onPublish: (agents: string[], classes: string[])=>void}) {
-  const [state, setState] = useState<PublishModalState|null>(null);
+export function PublishModal(props: {state: PublishState, setPublishState: (fn: (curr: PublishState)=>PublishState)=>void, onCancel: ()=>void, onPublish?: (agents: string[], classes: string[])=>void}) {
   const services = useContext(ServiceContext);
-  useEffect(()=>{
-    let mounted = true;
-    services?.agents.fetchAll().then(agents => {
-      if (!mounted) return;
-      const newState: PublishModalState = {agents: [], classes: []};
-      for (const agent of agents) {
-        if (typeof agent.class !== "string") {
-          newState.agents.push({type: "agent", id: agent.id, class: null, selected: false, last_heartbeat: agent.last_heartbeat});
-        } else {
-          let clazz = newState.classes.find(clazz => clazz.id === agent.class);
-          if (!clazz) {
-            clazz = {type: "class", id: agent.class!, selected: false, agents: []};
-            newState.classes.push(clazz);
-          }
-          clazz.agents.push({type: "agent", id: agent.id, class: agent.class, selected: false, last_heartbeat: agent.last_heartbeat});
-        }
-      }
-      newState.agents = newState.agents.sort((a, b) => StringCmp(a.id, b.id));
-      newState.classes = newState.classes.map(clazz => ({...clazz, agents: clazz.agents.sort((a, b)=>StringCmp(a.id, b.id))})).sort((a, b)=> StringCmp(a.id, b.id));
-      setState(newState);
-    })
-    return ()=>{
-      mounted = false;
-    }
-  }, []);
 
   const onToggle = React.useCallback((item: AgentState | ClassState)=>{
-    setState(st => {
+    props.setPublishState(st => {
       if (!st) return st;
       return Toggle(st, item);
     })
-  }, [])
+  }, [props.setPublishState])
 
   return <div className="publish-modal">
     <div className="header">Agents</div>
     <div className="agent-list"><div className="agent-list-inner">{
       (()=>{
-        if (state === null) return <Loader/>
+        if (props.state === null) return <Loader/>
         return <>
-          {state.classes.map(clazz => <ClassInstance key={clazz.id} model={clazz} onToggle={onToggle}/>)}
-          {state.agents.map(agent => <AgentInstance key={agent.id} model={agent} onToggle={onToggle}/>)}
+          {props.state.classes.map(clazz => <ClassInstance key={clazz.id} targetFlow={props.state.targetFlow} model={clazz} onToggle={onToggle}/>)}
+          {props.state.agents.map(agent => <AgentInstance key={agent.id} targetFlow={props.state.targetFlow} model={agent} onToggle={onToggle}/>)}
         </>
       })()
     }</div></div>
-    <div className="footer">
+    {props.onPublish ? <div className="footer">
       <div className="cancel" onClick={props.onCancel}>CANCEL</div>
       <div className="publish" onClick={()=>{
-        const agents: string[] = state!.agents.filter(agent => agent.selected).map(agent => agent.id);
-        const classes: string[] = state!.classes.filter(clazz => clazz.selected).map(clazz => clazz.id);
-        for (const clazz of state!.classes) {
+        const agents: string[] = props.state!.agents.filter(agent => agent.selected).map(agent => agent.id);
+        const classes: string[] = props.state!.classes.filter(clazz => clazz.selected).map(clazz => clazz.id);
+        for (const clazz of props.state!.classes) {
           if (!clazz.selected) {
             agents.push(...clazz.agents.filter(agent => agent.selected).map(agent => agent.id));
           }
         }
-        props.onPublish(agents, classes)
-      }}>PUBLISH</div>
+        props.onPublish!(agents, classes)
+      }}>
+        <span className="label">PUBLISH</span>
+        <div className="publish-loader"/>
+      </div>
     </div>
+    : null}
   </div>
 }
 
-function StringCmp(a: string, b: string) {
-  if (a < b) return -1;
-  if (a === b) return 0;
-  return 1;
-}
-
-function AgentInstance(props: {model: AgentState, onToggle: (item: AgentState|ClassState)=>void}) {
+function AgentInstance(props: {targetFlow: string|null, model: AgentState, onToggle?: (item: AgentState|ClassState)=>void}) {
   return <div className="agent-instance instance">
     <div className="instance-header">
-      <ToggleWidget value={props.model.selected} toggle={()=>props.onToggle(props.model)}/>
+      <ToggleWidget value={props.model.selected} toggle={props.onToggle ? ()=>props.onToggle!(props.model) : undefined}/>
       <div className="name">{props.model.id}</div>
+      {
+        (()=>{
+          if (!props.targetFlow) return null;
+          if (props.model.flow === props.targetFlow) {
+            return <SuccessIcon size={20} />
+          }
+          if (props.model.flow_update_error?.target_flow === props.targetFlow) {
+            return <ErrorIcon size={20} />
+          }
+          return <div className="agent-publish-loader" />
+        })()
+      }
     </div>
+    {
+      (()=>{
+        if (!props.targetFlow) return null;
+        if (props.model.flow === props.targetFlow) return null;
+        if (props.model.flow_update_error?.target_flow === props.targetFlow) {
+          return <div className="update-error"><div>{props.model.flow_update_error.error}</div></div>
+        }
+      })()
+    }
   </div>
 }
 
-function ClassInstance(props: {model: ClassState, onToggle: (item: AgentState|ClassState)=>void}) {
+function ClassInstance(props: {targetFlow: string|null, model: ClassState, onToggle?: (item: AgentState|ClassState)=>void}) {
   const [state, setState] = useState<boolean>(false);
   return <div className="class-instance instance">
     <div className="class-header instance-header">
-      <ToggleWidget value={props.model.selected} toggle={()=>props.onToggle(props.model)} />
+      <ToggleWidget value={props.model.selected} toggle={props.onToggle ? ()=>props.onToggle!(props.model) : undefined} />
       { state ? <div className="close class-expand-icon" onClick={()=>setState(curr => !curr)}>
           <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
         </div> :
@@ -115,16 +91,28 @@ function ClassInstance(props: {model: ClassState, onToggle: (item: AgentState|Cl
         </div>
       }
       <div className="name">{props.model.id}</div>
+      {
+        (()=>{
+          if (!props.targetFlow) return null;
+          if (props.model.agents.every(agent => agent.flow === props.targetFlow)) {
+            return <SuccessIcon size={20} />
+          }
+          if (props.model.agents.some(agent => agent.flow_update_error?.target_flow === props.targetFlow)) {
+            return <ErrorIcon size={20} />
+          }
+          return <div className="agent-publish-loader" />
+        })()
+      }
     </div>
     {
       !state ? null : <div className="class-agents">{
-        props.model.agents.map(agent => <AgentInstance key={agent.id} model={agent} onToggle={props.onToggle}/>)
+        props.model.agents.map(agent => <AgentInstance key={agent.id} targetFlow={props.targetFlow} model={agent} onToggle={props.onToggle}/>)
       }</div>
     }
   </div>
 }
 
-function Toggle(st: PublishModalState, target: AgentState|ClassState): PublishModalState {
+function Toggle(st: PublishState, target: AgentState|ClassState): PublishState {
   if (target.type === "agent") {
     if (target.class !== null) {
       const classIdx = st.classes.findIndex(clazz => clazz.id === target.class);
@@ -164,11 +152,11 @@ function ToggleAgent(agents: AgentState[], target: AgentState): AgentState[] {
   return newAgents;
 }
 
-function ToggleWidget(props: {value: boolean, toggle: ()=>void}) {
+function ToggleWidget(props: {value: boolean, toggle?: ()=>void}) {
   return <div className={`toggle-widget ${props.value ? "active" : ""}`} onClick={props.toggle}>
     {
       !props.value ? null : <div className="checkmark-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black" width="14px" height="14px">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="1 1 24 24" fill="black" width="14px" height="14px">
           <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z" strokeWidth="10"/>
         </svg>
       </div>

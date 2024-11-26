@@ -19,7 +19,26 @@ interface AgentLike {
   flow: string|null,
   metrics: AgentMetrics|null,
   manifest?: string|null
-  last_heartbeat: Date|null
+  last_heartbeat: Date|null,
+  flow_info: string|null,
+  config: string|null,
+  flow_update_error: {target_flow: string, error: string}|null
+}
+
+interface FlowInfo {
+  flowId: Uuid,
+  queues: {[id: Uuid]: {
+    dataSize: number,
+    dataSizeMax: number,
+    name: string,
+    size: number,
+    sizeMax: number,
+    uuid: Uuid
+  }},
+  components: {[name: string]: {
+    running: boolean,
+    uuid: Uuid
+  }}
 }
 
 interface AgentMetrics {}
@@ -46,8 +65,14 @@ interface AgentService {
   configure(id: string, properties: {name: string, value: string, persist: boolean}[]): Promise<void>
   restart(id: string): Promise<void>
   fetchAgentInformation(id: string): Promise<AgentLike|null>;
+  fetchAgentComponentState(agentId: string): Promise<ComponentKVStateMap|null>; 
   dumpDebugInfo(id: string): Promise<{file: string}>
   sendRequest(id: string, req: JsonValue): Promise<string>
+  stopComponent(agentId: string, componentId: string): Promise<void>
+  startComponent(agentId: string, componentId: string): Promise<void>
+  clearComponentState(agentId: string, componentId: string): Promise<void>
+  triggerComponent(agentId: string, componentId: string, args: RunInput): Promise<RunResult>
+  saveConfig(agentId: string, data: any): Promise<void>
   // fetchManifestForAgent(id: string): Promise<AgentManifest|null>;
   // fetchManifestForClass(name: string): Promise<AgentManifest|null>;
 }

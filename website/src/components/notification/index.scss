@@ -11,18 +11,65 @@
   align-items: flex-end;
   z-index: 200;
   .notification {
+    pointer-events: all;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
     border-radius: 4px;
     flex: none;
-    max-width: 300px;
-    padding: 15px;
+    width: 400px;
+    padding: 20px;
     margin: 20px;
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.318));
+    background-color: white;
+    color: rgb(44, 44, 44);
+    overflow: hidden;
+    .close {
+      position: absolute;
+      right: 5px;
+      top: 5px;
+      display: none;
+      cursor: pointer;
+      padding: 3px;
+      path {
+        fill: rgb(176, 176, 176);
+      }
+      &:hover path{
+        fill: black;
+      }
+    }
+    &:hover .close {
+      display: inline-block;
+    }
     &.success {
-      border: 2px solid rgb(23, 166, 23);
-      color: rgb(34, 169, 34);
+      // color: rgb(34, 169, 34);
+      .success-icon {
+        margin-right: 20px;
+        fill: rgb(23, 166, 23);
+        flex: none;
+      }
+      .timeout {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        background-color: rgb(23, 166, 23);
+        height: 4px;
+      }
     }
     &.error {
-      border: 2px solid rgb(210, 47, 47);
-      color: rgb(210, 47, 47);
+      // color: rgb(210, 47, 47);
+      .error-icon {
+        margin-right: 20px;
+        fill: rgb(210, 47, 47);
+        flex: none;
+      }
+      .timeout {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        background-color: rgb(210, 47, 47);
+        height: 4px;
+      }
     }
   }
 }

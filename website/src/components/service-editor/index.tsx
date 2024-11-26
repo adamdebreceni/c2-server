@@ -5,21 +5,19 @@ import { ModalContext } from "../../common/modal-context";
 import { NotificationContext } from "../../common/notification-context";
 import { InputField } from "../component-editor-input";
 import { Toggle } from "../component-editor-toggle";
-import { CreateDynamicPropertyModal } from "../create-dynamic-property";
 import { Dropdown } from "../dropdown";
 
 import "./index.scss";
+import { CreateStringModal } from "../create-string-modal";
 
 export function ServiceEditor(props: {model: MiNiFiService, manifest: ControllerServiceManifest}) {
   const notif = useContext(NotificationContext);
   const flow_context = useContext(FlowContext);
   const openModal = useContext(ModalContext);
-  const [model, setModel] = React.useState(props.model);
-  console.log(`Properties: ${Object.keys(model.properties).join(', ')}`)
-  React.useEffect(()=>{
-    if (model === props.model) return;
-    flow_context?.updateService(model);
-  }, [props.model, model, flow_context?.updateService]);
+  const setModel = React.useMemo(()=>{
+    return (fn: (curr: MiNiFiService)=>MiNiFiService) => flow_context!.updateService(props.model.id, fn);
+  }, [props.model.id, flow_context!.updateService]);
+  const model = props.model;
   const onNewDynamicProperty = React.useCallback((prop: string) => {
     setModel(curr => {
       if (prop in curr.properties) {
@@ -30,13 +28,14 @@ export function ServiceEditor(props: {model: MiNiFiService, manifest: Controller
     });
   }, []);
   const openModalCb = React.useCallback(()=>{
-    openModal(<CreateDynamicPropertyModal onSubmit={onNewDynamicProperty}/>);
+    openModal(<CreateStringModal text="Add Dynamic Property" onSubmit={onNewDynamicProperty}/>);
   }, []);
   return <div className="component-settings">
     <div className="type">{model.type}</div>
+    <div className="uuid">{model.id}</div>
     <div className="section">
       <div className="section-title">General</div>
-      <InputField name="NAME" width="100%" default={model.name} onChange={val=>setModel(curr => ({...curr, name: val}))}/>
+      <InputField name="NAME" width="100%" default={model.name} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, name: val})) : undefined}/>
     </div>
     <div className="section">
       <div className="section-title">Properties</div>
@@ -48,17 +47,22 @@ export function ServiceEditor(props: {model: MiNiFiService, manifest: Controller
           }
           const values = props.manifest.propertyDescriptors[prop_name].allowableValues;
           if (values) {
-            return <Dropdown key={prop_name} name={prop_name} width="100%" items={values.map(val => val.value)} initial={model.properties[prop_name]} onChange={val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: val}}))}/>
+            return <Dropdown key={prop_name} name={prop_name} width="100%" items={values.map(val => val.value)} initial={model.properties[prop_name]} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: val}})) : undefined}/>
           }
-          return <InputField key={prop_name} name={prop_name} width="100%" default={model.properties[prop_name]} onChange={val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: val}}))}/>
+          return <InputField key={prop_name} name={prop_name} width="100%" default={model.properties[prop_name]} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: val}})) : undefined}/>
         })
       }
     </div>
     {!props.manifest.supportsDynamicProperties ? null : 
     <div className="section">
-      <div className="section-title">Dynamic Properties<span style={{flexGrow: 1}}/><div className="add-dynamic-property" onClick={openModalCb}>
-          <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-        </div>
+      <div className="section-title">Dynamic Properties<span style={{flexGrow: 1}}/>
+        {
+          flow_context?.editable ? 
+          <div className="add-dynamic-property" onClick={openModalCb}>
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          </div>
+          : null
+        }
       </div>
       {
         Object.keys(model.properties).sort().map(prop_name => {
@@ -66,7 +70,7 @@ export function ServiceEditor(props: {model: MiNiFiService, manifest: Controller
             // not dynamic property
             return null;
           }
-          return <InputField key={prop_name} name={prop_name} width="100%" default={model.properties[prop_name]} onChange={val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: val}}))}/>
+          return <InputField key={prop_name} name={prop_name} width="100%" default={model.properties[prop_name]} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: val}})) : undefined}/>
         })
       }
     </div>

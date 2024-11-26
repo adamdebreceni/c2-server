@@ -19,7 +19,7 @@ export function Menu(props: {items: {name: string, on: ()=>void}[]}) {
 }
 
 function MenuItem(props: {name: string, on: ()=>void}) {
-  return <div className="menu-item" onClick={props.on}>
+  return <div className="menu-item" onClick={(e) => {e.stopPropagation(); props.on()}}>
     {props.name}
   </div>
 }

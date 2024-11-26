@@ -1,0 +1,14 @@
+.property-visibility {
+  display: inline-block;
+  margin-left: 5px;
+  cursor: pointer;
+  opacity: 0.8;
+  &.active {
+    svg {
+      fill: #3535ff !important;
+    }
+  }
+  &:hover {
+    opacity: 1;
+  }
+}

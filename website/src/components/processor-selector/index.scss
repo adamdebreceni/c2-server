@@ -27,8 +27,7 @@
     box-sizing: border-box;
     &:focus {
       outline: none;
-      border-color: rgb(8, 183, 8);
-      box-shadow: 0 0 4px rgba(8, 183, 8, 0.5);
+      border-color: rgb(53, 53, 255);
     }
   }
   .footer {
@@ -58,6 +57,11 @@
 
     .processor-list-inner {
       .processor-list-item {
+        &.active {
+          .header {
+            background-color: rgb(241, 241, 241);
+          }
+        }
         .header {
           padding: 15px;
           border-bottom: 1px solid rgb(241, 241, 241);

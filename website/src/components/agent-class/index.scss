@@ -37,4 +37,19 @@
       background-color: rgb(239, 239, 239);
     }
   }
+
+  .new-flow {
+    display: inline-block;
+    margin-left: 20px;
+    font-size: 0.8em;
+    border-radius: 15px;
+    background-color: rgb(227, 255, 227);
+    color: rgb(1, 103, 1);
+    padding: 2px 10px;
+    cursor: pointer;
+    &:hover {
+      background-color: rgb(13, 161, 13);
+      color: white;
+    }
+  }
 }

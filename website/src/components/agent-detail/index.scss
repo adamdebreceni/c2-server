@@ -30,10 +30,17 @@
     .title {
       color: rgb(49, 49, 49);
       //height: 50px;
-      border-bottom: 1px solid rgb(235, 235, 235);
+      // border-bottom: 1px solid rgb(235, 235, 235);
       display: flex;
       align-items: center;
       padding: 20px;
+    }
+    &.request {
+      textarea {
+        outline: none;
+        border-radius: 3px;
+        padding: 20px;
+      }
     }
   }
 
@@ -41,5 +48,12 @@
     background-color: white;
     border-radius: 3px;
     box-sizing: border-box;
+  }
+
+  .flow .value {
+    cursor: pointer;
+    &:hover {
+      color: rgb(49, 49, 49);
+    }
   }
 }

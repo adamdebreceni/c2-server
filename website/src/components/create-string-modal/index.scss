@@ -1,6 +1,6 @@
-.create-dynamic-property {
+.create-string {
   padding: 20px 30px;
-  width: 300px;
+  width: 400px;
   display: flex;
   flex-direction: column;
   .title {
@@ -12,7 +12,8 @@
     width: 100%;
     box-sizing: border-box;
     border: 1px solid rgb(200, 200, 200);
-    border-radius: 10px;
+    border-radius: 3px;
+    outline: none;
   }
   .ok {
     align-self: flex-end;

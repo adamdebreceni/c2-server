@@ -1,5 +1,6 @@
 .widget{
   position: absolute;
+  pointer-events: all;
   &:not(.active) {
     .connection-icon-container {
       display: none;
@@ -7,19 +8,70 @@
   }
   &.highlight {
     .processor-view {
-      border-color: rgb(61, 103, 255);
+      border-color: rgb(61, 103, 255) !important;
     }
   }
   &.service {
     .processor-view {
-      border-color: rgb(145, 61, 255);
+      border-color: rgb(145, 61, 255) !important;
     }
   }
+  &.input-port {
+    .ripple-1, .ripple-2, .ripple-3 {
+      animation: in 2s linear infinite;
+    }
+  }
+
+  &.output-port {
+    .ripple-1, .ripple-2, .ripple-3 {
+      animation: out 2s linear infinite;
+    }
+  }
+  
+  @keyframes out {
+    0% { width: 4px; height: 4px; opacity: 0.5; }
+    100% { width: 50px; height: 50px; opacity: 0; }
+  }
+
+  @keyframes in {
+    0% { width: 50px; height: 50px; opacity: 0; }
+    100% { width: 4px; height: 4px; opacity: 0.5; }
+  }
   .processor-view{
-    width: 50px;
-    height: 50px;
-    border: 5px solid rgb(83, 83, 83);
-    border-radius: 50%;
+    &:not(.extended) {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 50px;
+      height: 50px;
+      border: 5px solid rgb(83, 83, 83);
+      border-radius: 50%;
+      .merge-icon {
+        fill: rgb(80, 80, 80);
+        path {
+          stroke-width: 4px;
+        }
+      }
+      .arrow-left-icon, .arrow-right-icon {
+        fill: rgb(26, 26, 26);
+      }
+      .ripple-1, .ripple-2, .ripple-3 {
+        position: absolute;
+        border-radius: 50%;
+        border: 2px solid rgb(40, 40, 40);
+      }
+
+      .ripple-2 {
+        animation-delay: 666ms;
+      }
+
+      .ripple-3 {
+        animation-delay: 1333ms;
+      }
+    }
+    &.extended {
+      border: 2px solid transparent;
+    }
     box-sizing: border-box;
     position: relative;
 
@@ -27,6 +79,46 @@
       position: absolute;
       right: -5px;
       bottom: -5px;
+    }
+
+    .processor-state {
+      display: inline-block;
+      cursor: pointer;
+      position: absolute;
+      right: -12px;
+      top: -12px;
+      border-radius: 50%;
+      background-color: white;
+      border: 4px solid;
+
+      &.STARTED {
+        border-color: #008A00;
+      }
+
+      &.STOPPED {
+        border-color: #8a8a8a;
+      }
+
+      .pause-icon {
+        fill:  #8a8a8a;
+      }
+
+      .play-icon {
+        fill: #008A00;
+      }
+
+      &.STARTING, &.STOPPING, &.UNKNOWN {
+        border-color: #f4f4f4;
+        border-top-color: #389fe3;
+        width: 28px;
+        height: 28px;
+        animation: spin 2s linear infinite;
+      }
+        
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
     }
 
     .name {
@@ -53,5 +145,19 @@
         transform: translate(-50%, 0);
       }
     }
+  }
+}
+
+.widget-container {
+  position: absolute;
+  pointer-events: none;
+  &.active {
+    overflow: hidden;
+  }
+}
+
+.widget-container.selected {
+  .processor-view {
+    border-color: rgb(60, 60, 249) !important;
   }
 }

@@ -23,11 +23,13 @@ interface AgentService {
   fetch(): Promise<Agent[]>
   fetchAgent(id: AgentId): Promise<Agent|null>
   fetchClasses(): Promise<AgentClass[]>
-  heartbeat(agent_heartbeat: {id: AgentId, class: string|null, flow: string|null, manifest: string|null}): Promise<{flow: FlowId|null, manifest: string|null}>
+  heartbeat(agent_heartbeat: {id: AgentId, class: string|null, flow: string|null, manifest: string|null, flow_info: string|null}): Promise<{flow: FlowId|null, manifest: string|null}>
   publish(classes: string[], agents: AgentId[], flowId: FlowId): Promise<void>
   deleteAlertsBefore(id: AgentId, time: Date): Promise<void>
   pushAlerts( alerts: Alert[]): Promise<void>
   getAlertsAfter(id: AgentId, time: Date): Promise<Alert[]>
+  saveConfig(id: AgentId, config: string): Promise<void>
+  saveFlowUpdateFailure(id: AgentId, targetFlow: string, error: string): Promise<void>
 }
 
 interface Alert {
@@ -42,7 +44,10 @@ interface Agent {
   flow: string|null,
   target_flow: string|null,  // null indicates that the class should dictate the flow
   last_heartbeat: string|null,
-  manifest: string|null
+  manifest: string|null,
+  flow_info: string|null
+  config: string|null,
+  flow_update_error: string|null
 }
 
 interface AgentClass {

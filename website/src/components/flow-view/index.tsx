@@ -2,8 +2,9 @@ import * as React from "react";
 import { useParams } from "react-router";
 import { ServiceContext } from "../../common/service-context";
 import { FlowEditor } from "../flow-editor";
+import { FlowReadonlyEditor } from "../flow-readonly";
 
-export function FlowView() {
+export function FlowView(props: {editable: boolean}) {
   const [flow, setFlow] = React.useState<FlowObject|null>(null);
   const flowId = useParams<any>()["id"]!;
   const services = React.useContext(ServiceContext);
@@ -28,5 +29,9 @@ export function FlowView() {
   // })
   if (!flow) return null;
 
-  return <FlowEditor id={flowId} flow={flow}/>
+  if (props.editable) {
+    return <FlowEditor id={flowId} flow={flow} />
+  } else {
+    return <FlowReadonlyEditor id={flowId} flow={flow} />
+  }
 }

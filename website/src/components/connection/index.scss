@@ -3,11 +3,9 @@
   overflow: visible;
   pointer-events: none;
 
-  .name {
-    z-index: 100;
+  & > .name {
+    // z-index: 100;
     position: absolute;
-    left: 50%;
-    top: 50%;
     transform: translate(-50%, -50%);
     padding: 3px 6px;
     border-radius: 3px;
@@ -15,5 +13,57 @@
     box-shadow: 0 0 3px black;
     white-space: pre;
     pointer-events: all;
+
+    .inline-relationship-picker {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translate(-50%, 10px);
+      background-color: white;
+      box-shadow: 0 0 3px rgba(0, 0, 0, 0.603);
+      padding: 10px;
+      padding-bottom: 0px;
+      border-radius: 3px;
+      outline: none;
+      &:not(.active) {
+        display: none;
+      }
+    }
+
+    .inline-usage {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      top: 100%;
+      left: 50%;
+      transform: translate(-50%, 10px);
+      background-color: white;
+      box-shadow: 0 0 3px rgba(0, 0, 0, 0.603);
+      padding: 10px;
+      border-radius: 3px;
+      font-family: monospace;
+      overflow: hidden;
+
+      .size, .count {
+        display: inline-block;
+      }
+
+      .scale {
+        height: 5px;
+        position: absolute;
+        left: 0px;
+        bottom: 0px;
+      }
+    }
+  }
+}
+
+.widget-container {
+  &.selected {
+    --selection-color: rgb(60, 60, 249);
+  }
+  &:not(.selected) {
+    --selection-color: black;
   }
 }

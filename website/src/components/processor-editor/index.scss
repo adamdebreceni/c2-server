@@ -5,6 +5,40 @@
   flex-direction: column;
   padding-bottom: 100px;
 
+  .tab-headers {
+    margin-top: 40px;
+    margin-bottom: 40px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    .tab-header {
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      cursor: pointer;
+      color: rgb(108, 108, 108);
+      border-bottom: 2px solid transparent;
+      &:hover {
+        color: rgb(52, 77, 219);
+      }
+      &.active {
+        border-bottom-color: rgb(52, 77, 219);
+      }
+    }
+  }
+
+  .tab {
+    &:not(.active) {
+      display: none;
+    }
+  }
+
+  .uuid {
+    font-family: monospace;
+    margin-top: 10px;
+    color: rgb(114, 114, 114);
+  }
+
   .section {
     margin-top: 20px;
     .section-title {
@@ -73,5 +107,434 @@
         opacity: 0.5;
       }
     }
+  }
+
+  .component-state-entry {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    .delete-icon {
+      margin-left: 10px;
+      cursor: pointer;
+      &:hover svg {
+        fill: #dd2222 !important;
+      }
+      &:not(:hover) {
+        opacity: 0.5;
+      }
+    }
+  }
+
+  // .run-item, .trigger-item {
+  //   padding: 13px 20px;
+  //   background-color: white;
+  //   border-radius: 3px;
+  //   filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.244));
+  //   // border: 1px solid rgb(229, 229, 229);
+  //   cursor: pointer;
+  //   margin-top: 20px;
+  //   &:hover {
+  //     filter: drop-shadow(1px 1px 4px rgba(0, 0, 0, 0.244));
+  //   }
+  // }
+
+  .run-item, .trigger-item {
+    padding: 13px 20px;
+    background-color: white;
+    border-radius: 3px;
+    border: 1px solid rgb(229, 229, 229);
+    border-left: 4px solid rgb(229, 229, 229);
+    cursor: pointer;
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    &:hover {
+      border-color: rgb(116, 116, 255);
+    }
+
+    .delete-icon {
+      margin-left: 10px;
+      cursor: pointer;
+      &:hover svg {
+        fill: #dd2222 !important;
+      }
+      &:not(:hover) {
+        opacity: 0.5;
+      }
+    }
+  }
+
+  .run-header {
+    .delete-icon {
+      margin-left: 10px;
+      cursor: pointer;
+      &:hover svg {
+        fill: #dd2222 !important;
+      }
+      &:not(:hover) {
+        opacity: 0.5;
+      }
+    }
+  }
+
+  .run-error {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 10px;
+    overflow-wrap: break-word;
+    color: rgb(226, 29, 29);
+    border-radius: 3px;
+    border: 1px solid rgb(226, 29, 29);
+    border-left: 4px solid rgb(226, 29, 29);
+    background-color: rgb(255, 224, 224);
+  }
+
+  .run-navigation-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 50px;
+    .arrow-right-icon {
+      fill: rgb(66, 66, 66);
+      margin: 0px 10px;
+    }
+    .navigation-item {
+      cursor: pointer;
+      padding: 5px 15px;
+      border-radius: 3px;
+      &:hover {
+        background-color: rgb(240, 240, 240);
+        color: rgb(5, 5, 5);
+      }
+      color: rgb(84, 84, 84);
+    }
+  }
+
+  .delete-run {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+    & > div {
+      cursor: pointer;
+      padding: 10px 30px;
+      color: rgb(197, 0, 0);
+      background-color: rgb(255, 232, 232);
+      border-radius: 3px;
+      &:hover {
+        background-color: rgb(197, 0, 0);
+        color: white;
+      }
+    }
+  }
+
+  .execute-run-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+    .execute-run {
+      padding: 10px 30px;
+      color: rgb(3, 102, 0);
+      background-color: rgb(232, 255, 241);
+      border-radius: 3px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      &:hover:not(.pending) {
+        background-color: rgb(0, 164, 5);
+        color: white;
+        cursor: pointer;
+      }
+
+      &.pending {
+        .label {
+          opacity: 0;
+          pointer-events: none;
+        }
+        .loader {
+          position: absolute;
+          border: 5px solid #8cffae;
+          border-top: 5px solid rgb(3, 102, 0);
+          border-radius: 50%;
+          width: 25px;
+          height: 25px;
+          animation: spin 2s linear infinite;
+        }
+      }
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  }
+
+  .new-run {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+    & > div {
+      cursor: pointer;
+      padding: 10px 30px;
+      color: green;
+      background-color: rgb(232, 255, 232);
+      border-radius: 3px;
+      &:hover {
+        background-color: rgb(20, 133, 10);
+        color: white;
+      }
+    }
+  }
+
+  .add-ff-attribute, .add-state-entry, .add-input-entry, .add-trigger-entry {
+    border-radius: 50%;
+    cursor: pointer;
+    svg {
+      fill: #b5b5b5;
+    }
+    &:hover {
+      background-color: rgb(187, 255, 187);
+      svg {
+        fill: rgb(30, 161, 12);
+      }
+    }
+  }
+
+  .run-tag {
+    display: inline-block;
+    font-size: 14px;
+    border-radius: 10px;
+    padding: 0px 5px;
+    &.success {
+      background-color: #ceffdd;
+      color: green;
+    }
+    &.failed {
+      background-color: #ffc8c8;
+      color: rgb(180, 14, 14);
+    }
+    &.skipped {
+      background-color: #eeeeee;
+      color: rgb(64, 64, 64);
+    }
+  }
+
+  .component-run-input {
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 3px;
+    border: 1px solid rgb(231, 231, 231);
+    margin-top: 40px;
+    &.ignored {
+      border-left: 4px solid rgb(231, 231, 231);
+      .label {
+        background-color: rgb(243, 243, 243);
+      }
+    }
+    &:not(.ignored) {
+      border-left: 4px solid rgb(174, 174, 255);
+      .label {
+        background-color: rgb(206, 206, 255);
+        color: rgb(41, 41, 219);
+      }
+    }
+    & > .run-input-header {
+      display: flex;
+      flex-direction: row;
+      padding: 10px 20px;
+      border-bottom: 1px solid rgb(231, 231, 231);
+      // border-left: 2px solid rgb(84, 84, 255);
+      box-sizing: border-box;
+      // background-color: rgb(246, 246, 246);
+      .delete-icon {
+        margin-left: 10px;
+        cursor: pointer;
+        background-color: transparent !important;
+        &:hover svg {
+          fill: #dd2222 !important;
+        }
+        &:not(:hover) {
+          opacity: 0.5;
+        }
+      }
+      .label {
+        display: inline-block;
+        font-size: 14px;
+        border-radius: 10px;
+        padding: 0px 5px;
+        &:not(:first-child) {
+          margin-left: 10px;
+        }
+      }
+    }
+    & > .run-input-body {
+      padding: 10px 20px;
+
+      .ff-attribute-entry {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        .delete-icon {
+          margin-left: 10px;
+          cursor: pointer;
+          &:hover svg {
+            fill: #dd2222 !important;
+          }
+          &:not(:hover) {
+            opacity: 0.5;
+          }
+        }
+      }
+    }
+  }
+
+  .processor-state {
+    .delete-icon {
+      cursor: pointer;
+      &:hover svg{
+        fill: rgb(214, 37, 37);
+      }
+    }
+  }
+  .copy-state, .paste-state, .duplicate-run, .edit-run {
+    margin-left: 10px;
+    cursor: pointer;
+    svg {
+      fill: rgb(186, 186, 186);
+    }
+    &:hover {
+      svg {
+        fill: rgb(20, 20, 20);
+      }
+    }
+  }
+
+  .processor-state.version-0 {
+    .component-state-entry {
+      margin-top: 10px;
+      border-radius: 3px;
+      padding-left: 5px;
+      padding-right: 5px;
+      font-size: 90%;
+      .key {
+        padding-top: 5px;
+        color: rgb(49, 52, 229);
+      }
+      .value {
+        padding-top: 5px;
+      }
+    }
+  }
+
+  .processor-state.version-1 {
+    .component-state-entry {
+      margin-top: 10px;
+      border: 1px solid rgb(216, 216, 216);
+      border-radius: 3px;
+      .key {
+        padding-left: 10px;
+        border-bottom: 1px solid rgb(216, 216, 216);
+        background-color: rgb(243, 243, 243);
+        color: rgb(28, 28, 28);
+      }
+      .value {
+        padding: 5px;
+        padding-left: 10px;
+      }
+    }
+  }
+
+  .processor-state.version-2 {
+    .component-state-entry {
+      margin-top: 15px;
+      border-radius: 3px;
+      padding-left: 10px;
+      padding-right: 10px;
+      // font-size: 90%;
+      .key {
+        padding: 0px 7px;
+        display: inline-block;
+        border-radius: 20px;
+        border: 1px solid rgb(215, 215, 215);
+        // background-color: rgb(246, 246, 246);
+        // padding-top: 5px;
+        color: rgb(75, 75, 75);
+
+      }
+      .value {
+        padding: 0px 7px;
+        // padding-top: 5px;
+      }
+    }
+    margin-bottom: 40px;
+  }
+
+  .processor-state.version-3 {
+    .component-state-entry {
+      margin-top: 20px;
+      border-radius: 3px;
+      padding-left: 10px;
+      padding-right: 10px;
+      // font-size: 90%;
+      .key {
+        padding: 0px 7px;
+        display: inline-block;
+        border-radius: 20px;
+        // border: 1px solid rgb(156, 162, 255);
+        background-color: rgba(160, 184, 255, 0.216);
+        // padding-top: 5px;
+        color: rgb(45, 45, 45);
+
+      }
+      .value {
+        padding: 0px 7px;
+        // padding-top: 5px;
+      }
+    }
+    margin-bottom: 40px;
+  }
+
+  .processor-state.version-4 {
+    .component-state-entry {
+      margin-top: 20px;
+      border-radius: 3px;
+      padding-left: 20px;
+      padding-right: 20px;
+      display: flex;
+      flex-direction: row;
+      // font-size: 90%;
+      .key {
+        width: 50%;
+        color: rgb(122, 122, 122);
+
+      }
+      .value {
+        width: 50%;
+        // padding-top: 5px;
+      }
+    }
+    margin-bottom: 20px;
+  }
+
+  .state-loader-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    .state-loader {
+      margin-top: 10px;
+      border: 5px solid #f4f4f4;
+      border-top: 5px solid #b6b6b6;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 2s linear infinite;
+    }
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
 }

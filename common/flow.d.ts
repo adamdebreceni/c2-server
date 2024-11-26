@@ -2,9 +2,17 @@ type Time = string & {__Time__: "__Time__"};
 type Size = string & {__Size__: "__Size__"};
 type Uuid = string & {__Uuid__: "__Uuid__"};
 
+type WidgetSize = {width: number, height: number, circular?: boolean};
+
 interface Positionable {
-  position: {x: number, y: number}
+  position: {x: number, y: number},
+  size?: WidgetSize
 }
+
+type ComponentState = "UNKNOWN"|"STARTING"|"STARTED"|"STOPPING"|"STOPPED";
+type ComponentKVState = {[k: string]: string};
+type ComponentExtendedState = ComponentKVState|"DELETING"
+type ComponentKVStateMap = {[id: string]: ComponentExtendedState}
 
 interface FlowObject {
   manifest: AgentManifest,
@@ -15,6 +23,62 @@ interface FlowObject {
   services: MiNiFiService[]
   parameters: Parameter[]
   funnels: Funnel[]
+  state?: ComponentKVStateMap;
+  runs?: {[id: Uuid]: ProcessorRun[]|undefined}
+  processGroups?: ProcessGroup[],
+  processGroupsPorts?: ProcessGroupPort[],
+  parameterContexts?: ParameterContext[]
+}
+
+interface ParameterContextParam {
+  name: string,
+  value: string,
+  sensitive: boolean,
+  description: string|null
+}
+
+interface ParameterContext extends Component {
+  description: string|null,
+  parameters: ParameterContextParam[]
+}
+
+interface ProcessGroupPort extends Component {
+  parentGroup: Uuid|null,
+  type: 'INPUT'|'OUTPUT'
+}
+
+interface ProcessGroup extends Positionable {
+  id: Uuid,
+  name: string,
+  parentGroup: Uuid|null,
+  parameterContext: Uuid|null
+}
+
+type AgentConfig = {[id: Uuid]: ProcessorRun[]|undefined}
+
+interface AgentState {
+  type: "agent"
+  id: string
+  class: string|null
+  selected: boolean
+  last_heartbeat: Date|null,
+  flow: string|null,
+  flow_update_error: {target_flow: string, error: string}|null
+}
+
+interface ClassState {
+  type: "class"
+  id: string
+  selected: boolean
+  agents: AgentState[]
+}
+
+interface PublishState {
+  modal: boolean,
+  pending: boolean,
+  targetFlow: string|null,
+  classes: ClassState[]
+  agents: AgentState[]
 }
 
 interface Component extends Positionable {
@@ -22,10 +86,13 @@ interface Component extends Positionable {
   type: string,
   name: string,
   properties: {[name: string]: string|null}
+  visibleProperties?: string[]
+  running?: ComponentState
+  parentGroup?: Uuid|null
 }
 
-interface Funnel extends Positionable {
-  id: Uuid
+interface Funnel extends Component {
+  parentGroup: Uuid|null
 }
 
 interface Parameter {
@@ -35,11 +102,19 @@ interface Parameter {
   description: string
 }
 
+interface ProcessorRun {
+  id: Uuid
+  input: RunInput
+  output?: RunResult|"PENDING"
+  expected?: RunResult
+}
+
 interface Processor extends Component {
   penalty: string,
   yield: string,
   autoterminatedRelationships: {[name: string]: boolean},
-  scheduling: Scheduling
+  scheduling: Scheduling,
+  parentGroup: Uuid|null
 }
 
 interface Scheduling {
@@ -56,7 +131,15 @@ interface RPC extends Positionable {
   proxy: {host: string, port: number},
   localNetworkInterface: string
   connectionTimeout: Time,
-  yield: Time
+  yield: Time,
+  parentGroup: Uuid|null
+}
+
+interface ConnectionSize {
+  data: number
+  count: number
+  dataMax: number
+  countMax: number
 }
 
 interface Connection {
@@ -70,6 +153,11 @@ interface Connection {
   flowFileExpiration: string,
   swapThreshold: string|null,
   backpressureThreshold: {count: string, size: string}
+  // the distance from the line connecting the source and destination
+  // and when the connection is pointing right (x = 1, y = 0) which way the midPoint should be (positive for right, negative for left)
+  // when the connection is a loop the position relative to the source
+  midPoint?: number | {x: number, y: number}
+  size?: ConnectionSize
 }
 
 interface MiNiFiService extends Component {}
