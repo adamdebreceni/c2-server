@@ -11,8 +11,15 @@ import { MergeIcon } from "../../icons/merge-icon";
 import { ArrowRightIcon } from "../../icons/arrow-right";
 import { ArrowLeftIcon } from "../../icons/arrow-left";
 import { Fill } from "../fill/Fill";
+import { height, width } from "../../utils/widget-size";
+import { ArrowFullRightIcon } from "../../icons/arrow-full-right";
+import { ArrowFullLeftIcon } from "../../icons/arrow-full-left";
+import { ArrowFullUpIcon } from "../../icons/arrow-full-up";
+import { ArrowFullDownIcon } from "../../icons/arrow-full-down";
 
-export function Widget(props: {highlight?: boolean, kind: string, value: Component, link?: boolean, errors?: ErrorObject[], readonly?: boolean, container?: Positionable|null}) {
+const ARROW_SIZE = 20;
+
+export function Widget(props: {highlight?: boolean, kind: string, value: Component, link?: boolean, errors?: ErrorObject[], readonly?: boolean, container?: Positionable|null, selected?: boolean, target?: Positionable|null}) {
   const [grabbing, setGrabbing] = React.useState(false);
   const flow_context = React.useContext(FlowContext);
   const onmousedown = React.useCallback((e: React.MouseEvent)=>{
@@ -59,7 +66,7 @@ export function Widget(props: {highlight?: boolean, kind: string, value: Compone
     }
     flow_context?.updateProcessor(props.value.id, curr => ({...curr, size: current_size}));
   }, [props.value, flow_context?.updateProcessor]);
-  return <div className={`widget-container ${props.container ? 'active' : ''}`} style={{left: `${props.container?.position.x ?? 0}px`, top: `${props.container?.position.y ?? 0}px`, width: `${props.container?.size?.width ?? 0}px`, height: `${props.container?.size?.height ?? 0}px`}}>
+  return <div className={`widget-container ${props.container ? 'active' : ''} ${props.selected ? 'selected' : ''}`} style={{left: `${props.container?.position.x ?? 0}px`, top: `${props.container?.position.y ?? 0}px`, width: `${props.container?.size?.width ?? 0}px`, height: `${props.container?.size?.height ?? 0}px`}}>
     <div className={`widget ${!grabbing && props.link ? "active": ""} ${props.highlight ? "highlight" : ""} ${props.kind}`} style={{left: `${props.value.position.x - (props.container?.position.x ?? 0)}px`, top: `${props.value.position.y - (props.container?.position.y ?? 0)}px`}} onMouseDown={onmousedown} onContextMenu={oncontextmenu} onDoubleClick={ondblclick}>
     <div ref={view_ref} className={`processor-view ${IsExtended(props.value) ? "extended" : ""}`}>
       {(IsExtended(props.value) ? <ExtendedWidget value={props.value} /> : null)}
@@ -82,20 +89,97 @@ export function Widget(props: {highlight?: boolean, kind: string, value: Compone
         props.kind === 'funnel' ? <MergeIcon size={28} /> : null
       }
       {
-        props.kind === 'input-port' ? <>
-          <Fill/>
-          <ArrowRightIcon size={18}/>
-          <ArrowLeftIcon size={18}/>
-          <Fill/>
-        </> : null
-      }
-      {
-        props.kind === 'output-port' ? <>
-          <Fill/>
-          <ArrowLeftIcon size={18}/>
-          <ArrowRightIcon size={18}/>
-          <Fill/>
-        </> : null
+        (()=>{
+          const center = {x: props.value.position.x + width(props.value) / 2, y: props.value.position.y + height(props.value) / 2};
+          if (props.kind === "input-port") {
+            if (!props.target) {
+              return <>
+                <Fill/>
+                <ArrowRightIcon size={18}/>
+                <ArrowLeftIcon size={18}/>
+                <Fill/>
+              </>
+            }
+            if (Math.abs(props.target.position.x - center.x) < 1) {
+              return <>
+                <Fill/>
+                <ArrowFullRightIcon size={ARROW_SIZE} />
+                <Fill/>
+              </>
+            }
+            if (Math.abs(props.target.position.x + width(props.target) - center.x) < 1) {
+              return <>
+                <Fill/>
+                <ArrowFullLeftIcon size={ARROW_SIZE} />
+                <Fill/>
+              </>
+            }
+            if (Math.abs(props.target.position.y + - center.y) < 1) {
+              return <>
+                <Fill/>
+                <ArrowFullDownIcon size={ARROW_SIZE} />
+                <Fill/>
+              </>
+            }
+            if (Math.abs(props.target.position.y + height(props.target) + - center.y) < 1) {
+              return <>
+                <Fill/>
+                <ArrowFullUpIcon size={ARROW_SIZE} />
+                <Fill/>
+              </>
+            }
+            return <>
+              <Fill/>
+              <ArrowRightIcon size={18}/>
+              <ArrowLeftIcon size={18}/>
+              <Fill/>
+            </>
+          }
+          if (props.kind === "output-port") {
+            if (!props.target) {
+              return <>
+                <Fill/>
+                <ArrowLeftIcon size={18}/>
+                <ArrowRightIcon size={18}/>
+                <Fill/>
+              </>
+            }
+            if (Math.abs(props.target.position.x - center.x) < 1) {
+              return <>
+                <Fill/>
+                <ArrowFullLeftIcon size={ARROW_SIZE} />
+                <Fill/>
+              </>
+            }
+            if (Math.abs(props.target.position.x + width(props.target) - center.x) < 1) {
+              return <>
+                <Fill/>
+                <ArrowFullRightIcon size={ARROW_SIZE} />
+                <Fill/>
+              </>
+            }
+            if (Math.abs(props.target.position.y + - center.y) < 1) {
+              return <>
+                <Fill/>
+                <ArrowFullUpIcon size={ARROW_SIZE} />
+                <Fill/>
+              </>
+            }
+            if (Math.abs(props.target.position.y + height(props.target) + - center.y) < 1) {
+              return <>
+                <Fill/>
+                <ArrowFullDownIcon size={ARROW_SIZE} />
+                <Fill/>
+              </>
+            }
+            return <>
+              <Fill/>
+              <ArrowLeftIcon size={18}/>
+              <ArrowRightIcon size={18}/>
+              <Fill/>
+            </>
+          }
+        })()
       }
       {
         props.kind === 'parameter-context' ? <>

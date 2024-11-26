@@ -58,3 +58,12 @@
     }
   }
 }
+
+.widget-container {
+  &.selected {
+    --selection-color: rgb(60, 60, 249);
+  }
+  &:not(.selected) {
+    --selection-color: black;
+  }
+}

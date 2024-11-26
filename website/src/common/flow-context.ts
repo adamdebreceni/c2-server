@@ -4,7 +4,6 @@ export const FlowContext = React.createContext<{
   showMenu: (position: {clientX: number, clientY: number}, items: {name: string, on: ()=>void}[])=>void,
   hideMenu: ()=>void,
   setMovingComponent: (id: Uuid, moving: boolean)=>void,
-  moveComponent: (id: Uuid, dx: number, dy: number)=>void,
   moveConnection: (id: Uuid, dx: number, dy: number)=>void,
   deleteComponent: (id: Uuid)=>void,
   editComponent: (id: Uuid)=>void,

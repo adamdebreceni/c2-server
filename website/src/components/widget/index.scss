@@ -155,3 +155,9 @@
     overflow: hidden;
   }
 }
+
+.widget-container.selected {
+  .processor-view {
+    border-color: rgb(60, 60, 249) !important;
+  }
+}

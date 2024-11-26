@@ -134,6 +134,11 @@
     }
   }
 
+  .new-process-group {
+    position: absolute;
+    border: 2px dashed rgb(78, 78, 78);
+    border-radius: 3px;
+  }
 }
 
 .link-cursor {
@@ -154,4 +159,8 @@
 
 .top-right-cursor {
   cursor: nesw-resize;
+}
+
+.crosshair-cursor {
+  cursor: crosshair;
 }

@@ -14,7 +14,8 @@ export function IsInside(area: {x: number, y: number, w: number, h: number, circ
 export function ConnectionView(props: {model?: Connection, id?: Uuid,
       from: {x: number, y: number, w: number, h: number, circular: boolean},
       to: {x: number, y: number, w: number, h: number, circular: boolean}, name?: string,
-      midPoint?: {x: number, y: number}|number, readonly?: boolean, container?: Positionable|null}) {
+      midPoint?: {x: number, y: number}|number, readonly?: boolean, container?: Positionable|null,
+      selected?: boolean}) {
   const midPoint = props.model?.midPoint ?? props.midPoint;
   
   let v_x = props.to.x - props.from.x;
@@ -174,12 +175,12 @@ export function ConnectionView(props: {model?: Connection, id?: Uuid,
   // })
 
 
-  return <div className={`widget-container ${props.container ? 'active' : ''}`} style={{left: `${props.container?.position.x ?? 0}px`, top: `${props.container?.position.y ?? 0}px`, width: `${props.container?.size?.width ?? 0}px`, height: `${props.container?.size?.height ?? 0}px`}}>
+  return <div className={`widget-container ${props.container ? 'active' : ''} ${props.selected ? 'selected' : ''}`} style={{left: `${props.container?.position.x ?? 0}px`, top: `${props.container?.position.y ?? 0}px`, width: `${props.container?.size?.width ?? 0}px`, height: `${props.container?.size?.height ?? 0}px`}}>
     <div className="connection-view" style={{left: `${left - 500 - (props.container?.position.x ?? 0)}px`, top: `${top - 500 - (props.container?.position.y ?? 0)}px`}}>
     <svg ref={svgRef} style={{display: 'block'}} viewBox={`-500 -500 ${width + 1000} ${height + 1000}`} width={width + 1000} height={height + 1000}>
     <defs>
-      <marker id='head' orient="auto" markerWidth='6' markerHeight='6' refX='5' refY='3'>
-        <path d='M0,0 V6 L6,3 Z' fill="black"/>
+      <marker id={`head-${props.id}`} orient="auto" markerWidth='6' markerHeight='6' refX='5' refY='3'>
+        <path d='M0,0 V6 L6,3 Z' fill="var(--selection-color)"/>
       </marker>
     </defs>
       <g>
@@ -187,8 +188,8 @@ export function ConnectionView(props: {model?: Connection, id?: Uuid,
           <circle cx={arc!.x - left} cy={arc!.y - top} r={5} fill="black"/>
         } */}
         {(arc === null) ?
-          <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="black" strokeWidth="2" markerEnd='url(#head)'></line> :
-          <path d={`M${x1},${y1} A ${arc.r} ${arc.r} 0 0 ${arc.dir} ${name_pos.x - left} ${name_pos.y - top} A ${arc.r} ${arc.r} 0 0 ${arc.dir} ${x2} ${y2}`} fill="none" stroke="black" strokeWidth="2" markerEnd='url(#head)'/>
+          <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="var(--selection-color)" strokeWidth="2" markerEnd={`url(#head-${props.id})`}></line> :
+          <path d={`M${x1},${y1} A ${arc.r} ${arc.r} 0 0 ${arc.dir} ${name_pos.x - left} ${name_pos.y - top} A ${arc.r} ${arc.r} 0 0 ${arc.dir} ${x2} ${y2}`} fill="none" stroke="var(--selection-color)" strokeWidth="2" markerEnd={`url(#head-${props.id})`}/>
         }
       </g>
     </svg>

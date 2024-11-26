@@ -23,6 +23,7 @@ import { FunnelEditor } from "../funnel-editor";
 import { ProcessGroupPortEditor } from "../port-editor";
 import { ParameterContextEditor } from "../parameter-context-editor";
 import { ProcessGroupView } from "../process-group-view";
+import { width, height } from "../../utils/widget-size";
 
 interface NewConnection {
   source: Uuid,
@@ -41,19 +42,13 @@ interface FlowEditorState {
   panning: boolean,
   editingComponent: Uuid | null,
   newConnection: NewConnection | null,
+  selected: Uuid[],
+  newProcessGroup: {from: {x: number, y: number}|null, to: {x: number, y: number}|null}|null,
   newComponent: {x: number, y: number, type: "PROCESSOR"|"SERVICE", srcProcessor?: Uuid, parentGroup: Uuid|null} | null,
   resizeGroup: {id: Uuid, direction: ResizeDir, active: boolean}|null,
-  movingComponent: Uuid|null,
+  movingComponent: {id: Uuid, start: {x: number, y: number}|null, original: {x: number, y: number}|null}|null,
   // newProcessGroup: 
   publish: PublishState
-}
-
-function width(proc: Positionable) {
-  return proc.size?.width ?? 50;
-}
-
-function height(proc: Positionable) {
-  return proc.size?.height ?? 50;
 }
 
 function createDefaultConnection(flow: FlowObject, src: Uuid, dst: Uuid, midPoint?: {x: number, y: number}|number|null): Connection {
@@ -95,7 +90,7 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
   const [state, setState] = useState<FlowEditorState>({
       saved: true, publish: {agents: [], classes: [], targetFlow: null, modal: false, pending: false},
       flow: props.flow, panning: false, menu: null, editingComponent: null, newConnection: null, newComponent: null,
-      resizeGroup: null, movingComponent: null,
+      resizeGroup: null, movingComponent: null, newProcessGroup: null, selected: []
     });
   const [errors, setErrors] = useState<ErrorObject[]>([]);
   const areaRef = React.useRef<HTMLDivElement>(null);
@@ -104,15 +99,53 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
     if (e.button !== 0) return;
     const {clientX, clientY} = e;
     setState(st => {
-      if (st.newComponent || st.editingComponent || st.publish.modal || st.movingComponent) return st;
+      if (st.newComponent || st.editingComponent || st.publish.modal || st.movingComponent || st.newConnection || st.newProcessGroup) return st;
       if (st.resizeGroup) {
         return {...st, resizeGroup: {...st.resizeGroup, active: true}};
       }
-      if (st.newConnection) {
-        const {x, y} = toAreaCoords(areaRef, st, {clientX, clientY});
-        return {...st, newConnection: {...st.newConnection, to: {x, y}}};
-      }
+      // if (st.newConnection) {
+      //   const {x, y} = toAreaCoords(areaRef, st, {clientX, clientY});
+      //   return {...st, newConnection: {...st.newConnection, to: {x, y}}};
+      // }
       return {...st, panning: true}
+    });
+  }, [])
+
+  const mouseclick = React.useCallback((e: React.MouseEvent)=>{
+    if (e.button !== 0) return;
+    const {clientX, clientY} = e;
+    setState(st => {
+      if (st.newComponent || st.editingComponent || st.publish.modal || st.movingComponent || st.resizeGroup) return st;
+      if (st.newProcessGroup) {
+        const {x, y} = toAreaCoords(areaRef, st, e);
+        if (!st.newProcessGroup.from) {
+          return {...st, newProcessGroup: {...st.newProcessGroup, from: {x, y}, to: {x, y}}};
+        }
+        // return st;
+        const id = uuid.v4() as Uuid;
+        return {...st, newProcessGroup: null, flow: {...st.flow, processGroups: topSortGroups([...setComponentGroupParents(st.flow.processGroups ?? [], st.selected, id), {
+              id, name: id, position: {x: Math.min(st.newProcessGroup.from.x, st.newProcessGroup.to!.x), y: Math.min(st.newProcessGroup.from.y, st.newProcessGroup.to!.y)},
+              size: {width: Math.abs(st.newProcessGroup.to!.x - st.newProcessGroup.from.x), height: Math.abs(st.newProcessGroup.to!.y - st.newProcessGroup.from.y)},
+              parentGroup: findProcessGroup(st, st.newProcessGroup.from), parameterContext: null
+            }]),
+            processors: setComponentGroupParents(st.flow.processors, st.selected, id),
+            funnels: setComponentGroupParents(st.flow.funnels, st.selected, id),
+            processGroupsPorts: setComponentGroupParents(st.flow.processGroupsPorts ?? [], st.selected, id),
+            remoteProcessGroups: setComponentGroupParents(st.flow.remoteProcessGroups ?? [], st.selected, id)
+          },
+          selected: []
+        };
+      }
+      if (!st.newConnection) return st;
+      if (typeof st.newConnection?.to === "string") {
+        const newConn = createDefaultConnection(st.flow, st.newConnection.source, st.newConnection.to, st.newConnection.midPoint);
+        return {...st, flow: {...st.flow, connections: [...st.flow.connections, newConn]}, newConnection: null};
+      }
+      const {x, y} = toAreaCoords(areaRef, st, {clientX, clientY});
+      if (st.newConnection?.to) {
+        return {...st, newComponent: {x, y, type: "PROCESSOR", srcProcessor: st.newConnection.source, parentGroup: findProcessGroup(st, {x, y})}};
+      }
+      return {...st, newConnection: {...st.newConnection, to: {x, y}}};
     });
   }, [])
 
@@ -169,13 +202,27 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
     const mousemove = (e: MouseEvent)=>{
       setState(st=>{
         if (st.newComponent || st.editingComponent || st.publish.modal) return st;
+        if (st.newProcessGroup?.from) {
+          const {x, y} = toAreaCoords(areaRef, st, e);
+          const area = {
+            x: Math.min(x, st.newProcessGroup.from.x), y: Math.min(y, st.newProcessGroup.from.y),
+            width: Math.abs(x - st.newProcessGroup.from.x),
+            height: Math.abs(y - st.newProcessGroup.from.y),
+          }
+          return {...st, newProcessGroup: {...st.newProcessGroup, to: {x, y}}, selected: FindVisibleComponents(st.flow, area).map(item => item.id)};
+        }
         if (st.movingComponent) {
-          if (st.flow.connections.find(conn => conn.id === st.movingComponent)) {
-            return moveConnectionImpl(st, st.movingComponent, e.movementX, e.movementY);
+          if (st.flow.connections.find(conn => conn.id === st.movingComponent!.id)) {
+            return moveConnectionImpl(st, st.movingComponent.id, e.movementX, e.movementY);
           } else {
-            const new_state = moveComponentImpl(st, st.movingComponent, e.movementX, e.movementY);
-            const {x, y} = toAreaCoords(areaRef, new_state, e);
-            return updateProcessGroupChildren(new_state, st.movingComponent, x, y);
+            const {x, y} = toAreaCoords(areaRef, st, e);
+            if (!st.movingComponent.original) {
+              return {...st, movingComponent: {...st.movingComponent, original: moveComponentImpl(st, st.movingComponent.id, null).original?.position ?? null, start: {x, y}}};
+            } else {
+              const new_pos = {x: st.movingComponent.original.x + x - st.movingComponent.start!.x, y: st.movingComponent.original.y + y - st.movingComponent.start!.y};
+              const new_state = moveComponentImpl(st, st.movingComponent.id, new_pos).state;
+              return updateProcessGroupChildren(new_state, st.movingComponent.id, x, y);
+            }
           }
         }
         if (st.newConnection && st.newConnection.to) {
@@ -318,24 +365,29 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
         if (st.movingComponent) {
           return {...st, movingComponent: null}
         }
-        if (!st.panning && !st.newConnection && !st.resizeGroup) return st;
-        if (typeof st.newConnection?.to === "string") {
-          const newConn = createDefaultConnection(st.flow, st.newConnection.source, st.newConnection.to, st.newConnection.midPoint);
-          return {...st, flow: {...st.flow, connections: [...st.flow.connections, newConn]}, newConnection: null};
-        }
-        const {x, y} = toAreaCoords(areaRef, st, e);
-        if (st.newConnection) {
-          return {...st, newComponent: {x, y, type: "PROCESSOR", srcProcessor: st.newConnection.source, parentGroup: findProcessGroup(st, {x, y})}};
-        }
+        if (!st.panning && !st.resizeGroup) return st;
         if (st.resizeGroup) {
           return {...st, resizeGroup: {...st.resizeGroup, active: false}};
         }
-        let newConnection: NewConnection | null = null;
-        const proc = findConnSourceProc(st, {x, y});
-        if (proc) {
-          newConnection = {source: proc.id, to: null, midPoint: null};
-        }
-        return {...st, panning: false, newConnection};
+        return {...st, panning: false};
+        // if (!st.panning && !st.newConnection && !st.resizeGroup) return st;
+        // if (typeof st.newConnection?.to === "string") {
+        //   const newConn = createDefaultConnection(st.flow, st.newConnection.source, st.newConnection.to, st.newConnection.midPoint);
+        //   return {...st, flow: {...st.flow, connections: [...st.flow.connections, newConn]}, newConnection: null};
+        // }
+        // const {x, y} = toAreaCoords(areaRef, st, e);
+        // if (st.newConnection) {
+        //   return {...st, newComponent: {x, y, type: "PROCESSOR", srcProcessor: st.newConnection.source, parentGroup: findProcessGroup(st, {x, y})}};
+        // }
+        // if (st.resizeGroup) {
+        //   return {...st, resizeGroup: {...st.resizeGroup, active: false}};
+        // }
+        // let newConnection: NewConnection | null = null;
+        // const proc = findConnSourceProc(st, {x, y});
+        // if (proc) {
+        //   newConnection = {source: proc.id, to: null, midPoint: null};
+        // }
+        // return {...st, panning: false, newConnection};
       })
     }
 
@@ -370,7 +422,8 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
         setState(st => {
           const {x, y} = toAreaCoords(areaRef, st, {clientX, clientY});
           const id = uuid.v4() as Uuid;
-          return {...st, flow: {...st.flow, processGroups: [...(st.flow.processGroups ?? []), {id, name: id, position: {x, y}, size: {width: 200, height: 200}, parentGroup: findProcessGroup(st, {x, y}), parameterContext: null}]}};
+          return {...st, newProcessGroup: {from: null, to: null}};
+          // return {...st, flow: {...st.flow, processGroups: [...(st.flow.processGroups ?? []), {id, name: id, position: {x, y}, size: {width: 200, height: 200}, parentGroup: findProcessGroup(st, {x, y}), parameterContext: null}]}};
         })
         flowContext.hideMenu();
       }},
@@ -447,6 +500,16 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
     }
     return;
   }, [!!state.newConnection, !!state.newComponent, !!state.editingComponent, state.resizeGroup?.direction]);
+
+  React.useEffect(()=>{
+    if (!state.newProcessGroup) {
+      return;
+    }
+    document.body.classList.add("crosshair-cursor");
+    return () => {
+      document.body.classList.remove("crosshair-cursor");
+    }
+  }, [!!state.newProcessGroup]);
 
   const setPublishState = React.useCallback((fn: (val: PublishState)=>PublishState)=>{
     setState(state => {
@@ -547,7 +610,7 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
   }, [!!(state.publish?.targetFlow), setPublishState]);
 
   return <FlowContext.Provider value={flowContext}>
-    <div className="flow-editor" ref={areaRef} onMouseDown={mousedown}>
+    <div className="flow-editor" ref={areaRef} onMouseDown={mousedown} onClick={mouseclick}>
       <div className="background" onContextMenu={newComponent}>
         <div className="flow-state">{state.saved ? "Saved" : "Saving..."}</div>
       </div>
@@ -606,6 +669,14 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
           state.menu ? <div className="menu-container" style={{left: `${state.menu.position.x}px`, top: `${state.menu.position.y}px`}}>
             <Menu items={state.menu.items}/>
           </div> : null
+        }
+        {
+          state.newProcessGroup?.from ? <div className="new-process-group" style={{
+            left: `${Math.min(state.newProcessGroup!.from.x, state.newProcessGroup!.to!.x)}px`,
+            top: `${Math.min(state.newProcessGroup!.from.y, state.newProcessGroup!.to!.y)}px`,
+            width: `${Math.abs(state.newProcessGroup!.from.x - state.newProcessGroup!.to!.x)}px`,
+            height: `${Math.abs(state.newProcessGroup!.from.y - state.newProcessGroup!.to!.y)}px`}}/>
+            : null
         }
       </Surface>
       <div className={`open-publish ${state.publish?.pending ? 'pending': ''}`} onClick={()=>setState(st => ({...st, publish: {...st.publish, modal: true}}))}>
@@ -723,7 +794,7 @@ function addDependencies(groups: ProcessGroup[], group: ProcessGroup, result: Pr
   result.push(parentGroup);
 }
 
-export function emitProcessGroupItems(state: {flow: FlowObject, newConnection?: NewConnection|null, resizeGroup?: {id: Uuid, direction: ResizeDir, active: boolean}|null}, errors: ErrorObject[], group: ProcessGroup|null, containers: Map<Uuid, PositionableGroup>|null) {
+export function emitProcessGroupItems(state: {selected: Uuid[], flow: FlowObject, newConnection?: NewConnection|null, resizeGroup?: {id: Uuid, direction: ResizeDir, active: boolean}|null}, errors: ErrorObject[], group: ProcessGroup|null, containers: Map<Uuid, PositionableGroup>|null) {
   let container: PositionableGroup|null = group;
   if (group && containers) {
     if (group.parentGroup) {
@@ -743,21 +814,21 @@ export function emitProcessGroupItems(state: {flow: FlowObject, newConnection?: 
   }
   return [
     (group !== null ?
-      <ProcessGroupView key={group.id} model={group} container={containers?.get(group.parentGroup as any)} resize={state.resizeGroup?.id === group.id ? state.resizeGroup!.direction : undefined} />
+      <ProcessGroupView key={group.id} selected={state.selected.includes(group.id)} model={group} container={containers?.get(group.parentGroup as any)} resize={state.resizeGroup?.id === group.id ? state.resizeGroup!.direction : undefined} />
       : null
     ),
     (
       state.flow.processors.map(proc => {
         if ((proc.parentGroup ?? null) !== (group?.id ?? null)) return null;
         const proc_errors = errors.filter(err => err.component === proc.id);
-        return <Widget key={proc.id} kind='processor' container={container}
+        return <Widget key={proc.id} kind='processor' container={container} selected={state.selected.includes(proc.id)}
             errors={proc_errors} highlight={state.newConnection?.to === proc.id} value={proc} link={state.newConnection?.source === proc.id && !state.newConnection.to}/>
       })
     ),
     (
       state.flow.funnels.map(funnel => {
         if ((funnel.parentGroup ?? null) !== (group?.id ?? null)) return null;
-        return <Widget key={funnel.id} value={funnel} kind='funnel' container={container}
+        return <Widget key={funnel.id} value={funnel} kind='funnel' container={container} selected={state.selected.includes(funnel.id)}
           highlight={state.newConnection?.to === funnel.id} link={state.newConnection?.source === funnel.id && !state.newConnection.to}
         />
       })
@@ -765,7 +836,9 @@ export function emitProcessGroupItems(state: {flow: FlowObject, newConnection?: 
     (
       state.flow.processGroupsPorts?.map(port => {
         if ((port.parentGroup ?? null) !== (group?.id ?? null)) return null;
-        return <Widget key={port.id} value={port} kind={port.type === 'INPUT' ? 'input-port' : 'output-port'} container={container}
+        return <Widget key={port.id} value={port} kind={port.type === 'INPUT' ? 'input-port' : 'output-port'}
+          target={group}
+          container={group ? containers?.get(group.parentGroup as any) : null} selected={state.selected.includes(port.id)}
           highlight={state.newConnection?.to === port.id} link={state.newConnection?.source === port.id && !state.newConnection.to}
         />
       })
@@ -803,6 +876,7 @@ export function emitProcessGroupItems(state: {flow: FlowObject, newConnection?: 
           circular: dstProc.size?.circular ?? true
         }}
         container={conn_container}
+        selected={state.selected.includes(srcProc.id) && state.selected.includes(dstProc.id)}
         name={conn.name ? conn.name : Object.keys(conn.sourceRelationships).filter(key => conn.sourceRelationships[key]).sort().join(", ")}/>
     })
   ]
@@ -918,6 +992,18 @@ function updateProcessGroupChildren(st: FlowEditorState, id: Uuid, x: number, y:
   }};
 }
 
+function setComponentGroupParents<T extends {id: Uuid, parentGroup: Uuid|null}>(items: T[], ids: Uuid[], new_parent_group: Uuid|null): T[] {
+  if (ids.length === 0) {
+    return items;
+  }
+  return items.map(item => {
+    if (ids.includes(item.id)) {
+      return {...item, parentGroup: new_parent_group};
+    }
+    return item;
+  })
+}
+
 function updateComponentList<T extends {id: Uuid, parentGroup: Uuid|null}>(items: T[], id: Uuid, new_parent_group: Uuid|null): T[] {
   const idx = items.findIndex(item => item.id === id);
   if (idx === -1) return items;
@@ -951,58 +1037,103 @@ function toAreaCoords(areaRef: React.RefObject<HTMLDivElement>, st: FlowEditorSt
   return {x, y};
 }
 
-function moveComponentImpl(st: FlowEditorState, id: Uuid, dx: number, dy: number): FlowEditorState {
+function moveComponentImpl(st: FlowEditorState, id: Uuid, position: {x: number, y: number}|null): {state: FlowEditorState, original: Positionable|null} {
   const proc = st.flow.processors.find(proc => proc.id === id);
   if (proc) {
-    return {...st, flow: {...st.flow, processors: st.flow.processors.map(proc => {
+    if (!position) {
+      return {state: st, original: proc};
+    }
+    return {state: {...st, flow: {...st.flow, processors: st.flow.processors.map(proc => {
       if (proc.id !== id) return proc;
-      return {...proc, position: {x: proc.position.x + dx, y: proc.position.y + dy}}
-    })}};
+      return {...proc, position}
+    })}}, original: proc};
   }
   const service = st.flow.services.find(service => service.id === id);
   if (service) {
-    return {...st, flow: {...st.flow, services: st.flow.services.map(service => {
+    if (!position) {
+      return {state: st, original: service};
+    }
+    return {state: {...st, flow: {...st.flow, services: st.flow.services.map(service => {
       if (service.id !== id) return service;
-      return {...service, position: {x: service.position.x + dx, y: service.position.y + dy}}
-    })}};
+      return {...service, position}
+    })}}, original: service};
   }
   const funnel = st.flow.funnels.find(funnel => funnel.id === id);
   if (funnel) {
-    return {...st, flow: {...st.flow, funnels: st.flow.funnels.map(funnel => {
+    if (!position) {
+      return {state: st, original: funnel};
+    }
+    return {state: {...st, flow: {...st.flow, funnels: st.flow.funnels.map(funnel => {
       if (funnel.id !== id) return funnel;
-      return {...funnel, position: {x: funnel.position.x + dx, y: funnel.position.y + dy}}
-    })}};
+      return {...funnel, position}
+    })}}, original: funnel};
   }
   const port = st.flow.processGroupsPorts?.find(port => port.id === id);
   if (port) {
-    return {...st, flow: {...st.flow, processGroupsPorts: st.flow.processGroupsPorts!.map(port => {
+    if (!position) {
+      return {state: st, original: port};
+    }
+    const group = st.flow.processGroups?.find(group => group.id === port.parentGroup);
+    let new_position: {x: number, y: number} = {...position};
+    if (group) {
+      // snap center to nearest side
+      const orig_center = {x: new_position.x + width(port) / 2, y: new_position.y + height(port) / 2};
+      let new_center = {...orig_center};
+      let min_dist: number = Infinity;
+      if (Math.abs(orig_center.y - group.position.y) < min_dist) {
+        new_center = {x: orig_center.x, y: group.position.y};
+        min_dist = Math.abs(orig_center.y - group.position.y);
+      }
+      if (Math.abs(orig_center.y - group.position.y - height(group)) < min_dist) {
+        new_center = {x: orig_center.x, y: group.position.y + height(group)};
+        min_dist = Math.abs(orig_center.y - group.position.y - height(group));
+      }
+      if (Math.abs(orig_center.x - group.position.x) < min_dist) {
+        new_center = {x: group.position.x, y: orig_center.y};
+        min_dist = Math.abs(orig_center.x - group.position.x);
+      }
+      if (Math.abs(orig_center.x - group.position.x - width(group)) < min_dist) {
+        new_center = {x: group.position.x + width(group), y: orig_center.y};
+        min_dist = Math.abs(orig_center.x - group.position.x - width(group));
+      }
+      new_position = {x: new_center.x - width(port) / 2, y: new_center.y - height(port) / 2};
+    }
+    return {state: {...st, flow: {...st.flow, processGroupsPorts: st.flow.processGroupsPorts!.map(port => {
       if (port.id !== id) return port;
-      return {...port, position: {x: port.position.x + dx, y: port.position.y + dy}}
-    })}};
+      return {...port, position: new_position}
+    })}}, original: port};
   }
   const group = st.flow.processGroups?.find(group => group.id === id);
   if (group) {
+    if (!position) {
+      return {state: st, original: group};
+    }
     const new_groups = st.flow.processGroups!.map(group => {
       if (group.id !== id) return group;
-      return {...group, position: {x: group.position.x + dx, y: group.position.y + dy}}
+      return {...group, position}
     });
+    const dx = position.x - group.position.x;
+    const dy = position.y - group.position.y;
     const ids = collectGroupDescendants(new_groups, id);
-    return {...st, flow: {...st.flow,
+    return {state: {...st, flow: {...st.flow,
       processGroups: moveGroupChildren(new_groups, ids, dx, dy),
       processors: moveGroupChildren(st.flow.processors, ids, dx, dy),
       funnels: moveGroupChildren(st.flow.funnels, ids, dx, dy),
       processGroupsPorts: moveGroupChildren(st.flow.processGroupsPorts ?? [], ids, dx, dy),
-    }};
+    }}, original: group};
   }
   const ctx = st.flow.parameterContexts?.find(ctx => ctx.id === id);
   if (ctx) {
-    return {...st, flow: {...st.flow, parameterContexts: st.flow.parameterContexts!.map(ctx => {
+    if (!position) {
+      return {state: st, original: ctx};
+    }
+    return {state: {...st, flow: {...st.flow, parameterContexts: st.flow.parameterContexts!.map(ctx => {
       if (ctx.id !== id) return ctx;
-      return {...ctx, position: {x: ctx.position.x + dx, y: ctx.position.y + dy}}
-    })}};
+      return {...ctx, position}
+    })}}, original: ctx};
   }
   console.error(`No component with id '${id}'`);
-  return st;
+  return {state: st, original:null};
 }
 
 function collectGroupDescendants(groups: ProcessGroup[], id: Uuid, result: Uuid[] = []): Uuid[] {
@@ -1066,7 +1197,7 @@ function useFlowContext(areaRef: React.RefObject<HTMLDivElement>, state: FlowEdi
 
   const setMovingComponent = React.useCallback((id: Uuid, moving: boolean) => {
     setState(st => {
-      if (!moving && st.movingComponent === id) {
+      if (!moving && st.movingComponent?.id === id) {
         return {...st, movingComponent: null};
       }
       if (moving) {
@@ -1076,20 +1207,14 @@ function useFlowContext(areaRef: React.RefObject<HTMLDivElement>, state: FlowEdi
             // put active group on the top
             const new_groups = st.flow.processGroups!.filter(group => group.id !== id);
             new_groups.push(st.flow.processGroups![group_idx]);
-            return {...st, flow: {...st.flow, processGroups: topSortGroups(new_groups)}, movingComponent: id};
+            return {...st, flow: {...st.flow, processGroups: topSortGroups(new_groups)}, movingComponent: {id, original: null, start: null}};
           }
         }
-        return {...st, movingComponent: id};
+        return {...st, movingComponent: {id, original: null, start: null}};
       }
       return st;
     })
   }, [])
-
-  const moveComponent = React.useCallback((id: Uuid, dx: number, dy: number)=>{
-    setState(st => {
-      return moveComponentImpl(st, id, dx, dy);
-    })
-  }, []);
 
   const moveConnection = React.useCallback((id: Uuid, dx: number, dy: number)=>{
     setState(st => {
@@ -1328,10 +1453,10 @@ function useFlowContext(areaRef: React.RefObject<HTMLDivElement>, state: FlowEdi
   }, [])
 
   return React.useMemo(()=>({
-      showMenu, moveComponent, deleteComponent, hideMenu, editComponent,
+      showMenu, deleteComponent, hideMenu, editComponent,
       updateProcessor, updateConnection, updateService, updateGroup, updateFunnel, updateParameterContext, updatePort, closeComponentEditor,
       closeNewProcessor, closeNewService, moveConnection, setMovingComponent, editable: true}),
-    [showMenu, moveComponent, deleteComponent, hideMenu, editComponent, updateProcessor, updateConnection, updateService,
+    [showMenu, deleteComponent, hideMenu, editComponent, updateProcessor, updateConnection, updateService,
       updateGroup, updateFunnel, updateParameterContext, updatePort, closeComponentEditor, closeNewProcessor, closeNewService,
       moveConnection, setMovingComponent]);
 }
@@ -1489,4 +1614,37 @@ export function FindComponent(flow: FlowObject, id: Uuid): Component|undefined {
   return flow.processors.find(proc => proc.id === id)
       ?? flow.funnels.find(funnel => funnel.id === id)
       ?? flow.processGroupsPorts?.find(port => port.id === id);
+}
+
+// finds all visible (not overlapped by process groups or hidden in their parent) components
+// whose center is in the area 
+export function FindVisibleComponents(flow: FlowObject, area: {x:number, y: number, width: number, height: number}): Component[] {
+  const filter = (item: Component) => {
+    const pos = {x: item.position.x + width(item) / 2, y: item.position.y + height(item) / 2};
+    if (area.x <= pos.x && pos.x <= area.x + area.width && area.y <= pos.y && pos.y <= area.y + area.height) {
+      return IsVisble(item, pos, flow);
+    }
+  };
+  return [
+    ...flow.processors.filter(filter),
+    ...flow.funnels.filter(filter),
+    ...(flow.processGroupsPorts ?? []).filter(filter),
+  ];
+}
+
+export function IsVisble(item: Component, pos: {x: number, y: number}, flow: FlowObject): boolean {
+  let group_idx = item.parentGroup ? flow.processGroups!.findIndex(group => group.id == item.parentGroup) : -1;
+  if (group_idx != -1) {
+    const group = flow.processGroups![group_idx];
+    if (pos.x < group.position.x || group.position.x + width(group) < pos.x || pos.y < group.position.y || group.position.y + height(group) < pos.y) {
+      return false;
+    }
+  }
+  for (++group_idx; group_idx < flow.processGroups!.length; ++group_idx) {
+    const group = flow.processGroups![group_idx];
+    if (group.position.x <= pos.x && pos.x <= group.position.x + width(group) && group.position.y <= pos.y || pos.y <= group.position.y + height(group)) {
+      return false;
+    }
+  }
+  return true;
 }

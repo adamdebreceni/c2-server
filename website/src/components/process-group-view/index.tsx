@@ -8,7 +8,7 @@ import { ModalContext } from '../../common/modal-context';
 
 const borderWidth = 1;
 
-export function ProcessGroupView(props: {model: ProcessGroup, resize?: ResizeDir, container?: Positionable|null}) {
+export function ProcessGroupView(props: {model: ProcessGroup, resize?: ResizeDir, container?: Positionable|null, selected?: boolean}) {
   const flow_context = React.useContext(FlowContext);
   const openModal = React.useContext(ModalContext);
   const onmousedown = React.useCallback((e: React.MouseEvent)=>{

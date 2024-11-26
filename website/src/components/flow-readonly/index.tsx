@@ -24,6 +24,7 @@ import { ProcessGroupPortEditor } from "../port-editor";
 import { ParameterContextEditor } from "../parameter-context-editor";
 
 interface FlowEditorState {
+  selected: Uuid[],
   flow: FlowObject,
   panning: boolean,
   editingComponent: Uuid | null,
@@ -40,7 +41,7 @@ function height(proc: Processor) {
 const padding = 5;
 
 export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId?: string}) {
-  const [state, setState] = useState<FlowEditorState>({flow: props.flow, panning: false,  editingComponent: null});
+  const [state, setState] = useState<FlowEditorState>({flow: props.flow, panning: false,  editingComponent: null, selected: []});
   const [errors, setErrors] = useState<ErrorObject[]>([]);
   const areaRef = React.useRef<HTMLDivElement>(null);
   const services = React.useContext(ServiceContext);
@@ -339,10 +340,6 @@ function useFlowContext(services: Services|null, agentId: string|undefined, area
     setState(st => st)
   }, []);
 
-  const moveComponent = React.useCallback((id: Uuid, dx: number, dy: number)=>{
-    setState(st => st)
-  }, []);
-
   const moveConnection = React.useCallback((id: Uuid, dx: number, dy: number)=>{
     setState(st => st)
   }, []);
@@ -447,9 +444,9 @@ function useFlowContext(services: Services|null, agentId: string|undefined, area
 
 
   return React.useMemo(()=>(
-      {showMenu, moveComponent, deleteComponent, hideMenu, editComponent, updateProcessor: noopUpdate,
+      {showMenu, deleteComponent, hideMenu, editComponent, updateProcessor: noopUpdate,
       updateConnection: noopUpdate, updateService: noopUpdate, updateGroup: noopUpdate, updateFunnel: noopUpdate, updateParameterContext: noopUpdate, updatePort: noopUpdate, closeComponentEditor, closeNewProcessor, closeNewService,
       moveConnection, startProcessor, stopProcessor, clearProcessorState, updateRun, setMovingComponent, editable: false, agentId}),
-    [showMenu, moveComponent, deleteComponent, hideMenu, editComponent, noopUpdate, closeComponentEditor, closeNewProcessor, closeNewService,
+    [showMenu, deleteComponent, hideMenu, editComponent, noopUpdate, closeComponentEditor, closeNewProcessor, closeNewService,
     moveConnection, startProcessor, stopProcessor, clearProcessorState, updateRun, setMovingComponent, agentId]);
 }
