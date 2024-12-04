@@ -247,93 +247,106 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
           if (!group) {
             return st;
           }
+          let new_group: ProcessGroup|undefined;
           if (st.resizeGroup!.direction === 'top') {
             const new_groups = st.flow.processGroups!.map(curr => {
               if (curr.id !== group.id) return curr;
-              return {...curr, position: {...curr.position, y: curr.position.y + e.movementY}, size: {...curr.size!, height: curr.size!.height - e.movementY}};
+              return new_group = {...curr, position: {...curr.position, y: curr.position.y + e.movementY}, size: {...curr.size!, height: curr.size!.height - e.movementY}};
             });
-            const ids = collectGroupDescendants(new_groups, group.id);
+            // const ids = collectGroupDescendants(new_groups, group.id);
             return {...st, flow: {...st.flow,
               processGroups: new_groups,
               // processGroups: moveGroupChildren(new_groups, ids, 0, e.movementY),
               // processors: moveGroupChildren(st.flow.processors, ids, 0, e.movementY),
               // funnels: moveGroupChildren(st.flow.funnels, ids, 0, e.movementY),
-              // processGroupsPorts: moveGroupChildren(st.flow.processGroupsPorts ?? [], ids, 0, e.movementY),
+              processGroupsPorts: moveGroupPorts(st.flow.processGroupsPorts ?? [], new_group)
             }}
           }
           if (st.resizeGroup!.direction === 'bottom') {
-            return {...st, flow: {...st.flow, processGroups: st.flow.processGroups?.map(curr => {
+            const new_groups = st.flow.processGroups?.map(curr => {
               if (curr.id !== group.id) return curr;
-              return {...curr, size: {...curr.size!, height: curr.size!.height + e.movementY}};
-            })}}
+              return new_group = {...curr, size: {...curr.size!, height: curr.size!.height + e.movementY}};
+            });
+            return {...st, flow: {...st.flow,
+              processGroups: new_groups,
+              processGroupsPorts: moveGroupPorts(st.flow.processGroupsPorts ?? [], new_group)
+            }}
           }
           if (st.resizeGroup!.direction === 'left') {
             const new_groups = st.flow.processGroups!.map(curr => {
               if (curr.id !== group.id) return curr;
-              return {...curr, position: {...curr.position, x: curr.position.x + e.movementX}, size: {...curr.size!, width: curr.size!.width - e.movementX}};
+              return new_group = {...curr, position: {...curr.position, x: curr.position.x + e.movementX}, size: {...curr.size!, width: curr.size!.width - e.movementX}};
             });
-            const ids = collectGroupDescendants(new_groups, group.id);
+            // const ids = collectGroupDescendants(new_groups, group.id);
             return {...st, flow: {...st.flow,
               processGroups: new_groups,
               // processGroups: moveGroupChildren(new_groups, ids, e.movementX, 0),
               // processors: moveGroupChildren(st.flow.processors, ids, e.movementX, 0),
               // funnels: moveGroupChildren(st.flow.funnels, ids, e.movementX, 0),
-              // processGroupsPorts: moveGroupChildren(st.flow.processGroupsPorts ?? [], ids, e.movementX, 0),
+              processGroupsPorts: moveGroupPorts(st.flow.processGroupsPorts ?? [], new_group)
             }}
           }
           if (st.resizeGroup!.direction === 'right') {
-            return {...st, flow: {...st.flow, processGroups: st.flow.processGroups?.map(curr => {
+            const new_groups = st.flow.processGroups?.map(curr => {
               if (curr.id !== group.id) return curr;
-              return {...curr, size: {...curr.size!, width: curr.size!.width + e.movementX}};
-            })}}
+              return new_group = {...curr, size: {...curr.size!, width: curr.size!.width + e.movementX}};
+            });
+            return {...st, flow: {...st.flow,
+              processGroups: new_groups,
+              processGroupsPorts: moveGroupPorts(st.flow.processGroupsPorts ?? [], new_group)
+            }}
           }
           if (st.resizeGroup!.direction === 'top-left') {
             const new_groups = st.flow.processGroups!.map(curr => {
               if (curr.id !== group.id) return curr;
-              return {...curr, position: {x: curr.position.x + e.movementX, y: curr.position.y + e.movementY}, size: {width: curr.size!.width - e.movementX, height: curr.size!.height - e.movementY}};
+              return new_group = {...curr, position: {x: curr.position.x + e.movementX, y: curr.position.y + e.movementY}, size: {width: curr.size!.width - e.movementX, height: curr.size!.height - e.movementY}};
             });
-            const ids = collectGroupDescendants(new_groups, group.id);
+            // const ids = collectGroupDescendants(new_groups, group.id);
             return {...st, flow: {...st.flow,
               processGroups: new_groups,
               // processGroups: moveGroupChildren(new_groups, ids, e.movementX, e.movementY),
               // processors: moveGroupChildren(st.flow.processors, ids, e.movementX, e.movementY),
               // funnels: moveGroupChildren(st.flow.funnels, ids, e.movementX, e.movementY),
-              // processGroupsPorts: moveGroupChildren(st.flow.processGroupsPorts ?? [], ids, e.movementX, e.movementY),
+              processGroupsPorts: moveGroupPorts(st.flow.processGroupsPorts ?? [], new_group)
             }}
           }
           if (st.resizeGroup!.direction === 'top-right') {
             const new_groups = st.flow.processGroups!.map(curr => {
               if (curr.id !== group.id) return curr;
-              return {...curr, position: {x: curr.position.x, y: curr.position.y + e.movementY}, size: {width: curr.size!.width + e.movementX, height: curr.size!.height - e.movementY}};
+              return new_group = {...curr, position: {x: curr.position.x, y: curr.position.y + e.movementY}, size: {width: curr.size!.width + e.movementX, height: curr.size!.height - e.movementY}};
             });
-            const ids = collectGroupDescendants(new_groups, group.id);
+            // const ids = collectGroupDescendants(new_groups, group.id);
             return {...st, flow: {...st.flow,
               processGroups: new_groups,
               // processGroups: moveGroupChildren(new_groups, ids, 0, e.movementY),
               // processors: moveGroupChildren(st.flow.processors, ids, 0, e.movementY),
               // funnels: moveGroupChildren(st.flow.funnels, ids, 0, e.movementY),
-              // processGroupsPorts: moveGroupChildren(st.flow.processGroupsPorts ?? [], ids, 0, e.movementY),
+              processGroupsPorts: moveGroupPorts(st.flow.processGroupsPorts ?? [], new_group)
             }}
           }
           if (st.resizeGroup!.direction === 'bottom-left') {
             const new_groups = st.flow.processGroups!.map(curr => {
               if (curr.id !== group.id) return curr;
-              return {...curr, position: {x: curr.position.x + e.movementX, y: curr.position.y}, size: {width: curr.size!.width - e.movementX, height: curr.size!.height + e.movementY}};
+              return new_group = {...curr, position: {x: curr.position.x + e.movementX, y: curr.position.y}, size: {width: curr.size!.width - e.movementX, height: curr.size!.height + e.movementY}};
             });
-            const ids = collectGroupDescendants(new_groups, group.id);
+            // const ids = collectGroupDescendants(new_groups, group.id);
             return {...st, flow: {...st.flow,
               processGroups: new_groups,
               // processGroups: moveGroupChildren(new_groups, ids, e.movementX, 0),
               // processors: moveGroupChildren(st.flow.processors, ids, e.movementX, 0),
               // funnels: moveGroupChildren(st.flow.funnels, ids, e.movementX, 0),
-              // processGroupsPorts: moveGroupChildren(st.flow.processGroupsPorts ?? [], ids, e.movementX, 0),
+              processGroupsPorts: moveGroupPorts(st.flow.processGroupsPorts ?? [], new_group)
             }}
           }
           if (st.resizeGroup!.direction === 'bottom-right') {
-            return {...st, flow: {...st.flow, processGroups: st.flow.processGroups?.map(curr => {
+            const new_groups = st.flow.processGroups?.map(curr => {
               if (curr.id !== group.id) return curr;
               return {...curr, size: {width: curr.size!.width + e.movementX, height: curr.size!.height + e.movementY}};
-            })}}
+            });
+            return {...st, flow: {...st.flow,
+              processGroups: new_groups,
+              processGroupsPorts: moveGroupPorts(st.flow.processGroupsPorts ?? [], new_group)
+            }}
           }
           return st;
         }
@@ -1075,6 +1088,7 @@ function moveComponentImpl(st: FlowEditorState, id: Uuid, position: {x: number, 
     }
     const group = st.flow.processGroups?.find(group => group.id === port.parentGroup);
     let new_position: {x: number, y: number} = {...position};
+    let side: 'top'|'left'|'right'|'bottom'|null = null;
     if (group) {
       // snap center to nearest side
       const orig_center = {x: new_position.x + width(port) / 2, y: new_position.y + height(port) / 2};
@@ -1083,24 +1097,28 @@ function moveComponentImpl(st: FlowEditorState, id: Uuid, position: {x: number, 
       if (Math.abs(orig_center.y - group.position.y) < min_dist) {
         new_center = {x: orig_center.x, y: group.position.y};
         min_dist = Math.abs(orig_center.y - group.position.y);
+        side = 'top';
       }
       if (Math.abs(orig_center.y - group.position.y - height(group)) < min_dist) {
         new_center = {x: orig_center.x, y: group.position.y + height(group)};
         min_dist = Math.abs(orig_center.y - group.position.y - height(group));
+        side = 'bottom';
       }
       if (Math.abs(orig_center.x - group.position.x) < min_dist) {
         new_center = {x: group.position.x, y: orig_center.y};
         min_dist = Math.abs(orig_center.x - group.position.x);
+        side = 'left';
       }
       if (Math.abs(orig_center.x - group.position.x - width(group)) < min_dist) {
         new_center = {x: group.position.x + width(group), y: orig_center.y};
         min_dist = Math.abs(orig_center.x - group.position.x - width(group));
+        side = 'right';
       }
       new_position = {x: new_center.x - width(port) / 2, y: new_center.y - height(port) / 2};
     }
     return {state: {...st, flow: {...st.flow, processGroupsPorts: st.flow.processGroupsPorts!.map(port => {
       if (port.id !== id) return port;
-      return {...port, position: new_position}
+      return {...port, position: new_position, side}
     })}}, original: port};
   }
   const group = st.flow.processGroups?.find(group => group.id === id);
@@ -1150,6 +1168,34 @@ function moveGroupChildren<T extends Positionable & {parentGroup: Uuid|null}>(it
   return items.map(item => {
     if (!item.parentGroup || group_ids.indexOf(item.parentGroup) === -1) return item;
     return {...item, position: {x: item.position.x + dx, y: item.position.y + dy}}
+  })
+}
+
+function clamp_port_x(port: ProcessGroupPort, group: ProcessGroup): number {
+  return Math.min(Math.max(port.position.x + width(port) / 2, group.position.x), group.position.x + width(group)) - width(port) / 2;
+}
+
+function clamp_port_y(port: ProcessGroupPort, group: ProcessGroup): number {
+  return Math.min(Math.max(port.position.y + height(port) / 2, group.position.y), group.position.y + height(group)) - height(port) / 2;
+}
+
+function moveGroupPorts(ports: ProcessGroupPort[], group: ProcessGroup|undefined): ProcessGroupPort[] {
+  if (!group) return ports;
+  return ports.map(port => {
+    if (port.parentGroup !== group.id) return port;
+    if (port.side === 'top') {
+      return {...port, position: {x: clamp_port_x(port, group), y: group.position.y - height(port) / 2}};
+    }
+    if (port.side === 'left') {
+      return {...port, position: {x: group.position.x - width(port) / 2, y: clamp_port_y(port, group)}};
+    }
+    if (port.side === 'bottom') {
+      return {...port, position: {x: clamp_port_x(port, group), y: group.position.y + height(group) - height(port) / 2}};
+    }
+    if (port.side === 'right') {
+      return {...port, position: {x: group.position.x + width(group) - width(port) / 2, y: clamp_port_y(port, group)}};
+    }
+    return port;
   })
 }
 
@@ -1633,14 +1679,14 @@ export function FindVisibleComponents(flow: FlowObject, area: {x:number, y: numb
 }
 
 export function IsVisble(item: Component, pos: {x: number, y: number}, flow: FlowObject): boolean {
-  let group_idx = item.parentGroup ? flow.processGroups!.findIndex(group => group.id == item.parentGroup) : -1;
+  let group_idx = item.parentGroup ? (flow.processGroups ?? []).findIndex(group => group.id == item.parentGroup) : -1;
   if (group_idx != -1) {
     const group = flow.processGroups![group_idx];
     if (pos.x < group.position.x || group.position.x + width(group) < pos.x || pos.y < group.position.y || group.position.y + height(group) < pos.y) {
       return false;
     }
   }
-  for (++group_idx; group_idx < flow.processGroups!.length; ++group_idx) {
+  for (++group_idx; group_idx < (flow.processGroups?.length ?? 0); ++group_idx) {
     const group = flow.processGroups![group_idx];
     if (group.position.x <= pos.x && pos.x <= group.position.x + width(group) && group.position.y <= pos.y || pos.y <= group.position.y + height(group)) {
       return false;
