@@ -207,7 +207,10 @@ export function Widget(props: {highlight?: boolean, kind: string, value: Compone
         }
         return messages;
       })()}><WarningIcon size={20}/></Tooltip></div>}
-      <div className="name flex items-center"><WidgetIcon type={props.value.type}/>{props.value.name}</div>
+      {
+        props.kind === "input-port" || props.kind === "output-port" ? null :
+        <div className="name flex items-center"><WidgetIcon type={props.value.type}/>{props.value.name}</div>
+      }
     </div>
   </div>
   </div>

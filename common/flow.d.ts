@@ -44,7 +44,8 @@ interface ParameterContext extends Component {
 
 interface ProcessGroupPort extends Component {
   parentGroup: Uuid|null,
-  type: 'INPUT'|'OUTPUT'
+  type: 'INPUT'|'OUTPUT',
+  side?: 'top'|'bottom'|'left'|'right'|null
 }
 
 interface ProcessGroup extends Positionable {
