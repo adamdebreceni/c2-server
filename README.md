@@ -1,5 +1,5 @@
 # Introduction
-This project provides a user-friendly solution to design and deploy flows for both MiNiFi Native and MiNiFi through the c2-protocol.
+This project provides a user-friendly solution to design and deploy flows for both [MiNiFi C++](https://github.com/apache/nifi-minifi-cpp) and [MiNiFi Java](https://github.com/apache/nifi/tree/main/minifi) through the c2-protocol.
 &nbsp;
 
 &nbsp;
