@@ -7,11 +7,13 @@ import { InstallExtensionModal } from "../extension-install";
 
 import "./index.scss";
 import { AgentMenu } from "../agent-menu";
+import { ConfirmModal } from "../confirm-modal";
 
 export function Agent(props: {value: AgentLike}) {
   const services = React.useContext(ServiceContext);
   const navigate = useNavigate();
   const notif = React.useContext(NotificationContext);
+  const openModal = React.useContext(ModalContext);
   const goToAgent = React.useCallback(() => {
     navigate(`/agent/${props.value.id}`);
   }, [props.value.id]);
@@ -32,7 +34,11 @@ export function Agent(props: {value: AgentLike}) {
         if (props.value.flow) {
           services?.flows.fetch(props.value.flow).then(flow=>{
             if (!flow) {
-              notif.emit(`Flow ${props.value.flow} is not available`, "error");
+              openModal(<ConfirmModal confirmLabel="Create" type="CREATE" text={`Flow ${props.value.flow} is not available on the server, would you like to create a new flow?`} onConfirm={()=>{
+                services?.flows.create({agent: props.value.id}).then(id => {
+                  navigate(`/flow/${id}`);
+                })
+              }}/>)
             } else {
               navigate(`/agent/${props.value.id}/flow`)
             }

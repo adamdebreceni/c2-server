@@ -7,6 +7,8 @@ import { Center } from "../center";
 import { JsonView } from "../json-viewer";
 import { Loader } from "../loader";
 import "./index.scss"
+import { ModalContext } from "../../common/modal-context";
+import { ConfirmModal } from "../confirm-modal";
 
 export function AgentDetail() {
   const services = useContext(ServiceContext);
@@ -15,6 +17,7 @@ export function AgentDetail() {
   const navigate = useNavigate();
   const [agent, setAgent] = useState<{value: AgentLike, manifest: JsonValue, flow_info: JsonValue, response: JsonValue}|null|undefined>(undefined);
   const mounted = React.useRef<boolean>(true);
+  const openModal = React.useContext(ModalContext);
   useEffect(()=>{
     services!.agents.fetchAgentInformation(agentId).then(new_agent => {
       if (!mounted.current) return;
@@ -85,7 +88,11 @@ export function AgentDetail() {
           if (agent.value.flow) {
             services?.flows.fetch(agent.value.flow).then(flow=>{
               if (!flow) {
-                notif.emit(`Flow ${agent.value.flow} is not available`, "error");
+                openModal(<ConfirmModal confirmLabel="Create" type="CREATE" text={`Flow ${agent.value.flow} is not available on the server, would you like to create a new flow?`} onConfirm={()=>{
+                  services?.flows.create({agent: agent.value.id}).then(id => {
+                    navigate(`/flow/${id}`);
+                  })
+                }}/>)
               } else {
                 navigate(`/agent/${agent.value.id}/flow`)
               }

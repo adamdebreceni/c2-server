@@ -29,11 +29,21 @@
     display: inline-block;
     padding: 10px 20px;
     border-radius: 3px;
-    color: rgb(223, 23, 23);
-    &:hover {
-      background-color: rgb(223, 23, 23);;
-      color: rgb(231, 231, 231);
-      cursor: pointer;
+    &.DELETE {
+      color: rgb(223, 23, 23);
+      &:hover {
+        background-color: rgb(223, 23, 23);;
+        color: rgb(231, 231, 231);
+        cursor: pointer;
+      }
+    }
+    &.CREATE {
+      color: rgb(35, 117, 18);
+      &:hover {
+        background-color: rgb(35, 117, 18);
+        color: rgb(231, 231, 231);
+        cursor: pointer;
+      }
     }
   }
 }
