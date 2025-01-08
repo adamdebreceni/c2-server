@@ -5,3 +5,4 @@ server/build
 test-home
 .DS_Store
 package-lock.json
+.idea

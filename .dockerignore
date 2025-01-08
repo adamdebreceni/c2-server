@@ -1,0 +1,7 @@
+.idea
+.vscode
+.data
+node_modules
+build
+server/build
+examples
