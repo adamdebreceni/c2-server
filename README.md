@@ -37,6 +37,9 @@ npm run website
 Then you can visit `http://localhost:13405` to manage your agents, design and update flows.
 
 ## For agent configuration
+
+### MiNiFi C++
+append this to `conf/minifi.properties`
 ```
 nifi.c2.enable=true
 nifi.c2.flow.base.url=http://localhost:13405/api/flows
@@ -45,3 +48,22 @@ nifi.c2.rest.url.ack=http://localhost:13405/api/acknowledge
 nifi.c2.agent.class=<some class>
 nifi.c2.agent.identifier=<some id>
 ```
+### MiNiFi Java
+append this to `conf/bootstrap.conf`
+```
+c2.enable=true
+c2.rest.path.base=http://localhost::13405/api
+c2.rest.path.heartbeat=http://localhost::13405/api/heartbeat
+c2.rest.path.acknowledge=http://localhost::13405/api/acknowledge
+c2.agent.class=<some class>
+c2.agent.identifier=<some id>
+```
+
+## Using docker
+There is an [example](examples/minifi/docker-compose.yml) configuration how to run the c2-server in docker with a single java and a single cpp agent.
+
+```shell
+cd examples/minifi
+docker compose up
+```
+After that you can access it from http://localhost:13406/agents

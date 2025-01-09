@@ -1,0 +1,27 @@
+services:
+  c2:
+    image: c2-server:latest
+    build:
+      context: ../../.
+      dockerfile: Dockerfile
+    ports:
+      - "13406:13405"
+    networks:
+      - shared-network
+
+  java-agent:
+    build:
+      context: .
+      dockerfile: agent-java.dockerfile
+    networks:
+      - shared-network
+
+  cpp-agent:
+    build:
+      context: .
+      dockerfile: agent-cpp.dockerfile
+    networks:
+      - shared-network
+
+networks:
+  shared-network:

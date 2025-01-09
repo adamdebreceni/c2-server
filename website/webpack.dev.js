@@ -42,6 +42,8 @@ module.exports = {
         target: 'http://localhost:11309'
       }
     ],
+    host: '0.0.0.0',
+    allowedHosts: 'all',
     port: 13405,
     static: path.join(__dirname, "static"),
     historyApiFallback: true
