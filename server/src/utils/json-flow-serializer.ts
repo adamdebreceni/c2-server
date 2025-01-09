@@ -66,6 +66,9 @@ function serializeProcessGroup(id: Uuid|null, flow: FlowObject): object {
         "processors": flow.processors.filter(proc => (proc.parentGroup ?? null) === id).map(proc => ({
             "position": {"x": proc.position.x, "y": proc.position.y},
             "identifier": proc.id,
+            "instanceIdentifier": proc.id,
+            "bulletinLevel": "WARN",
+            "executionNode": "ALL",
             "name": proc.name,
             "type": proc.type,
             "concurrentlySchedulableTaskCount": proc.scheduling.concurrentTasks,
@@ -113,6 +116,7 @@ function serializeProcessGroup(id: Uuid|null, flow: FlowObject): object {
                 "labelIndex": 1,
                 "zIndex": 0,
                 "identifier": conn.id,
+                "instanceIdentifier": conn.id,
                 "name": conn.name ?? `${src.name}/${rels.join(",")}/${dst.name}`,
                 "source": {
                     "id": src.id,
