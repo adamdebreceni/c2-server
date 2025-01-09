@@ -6,16 +6,20 @@
   align-items: center;
   justify-content: start;
   background-color: white;
-  border-bottom: 1px solid rgb(207, 207, 207);
+  border-bottom: 1px solid rgba(207, 207, 207, 0.428);
   flex: none;
 
   .item {
     padding: 0.3em 1em;
     margin: 0em 1em;
     border-radius: 2px;
+    color: rgb(173, 173, 173);
     &:hover{
-      background-color: rgb(231, 231, 231);
+      background-color: rgba(231, 231, 231, 0.476);
       cursor: pointer;
+    }
+    &.active {
+      color: rgb(0, 0, 0);
     }
   }
 }
