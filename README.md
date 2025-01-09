@@ -39,7 +39,7 @@ Then you can visit `http://localhost:13405` to manage your agents, design and up
 ## For agent configuration
 
 ### MiNiFi C++
-conf/minifi.properties
+append this to `conf/minifi.properties`
 ```
 nifi.c2.enable=true
 nifi.c2.flow.base.url=http://localhost:13405/api/flows
@@ -49,7 +49,7 @@ nifi.c2.agent.class=<some class>
 nifi.c2.agent.identifier=<some id>
 ```
 ### MiNiFi Java
-conf/bootstrap.conf
+append this to `conf/bootstrap.conf`
 ```
 c2.enable=true
 c2.rest.path.base=http://localhost::13405/api
@@ -63,6 +63,7 @@ c2.agent.identifier=<some id>
 There is an [example](examples/minifi/docker-compose.yml) configuration how to run the c2-server in docker with a single java and a single cpp agent.
 
 ```shell
+cd examples/minifi
 docker compose up
 ```
 After that you can access it from http://localhost:13406/agents
