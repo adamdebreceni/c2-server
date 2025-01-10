@@ -51,7 +51,7 @@ interface FlowInfoJava {
       sizeUtilization: number,
       dataSizeUtilization: number
   }},
-  processorStatuses: {[index: number]:{
+  processorStatuses: {
       id: Uuid,
       groupId: Uuid,
       bytesRead: number,
@@ -64,7 +64,7 @@ interface FlowInfoJava {
       processingNanos: number,
       activeThreadCount: number,
       terminatedThreadCount: number
-    }}
+    }[]
 }
 
 interface AgentMetrics {}
