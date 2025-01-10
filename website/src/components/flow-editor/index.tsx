@@ -94,7 +94,21 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
     });
   const [errors, setErrors] = useState<ErrorObject[]>([]);
   const areaRef = React.useRef<HTMLDivElement>(null);
-  // console.log(state);
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setState((st) => ({
+          ...st,
+          newConnection: null,
+          newComponent: null,
+        }));
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
   const mousedown = React.useCallback((e: React.MouseEvent)=>{
     if (e.button !== 0) return;
     const {clientX, clientY} = e;
