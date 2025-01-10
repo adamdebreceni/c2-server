@@ -101,6 +101,9 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
           ...st,
           newConnection: null,
           newComponent: null,
+          editingComponent: null,
+          menu: null,
+          newProcessGroup: null
         }));
       }
     };
