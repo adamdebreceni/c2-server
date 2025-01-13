@@ -55,6 +55,7 @@ function AgentInstance(props: {targetFlow: string|null, model: AgentState, onTog
       <div className="name">{props.model.id}</div>
       {
         (()=>{
+          if (!props.model.selected) return null;
           if (!props.targetFlow) return null;
           if (props.model.flow === props.targetFlow) {
             return <SuccessIcon size={20} />
@@ -93,6 +94,7 @@ function ClassInstance(props: {targetFlow: string|null, model: ClassState, onTog
       <div className="name">{props.model.id}</div>
       {
         (()=>{
+          if (!props.model.selected) return null;
           if (!props.targetFlow) return null;
           if (props.model.agents.every(agent => agent.flow === props.targetFlow)) {
             return <SuccessIcon size={20} />

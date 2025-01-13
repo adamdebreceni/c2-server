@@ -601,29 +601,21 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
 
           let has_pending_agent = false;
           for (const agent of newState.agents) {
-            if (agent.flow === newState.targetFlow) {
-              continue;
-            }
-            if (agent.flow_update_error?.target_flow === newState.targetFlow) {
-              continue;
-            }
+            if (!agent.selected) continue;
+            if (agent.flow === newState.targetFlow) continue;
+            if (agent.flow_update_error?.target_flow === newState.targetFlow) continue;
             has_pending_agent = true;
           }
           for (const clazz of newState.classes) {
             for (const agent of clazz.agents) {
-              if (agent.flow === newState.targetFlow) {
-                continue;
-              }
-              if (agent.flow_update_error?.target_flow === newState.targetFlow) {
-                continue;
-              }
+              if (!agent.selected) continue;
+              if (agent.flow === newState.targetFlow) continue;
+              if (agent.flow_update_error?.target_flow === newState.targetFlow) continue;
               has_pending_agent = true;
             }
           }
 
-          if (!has_pending_agent) {
-            newState.pending = false;
-          }
+          newState.pending = has_pending_agent;
 
           return newState;
         });
