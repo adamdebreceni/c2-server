@@ -60,7 +60,9 @@ c2.agent.identifier=<some id>
 ```
 
 ## Using docker
-There is an [example](examples/minifi/docker-compose.yml) configuration how to run the c2-server in docker with a single java and a single cpp agent.
+For prebuilt docker image see https://hub.docker.com/r/adamdebreceni/c2
+
+There is an [example](examples/minifi/docker-compose.yml) configuration how to run the c2-server (locally built) in docker with a single java and a single cpp agent.
 
 ```shell
 cd examples/minifi
