@@ -170,7 +170,7 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
         }
       }
       for (let property_key in proc.properties) {
-        let is_required = proc_manifest.propertyDescriptors ? proc_manifest.propertyDescriptors[property_key].required : false;
+        let is_required = proc_manifest.propertyDescriptors?.[property_key].required ?? false;
         let is_null = proc.properties[property_key] === null;
         if (is_required && is_null) {
           errors.push({component: proc.id, type: "PROPERTY", target: property_key, message: `Property '${property_key}' is required`});
