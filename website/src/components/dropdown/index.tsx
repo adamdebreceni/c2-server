@@ -4,8 +4,10 @@ import { useState } from "react";
 import "./index.scss";
 import { VisibilityIcon } from "../../icons/visibility";
 import { PropertyVisibility } from "../property-visibility";
+import { Tooltip } from "../tooltip";
+import { WarningIcon } from "../../icons/warning";
 
-export function Dropdown(props: {name: string, items: string[], initial?: string|null, onChange?: (item: string, idx: number)=>void, width?: string, visible?: boolean, onChangeVisibility?: (name: string)=>void}) {
+export function Dropdown(props: {name: string, items: string[], initial?: string|null, onChange?: (item: string, idx: number)=>void, width?: string, visible?: boolean, onChangeVisibility?: (name: string)=>void, error?: string}) {
   const [state, setState] = useState({current: props.initial ?? props.items[0], active: false});
   const onBlur = React.useCallback(()=>{
     if (!props.onChange) return;
@@ -23,6 +25,10 @@ export function Dropdown(props: {name: string, items: string[], initial?: string
       <div style={{display: "flex", alignItems: "center"}}>
         <span className="input-label">{props.name}</span>
         {(props.onChangeVisibility ? <PropertyVisibility active={props.visible ?? false} onClick={onChangeVisibility}/> : null)}
+          {!props.error ? null : <>
+              <div className="w-1"></div>
+              <Tooltip message={props.error}><WarningIcon size={20}/></Tooltip>
+          </>}
       </div>
       <div className={`dropdown ${state.active ? "active": ""}`} tabIndex={-1} onBlur={onBlur} onFocus={onFocus}>
       <div className="selected">{state.current}
