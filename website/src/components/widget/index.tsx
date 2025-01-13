@@ -42,7 +42,7 @@ export function Widget(props: {highlight?: boolean, kind: string, value: Compone
   const ondblclick = React.useCallback(()=>{
     flow_context?.editComponent(props.value.id);
   }, [props.value.id, flow_context?.editComponent]);
-  const component_ref = React.useRef<Component>();
+  const component_ref = React.useRef<Component>(null);
   component_ref.current = props.value;
   const view_ref = React.useRef<HTMLDivElement>(null);
   React.useEffect(()=>{

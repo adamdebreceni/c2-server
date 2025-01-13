@@ -14,7 +14,7 @@ type SelectorState = {
 export function ComponentSelector(props: {components: ComponentDescription[], onClose: (value: string|null)=>void, type: "PROCESSOR"|"SERVICE"}) {
   const [state, setState] = React.useState<SelectorState>({query: '', components: props.components, position: 0});
 
-  const stateRef = React.useRef<SelectorState>();
+  const stateRef = React.useRef<SelectorState>(null);
   stateRef.current = state;
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 

@@ -7,7 +7,8 @@ export function CreateManageFlowRouter(services: Services): Router {
   router.get("/:id", async (req, res)=>{
     const flow = await services.flowService.get(req.params.id);
     if (flow === null) {
-      return res.json(null);
+      res.json(null);
+      return;
     }
     res.setHeader("Content-Type", "application/json");
     res.send(flow);
@@ -36,21 +37,23 @@ export function CreateManageFlowRouter(services: Services): Router {
       if (manifest === null) throw new Error(`No manifest for agent ${req.body.agent}`);
       const flow = services.flowService.createDefaultFlowObject(JSON.parse(manifest));
       const id = await services.flowService.save(Buffer.from(JSON.stringify(flow)));
-      return res.json(id);
+      res.json(id);
+      return;
     }
     if ('class' in req.body && typeof req.body.class === "string") {
       const manifest = await services.agentService.fetchManifestForClass(req.body.class);
       if (manifest === null) throw new Error(`No manifest for agent class "${req.body.class}"`);
       const flow = services.flowService.createDefaultFlowObject(JSON.parse(manifest));
       const id = await services.flowService.save(Buffer.from(JSON.stringify(flow)));
-      return res.json(id);
+      res.json(id);
+      return;
     }
     throw new Error("Invalid request format");
   })
 
   router.patch("/:id", json({limit: "80 MB"}), async (req, res)=>{
     const id = await services.flowService.save(Buffer.from(JSON.stringify(req.body)), req.params.id);
-    return res.json(id);
+    res.json(id);
   })
 
   return router;

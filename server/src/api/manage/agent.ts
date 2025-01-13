@@ -178,7 +178,8 @@ export function CreateManageAgentRouter(services: Services): Router {
     const agentId = req.params.id;
     const request = req.body;
     if (!(request instanceof Object)) {
-      return res.json({error: "Request is not an object"});
+      res.json({error: "Request is not an object"});
+      return;
     }
     console.log(`Scheduling operation for ${agentId}`);
     let resolve: (answer?: string)=>void = null as any;

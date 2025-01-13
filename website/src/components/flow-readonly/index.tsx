@@ -342,7 +342,7 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
   </FlowContext.Provider>
 }
 
-function useFlowContext(services: Services|null, agentId: string|undefined, areaRef: React.RefObject<HTMLDivElement>, state: FlowEditorState, setState: (value: React.SetStateAction<FlowEditorState>)=>void) {
+function useFlowContext(services: Services|null, agentId: string|undefined, areaRef: React.RefObject<HTMLDivElement|null>, state: FlowEditorState, setState: (value: React.SetStateAction<FlowEditorState>)=>void) {
   const notif = React.useContext(NotificationContext);
   
   const showMenu = React.useCallback((position: {clientX: number, clientY: number}, items: {name: string, on: ()=>void}[])=>{

@@ -2,7 +2,7 @@ import * as React from "react";
 import "./index.scss"
 import { ModalContext } from "../../common/modal-context"
 
-export function ModalLayer(props: {children: React.ReactChild[]|React.ReactChild}) {
+export function ModalLayer(props: {children: React.ReactNode[]|React.ReactNode}) {
   const [modal, setModal] = React.useState<React.ReactElement|null>(null);
   const open = React.useCallback((modal: React.ReactElement)=>{
     setModal(modal);
