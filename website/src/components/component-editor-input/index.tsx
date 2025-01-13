@@ -24,7 +24,6 @@ export function InputField(props: {name: string, width?: string, default?: strin
     props.onChangeVisibility(props.name);
   }, [props.onChangeVisibility, props.name]);
   const validation_error = props.validator?.(props.default ?? "") ?? null;
-  console.log(props);
   return <label className="input-field" style={{width: props.width}}>
     <div style={{display: "flex", alignItems: "center", paddingBottom: `${props.labelPaddingBottom ?? 5}px`}}>
       <span className="input-label">{props.name}</span>

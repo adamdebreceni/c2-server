@@ -1,9 +1,10 @@
 /** @type {import('webpack').Configuration} */
 const path = require('path');
 const tailwindcss = require('tailwindcss');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
-  mode: "development",
+  mode: "production",
   entry: path.join(__dirname, "src/index.tsx"),
   devtool: 'source-map',
   module: {
@@ -33,20 +34,15 @@ module.exports = {
     extensions: [".tsx", ".ts", ".jsx", ".js"]
   },
   output: {
+    path: path.resolve(__dirname, 'build'),
     filename: 'main.js'
   },
-  devServer: {
-    proxy: [
-      {
-        context: ['/api'],
-        target: 'http://localhost:11309'
-      }
-    ],
-    host: '0.0.0.0',
-    allowedHosts: 'all',
-    port: 13405,
-    static: path.join(__dirname, "static"),
-    historyApiFallback: true
-  },
-  ignoreWarnings: [(warning) => true]
+  ignoreWarnings: [(warning) => true],
+  plugins: [
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: path.resolve(__dirname, 'static') }
+      ]
+    })
+  ]
 }
