@@ -41,6 +41,32 @@ interface FlowInfo {
   }}
 }
 
+interface FlowInfoJava {
+  flowId: Uuid,
+  queues: {[id: Uuid]: {
+      dataSize: number,
+      dataSizeMax: number,
+      size: number,
+      sizeMax: number,
+      sizeUtilization: number,
+      dataSizeUtilization: number
+  }},
+  processorStatuses: {
+      id: Uuid,
+      groupId: Uuid,
+      bytesRead: number,
+      bytesWritten: number,
+      flowFilesIn: number,
+      flowFilesOut: number,
+      bytesIn: number,
+      bytesOut: number,
+      invocations: number,
+      processingNanos: number,
+      activeThreadCount: number,
+      terminatedThreadCount: number
+    }[]
+}
+
 interface AgentMetrics {}
 
 interface Services {
