@@ -42,7 +42,8 @@ export function CreateHeartbeatRouter(services: Services) {
           }
         })
       }
-      return res.json({requestedOperations: operations})
+      res.json({requestedOperations: operations});
+      return;
     }
 
     const restart_cmd = PendingRestart.get(id);
@@ -51,10 +52,11 @@ export function CreateHeartbeatRouter(services: Services) {
       console.log(`Restarting ${id}`);
       const opId = `${nextOperationId++}`;
       PendingOperations.set(opId, restart_cmd);
-      return res.json({requestedOperations: [{
+      res.json({requestedOperations: [{
         operationId: opId,
         operation: "restart"
       }]});
+      return;
     }
 
     const cb = PendingDebugInfo.get(id);
@@ -66,14 +68,15 @@ export function CreateHeartbeatRouter(services: Services) {
         resolve: () => cb.resolve(file_name),
         reject: cb.reject
       });
-      return res.json({requestedOperations: [{
+      res.json({requestedOperations: [{
         operationId: opId,
         operation: "transfer",
         name: "debug",
         args: {
           target: `/api/file/${file_name}`
         }
-      }]})
+      }]});
+      return;
     }
 
     const configure = PendingPropertyUpdates.get(id);
@@ -85,12 +88,13 @@ export function CreateHeartbeatRouter(services: Services) {
       for (const prop of configure.properties) {
         args[prop.name] = {value: prop.value, persist: prop.persist};
       }
-      return res.json({requestedOperations: [{
+      res.json({requestedOperations: [{
         operationId: opId,
         operation: "update",
         name: "properties",
         args
-      }]})
+      }]});
+      return;
     }
 
     const op = PendingOperationRequest.get(id);
@@ -99,9 +103,10 @@ export function CreateHeartbeatRouter(services: Services) {
       PendingOperationRequest.delete(id);
       console.log(`Issuing request for ${id}`);
       PendingOperations.set(opId, op);
-      return res.json({requestedOperations: [{
+      res.json({requestedOperations: [{
         operationId: opId, ...op.request
-      }]})
+      }]});
+      return;
     }
 
     const component_stop = PendingComponentStop.get(id);
@@ -109,12 +114,13 @@ export function CreateHeartbeatRouter(services: Services) {
     if (component_stop) {
       const opId = `${nextOperationId++}`;
       PendingOperations.set(opId, component_stop);
-      return res.json({requestedOperations: [{
+      res.json({requestedOperations: [{
         operationId: opId,
         operation: "stop",
         name: component_stop.id,
         args: {}
-      }]})
+      }]});
+      return;
     }
 
     const component_start = PendingComponentStart.get(id);
@@ -122,12 +128,13 @@ export function CreateHeartbeatRouter(services: Services) {
     if (component_start) {
       const opId = `${nextOperationId++}`;
       PendingOperations.set(opId, component_start);
-      return res.json({requestedOperations: [{
+      res.json({requestedOperations: [{
         operationId: opId,
         operation: "start",
         name: component_start.id,
         args: {}
-      }]})
+      }]});
+      return;
     }
 
     const component_state_query = PendingComponentStateQuery.get(id);
@@ -135,12 +142,13 @@ export function CreateHeartbeatRouter(services: Services) {
     if (component_state_query) {
       const opId = `${nextOperationId++}`;
       PendingOperations.set(opId, component_state_query);
-      return res.json({requestedOperations: [{
+      res.json({requestedOperations: [{
         operationId: opId,
         operation: "describe",
         name: "corecomponentstate",
         args: {}
-      }]})
+      }]});
+      return;
     }
 
     const component_state_clear = PendingComponentStateClear.get(id);
@@ -148,12 +156,13 @@ export function CreateHeartbeatRouter(services: Services) {
     if (component_state_clear) {
       const opId = `${nextOperationId++}`;
       PendingOperations.set(opId, component_state_clear);
-      return res.json({requestedOperations: [{
+      res.json({requestedOperations: [{
         operationId: opId,
         operation: "clear",
         name: "corecomponentstate",
         args: {...component_state_clear.components}
-      }]})
+      }]});
+      return;
     }
 
     const component_run = PendingComponentRun.get(id);
@@ -161,12 +170,13 @@ export function CreateHeartbeatRouter(services: Services) {
     if (component_run) {
       const opId = `${nextOperationId++}`;
       PendingOperations.set(opId, component_run);
-      return res.json({requestedOperations: [{
+      res.json({requestedOperations: [{
         operationId: opId,
         operation: "trigger",
         name: component_run.id,
         args: component_run.input
-      }]})
+      }]});
+      return;
     }
 
     const manifest: AgentManifest|null = transformManifest(req.body.agentInfo?.agentManifest ?? null);
@@ -200,7 +210,7 @@ export function CreateHeartbeatRouter(services: Services) {
         services.agentService.saveFlowUpdateFailure(id, target_flow, reason);
         // agentId: id, flowId: target_flow
       }});
-      return res.json({requestedOperations: [
+      res.json({requestedOperations: [
         {
           identifier: opId,
           operation: "UPDATE",
@@ -212,7 +222,8 @@ export function CreateHeartbeatRouter(services: Services) {
             relativeFlowUrl: `/flows/${target_flow}`
           }
         }
-      ]})
+      ]});
+      return;
     }
     if (agent_manifest === null) {
       console.log(`Requesting manifest from ${id}`)
@@ -236,7 +247,7 @@ export function CreateHeartbeatRouter(services: Services) {
         return services.agentService.heartbeat({id, flow: null, class: class_name, manifest: manifest ? stableStringify(manifest) : null, flow_info: null})
       })
       PendingOperations.set(opId, {resolve, reject});
-      return res.json({requestedOperations: [
+      res.json({requestedOperations: [
         {
           identifier: opId,
           operation: "DESCRIBE",
@@ -244,6 +255,7 @@ export function CreateHeartbeatRouter(services: Services) {
           args: {}
         }
       ]});
+      return;
     }
     res.json({requestedOperations: []});
   })

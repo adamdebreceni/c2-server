@@ -11,7 +11,7 @@ type Properties = Property[]
 
 export function ConfigureModal(props: {onSubmit: (properties: Properties)=>Promise<void>}) {
   const [properties, setProperties] = useState<Properties>([]);
-  const stateRef = React.useRef<Properties>();
+  const stateRef = React.useRef<Properties>(null);
   stateRef.current = properties;
   const onConfigure = React.useCallback(()=>{
     props.onSubmit(stateRef.current!);

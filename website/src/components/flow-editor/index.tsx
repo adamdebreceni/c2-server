@@ -1059,7 +1059,7 @@ function findConnDestProc(st: FlowEditorState, pos: {x: number, y: number}) {
   return st.flow.processors.find(matcher) ?? st.flow.funnels.find(matcher) ?? st.flow.processGroupsPorts?.find(matcher);
 }
 
-function toAreaCoords(areaRef: React.RefObject<HTMLDivElement>, st: FlowEditorState, e: {clientX: number, clientY: number}) {
+function toAreaCoords(areaRef: React.RefObject<HTMLDivElement|null>, st: FlowEditorState, e: {clientX: number, clientY: number}) {
   const rect = areaRef.current!.getBoundingClientRect();
   const x = st.flow.view.x + (e.clientX - rect.left) / st.flow.view.zoom;
   const y = st.flow.view.y + (e.clientY - rect.top) / st.flow.view.zoom;
@@ -1245,7 +1245,7 @@ function moveConnectionImpl(st: FlowEditorState, id: Uuid, dx: number, dy: numbe
   return {...st, flow: {...st.flow, connections: new_connections}};
 }
 
-function useFlowContext(areaRef: React.RefObject<HTMLDivElement>, state: FlowEditorState, setState: (value: React.SetStateAction<FlowEditorState>)=>void) {
+function useFlowContext(areaRef: React.RefObject<HTMLDivElement|null>, state: FlowEditorState, setState: (value: React.SetStateAction<FlowEditorState>)=>void) {
   const showMenu = React.useCallback((position: {clientX: number, clientY: number}, items: {name: string, on: ()=>void}[])=>{
     setState(st => {
       const {x, y} = toAreaCoords(areaRef, st, position);

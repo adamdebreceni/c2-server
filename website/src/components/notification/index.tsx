@@ -8,7 +8,7 @@ import { ErrorIcon } from "../../icons/error";
 
 let id = 1;
 
-export function NotificationLayer(props: {children: React.ReactChild[]|React.ReactChild}) {
+export function NotificationLayer(props: {children: React.ReactNode[]|React.ReactNode}) {
   const [state, setState] = useState<{id: number, msg: string, type: "success"|"error"}[]>([]);
   const context = React.useMemo(()=>({
     emit: (msg: string, type: "success"|"error") => {
