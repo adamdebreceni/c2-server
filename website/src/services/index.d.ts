@@ -25,7 +25,7 @@ interface AgentLike {
   flow_update_error: {target_flow: string, error: string}|null
 }
 
-interface FlowInfo {
+interface FlowInfoDeprecated {
   flowId: Uuid,
   queues: {[id: Uuid]: {
     dataSize: number,
@@ -41,7 +41,7 @@ interface FlowInfo {
   }}
 }
 
-interface FlowInfoJava {
+interface FlowInfo {
   flowId: Uuid,
   queues: {[id: Uuid]: {
       dataSize: number,
@@ -51,20 +51,7 @@ interface FlowInfoJava {
       sizeUtilization: number,
       dataSizeUtilization: number
   }},
-  processorStatuses: {
-      id: Uuid,
-      groupId: Uuid,
-      bytesRead: number,
-      bytesWritten: number,
-      flowFilesIn: number,
-      flowFilesOut: number,
-      bytesIn: number,
-      bytesOut: number,
-      invocations: number,
-      processingNanos: number,
-      activeThreadCount: number,
-      terminatedThreadCount: number
-    }[]
+  processorStatuses: ProcessorStatus[]
 }
 
 interface AgentMetrics {}

@@ -537,4 +537,35 @@
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
   }
+
+  .processor-status {
+    margin-top: 20px;
+    font-family: monospace;
+    color: rgb(84, 84, 84);
+
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      padding: 10px 15px;
+      border: 1px solid rgb(229, 229, 229);
+      border-left: 4px solid rgb(229, 229, 229);
+      border-radius: 3px;
+
+      &:hover {
+        border-left-color: rgb(52, 77, 219);
+      }
+
+      .status-label {
+        flex: 1;
+        color: rgb(108, 108, 108);
+      }
+
+      .status-value {
+        flex: 2;
+        text-align: right;
+        color: rgb(52, 52, 52);
+      }
+    }
+  }
 }

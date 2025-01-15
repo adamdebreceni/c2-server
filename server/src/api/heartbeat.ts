@@ -144,7 +144,7 @@ export function CreateHeartbeatRouter(services: Services) {
       PendingOperations.set(opId, component_state_query);
       res.json({requestedOperations: [{
         operationId: opId,
-        operation: "describe",
+        operation: "DESCRIBE",
         name: "corecomponentstate",
         args: {}
       }]});

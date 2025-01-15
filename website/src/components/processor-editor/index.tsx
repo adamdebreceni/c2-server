@@ -22,6 +22,7 @@ import { CopyIcon } from "../../icons/copy";
 import { PasteIcon } from "../../icons/paste";
 import { EditIcon } from "../../icons/edit";
 import { isSpecialInputField, SpecialInputField } from "../special-input";
+import { asSize } from "../../utils/formatter";
 
 type ActiveRunInfo = {runIdx: number, triggerIdx: number|null}|null;
 
@@ -113,18 +114,19 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
       flow_context?.clearProcessorState?.(props.model.id);
     }}/>)
   }, [!!props.state, props.model.id]);
-  const [activeTab, setActiveTab] = React.useState<"configuration"|"state"|"runs">("configuration");
+  const [activeTab, setActiveTab] = React.useState<"configuration"|"state"|"runs"|"status">("configuration");
   const [activeRunInfo, setActiveRunInfo] = React.useState<ActiveRunInfo>(null);
   const [style_version, setStyleVersion] = React.useState<number>(4);
   return <div className="component-settings">
     <div className="type">{model.type}</div>
     <div className="uuid">{model.id}</div>
     {
-      flow_context?.agentId !== undefined ? 
+      flow_context?.agentId !== undefined ?
       <div className="tab-headers">
         <div className={`tab-header ${activeTab === "configuration" ? 'active': ''}`} onClick={()=>setActiveTab("configuration")}>Config</div>
         <div className={`tab-header ${activeTab === "state" ? 'active': ''}`} onClick={()=>setActiveTab("state")}>State</div>
         <div className={`tab-header ${activeTab === "runs" ? 'active': ''}`} onClick={()=>{setActiveTab("runs"); setActiveRunInfo(null)}}>Runs</div>
+        <div className={`tab-header ${activeTab === "status" ? 'active': ''}`} onClick={()=>setActiveTab("status")}>Status</div>
       </div>
       : null
     }
@@ -352,7 +354,35 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
         </>
       })()}
     </div>
-    <div className="close" onClick={()=>flow_context?.closeComponentEditor()}>
+    <div className={`tab ${activeTab === "status" ? 'active' : ''}`}>
+      <div className="processor-status">
+        <div className="status-row">
+          <span className="status-label">In:</span>
+          <span className="status-value">
+            {model.status ? `${model.status.flowFilesIn} (${asSize(model.status.bytesIn)}B)` : "N/A"}
+      </span>
+        </div>
+        <div className="status-row">
+          <span className="status-label">Out:</span>
+          <span className="status-value">
+            {model.status ? `${model.status.flowFilesOut} (${asSize(model.status.bytesOut)}B)` : "N/A"}
+      </span>
+        </div>
+        <div className="status-row">
+          <span className="status-label">Read / Write:</span>
+          <span className="status-value">
+            {model.status ? `${asSize(model.status.bytesRead)}B / ${asSize(model.status.bytesWritten)}B` : "N/A"}
+          </span>
+        </div>
+        <div className="status-row">
+          <span className="status-label">Invocations:</span>
+          <span className="status-value">
+            {model.status ? model.status.invocations : "N/A"}
+          </span>
+        </div>
+      </div>
+    </div>
+    <div className="close" onClick={() => flow_context?.closeComponentEditor()}>
       <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
         <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
       </svg>

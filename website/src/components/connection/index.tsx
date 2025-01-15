@@ -3,6 +3,7 @@ import { FlowContext } from "../../common/flow-context";
 import { ConnectionErrorBadge } from "../connection-error/badge";
 import "./index.scss";
 import { Toggle } from "../component-editor-toggle";
+import { asSize } from "../../utils/formatter";
 
 export function IsInside(area: {x: number, y: number, w: number, h: number, circular: boolean}, x: number, y: number): boolean {
   if (area.circular) {
@@ -300,18 +301,4 @@ function getColor(size: ConnectionSize): {backgroundColor: string, width: string
   }
   const index = Math.min(Math.floor(usage_colors.length * scale), usage_colors.length - 1);
   return {backgroundColor: usage_colors[index].bg, width: `${Math.floor(scale * 100)}%`};
-}
-
-function asSize(val: number): string {
-  if (val < 10000) {
-    return `${val}`;
-  }
-  const suffices = ['K', 'M', 'G', 'T', 'P'];
-  for (let i = 0; i < suffices.length; ++i) {
-    val /= 1000;
-    if (val < 10000) {
-      return `${val.toPrecision(4)}${suffices[i]}`;
-    }
-  }
-  return `${val}${suffices[suffices.length - 1]}`;
 }

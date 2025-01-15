@@ -110,12 +110,29 @@ interface ProcessorRun {
   expected?: RunResult
 }
 
+interface ProcessorStatus {
+  id: Uuid,
+  groupId: Uuid,
+  bytesRead: number,
+  bytesWritten: number,
+  flowFilesIn: number,
+  flowFilesOut: number,
+  bytesIn: number,
+  bytesOut: number,
+  invocations: number,
+  processingNanos: number,
+  activeThreadCount: number,
+  terminatedThreadCount: number,
+  running?: boolean,
+}
+
 interface Processor extends Component {
   penalty: string,
   yield: string,
   autoterminatedRelationships: {[name: string]: boolean},
   scheduling: Scheduling,
-  parentGroup: Uuid|null
+  parentGroup: Uuid|null,
+  status?: ProcessorStatus|null
 }
 
 interface Scheduling {
