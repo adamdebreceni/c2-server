@@ -1480,7 +1480,8 @@ function useFlowContext(areaRef: React.RefObject<HTMLDivElement|null>, state: Fl
         },
         properties: createDefaultProperties(procManifest.propertyDescriptors ?? {}),
         visibleProperties: [],
-        parentGroup: st.newComponent.parentGroup
+        parentGroup: st.newComponent.parentGroup,
+        status: null
       };
       let connections = st.flow.connections;
       if (st.newComponent.srcProcessor) {

@@ -40,12 +40,12 @@ function height(proc: Processor) {
 
 const padding = 5;
 
-function isFlowInfoJava(flow_info: FlowInfo | FlowInfoJava): flow_info is FlowInfoJava {
-  return (flow_info as FlowInfoJava).processorStatuses !== undefined;
+function isFlowInfo(flow_info: FlowInfo | FlowInfoDeprecated): flow_info is FlowInfo {
+  return (flow_info as FlowInfo).processorStatuses !== undefined;
 }
 
-function isFlowInfoCpp(flow_info: FlowInfo | FlowInfoJava): flow_info is FlowInfo {
-  return (flow_info as FlowInfo).components !== undefined;
+function isFlowInfoDeprecated(flow_info: FlowInfo | FlowInfoDeprecated): flow_info is FlowInfoDeprecated {
+  return (flow_info as FlowInfoDeprecated).components !== undefined;
 }
 
 export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId?: string}) {
@@ -94,7 +94,7 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
         if (!agent || !agent.flow_info) {
           return;
         }
-        let flow_info: FlowInfo|FlowInfoJava|null = null;
+        let flow_info: FlowInfo|FlowInfoDeprecated|null = null;
         try {
           flow_info = JSON.parse(agent.flow_info);
         } catch (e) {
@@ -133,37 +133,35 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
           let proc_changed = false;
           const new_processors: Processor[] = [];
           for (const proc of st.flow.processors) {
-            if (isFlowInfoCpp(flow_info)) {
-              if (proc.id !== flow_info.components[proc.name]?.uuid) {
-                if ('running' in proc) {
-                  const new_proc = {...proc};
-                  delete new_proc.running;
-                  new_processors.push(new_proc);
-                  proc_changed = true;
+            let new_running: ComponentState|undefined;
+            let new_status = proc.status;
+            if (isFlowInfo(flow_info)) {
+              new_status = flow_info.processorStatuses.find((proc_status) => proc_status.id === proc.id);
+              if (new_status) {
+                if (typeof new_status.running === "boolean") {
+                  new_running = new_status.running ? "STARTED" : "STOPPED";
                 } else {
-                  new_processors.push(proc);
+                  new_running = undefined;
                 }
-                continue;
               }
-              const new_running : ComponentState = flow_info.components[proc.name].running ? "STARTED" : "STOPPED";
-              if (
-                  (proc.running === "STARTING" && new_running === "STARTED") ||
-                  (proc.running === "STARTED" && new_running === "STOPPED") ||
-                  (proc.running === "STOPPING" && new_running === "STOPPED") ||
-                  (proc.running === "STOPPED" && new_running === "STARTED") ||
-                  (proc.running === "UNKNOWN")) {
-                new_processors.push({...proc, running: new_running});
-                proc_changed = true;
+            } else if (isFlowInfoDeprecated(flow_info)) {
+              if (proc.id === flow_info.components[proc.name]?.uuid || typeof flow_info.components[proc.name]?.running !== "boolean") {
+                new_running = flow_info.components[proc.name]?.running ? "STARTED" : "STOPPED";
               } else {
-                new_processors.push(proc);
+                new_running = undefined;
               }
-            } else if (isFlowInfoJava(flow_info)) {
-              if (proc.running !== "STARTED") {
-                new_processors.push({...proc, running: "STARTED"});
-                proc_changed = true;
-              } else {
-                new_processors.push(proc);
-              }
+            }
+            if (proc.running === "STARTING" && new_running !== "STARTED") {
+              new_running = proc.running;
+            }
+            if (proc.running === "STOPPING" && new_running !== "STOPPED") {
+              new_running = proc.running;
+            }
+            if (new_running !== proc.running || new_status !== proc.status) {
+              new_processors.push({...proc, status: new_status, running: new_running});
+              proc_changed = true;
+            } else {
+              new_processors.push(proc);
             }
           }
           if (conn_changed || proc_changed) {

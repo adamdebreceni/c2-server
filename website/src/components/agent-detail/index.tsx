@@ -29,7 +29,7 @@ export function AgentDetail() {
         } catch (e) {
           notif.emit("Failed to parse agent manifest", "error");
         }
-        let flow_info: FlowInfo|FlowInfoJava|null = null;
+        let flow_info: FlowInfo|FlowInfoDeprecated|null = null;
         try {
           console.log("Parsing flow info: ", new_agent.flow_info);
           flow_info = JSON.parse(new_agent.flow_info ?? "null");
