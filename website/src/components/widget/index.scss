@@ -90,15 +90,9 @@
       top: -12px;
       border-radius: 50%;
       background-color: white;
-      border: 4px solid;
-
-      &.STARTED {
-        border-color: #008A00;
-      }
-
-      &.STOPPED {
-        border-color: #8a8a8a;
-      }
+      width: 28px;
+      height: 28px;
+      padding: 4px;
 
       .pause-icon {
         fill:  #8a8a8a;
@@ -108,12 +102,40 @@
         fill: #008A00;
       }
 
-      &.STARTING, &.STOPPING, &.UNKNOWN {
+      &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border: 4px solid;
+        border-radius: 50%;
+      }
+
+      &.STARTED::after {
+        border-color: #008A00;
+      }
+
+      &.STOPPED::after {
+        border-color: #8a8a8a;
+      }
+
+      &.STARTING::after, &.STOPPING::after, &.UNKNOWN::after {
         border-color: #f4f4f4;
-        border-top-color: #389fe3;
-        width: 28px;
-        height: 28px;
         animation: spin 2s linear infinite;
+      }
+
+      &.UNKNOWN::after {
+        border-top-color: #389fe3;
+      }
+
+      &.STARTING::after {
+        border-top-color: #008A00;
+      }
+
+      &.STOPPING::after {
+        border-top-color: #8a8a8a;
       }
         
       @keyframes spin {

@@ -133,41 +133,35 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
           let proc_changed = false;
           const new_processors: Processor[] = [];
           for (const proc of st.flow.processors) {
+            let new_running: ComponentState|undefined;
+            let new_status = proc.status;
             if (isFlowInfo(flow_info)) {
-              const proc_status = flow_info.processorStatuses.find((proc_status) => proc_status.id === proc.id);
-              if (proc.status != proc_status) {
-                proc.status = proc_status;
-                proc_changed = true;
-                let component_state : ComponentState = proc_status?.running ? proc_status.running ? "STARTED" : "STOPPED" : "UNKNOWN";
-                const new_proc = {...proc, running: component_state};
-                new_processors.push(new_proc);
-              } else {
-                new_processors.push(proc);
+              new_status = flow_info.processorStatuses.find((proc_status) => proc_status.id === proc.id);
+              if (new_status) {
+                if (typeof new_status.running === "boolean") {
+                  new_running = new_status.running ? "STARTED" : "STOPPED";
+                } else {
+                  new_running = undefined;
+                }
               }
             } else if (isFlowInfoDeprecated(flow_info)) {
-              if (proc.id !== flow_info.components[proc.name]?.uuid) {
-                if ('running' in proc) {
-                  const new_proc = {...proc};
-                  delete new_proc.running;
-                  new_processors.push(new_proc);
-                  proc_changed = true;
-                } else {
-                  new_processors.push(proc);
-                }
-                continue;
-              }
-              const new_running : ComponentState = flow_info.components[proc.name].running ? "STARTED" : "STOPPED";
-              if (
-                  (proc.running === "STARTING" && new_running === "STARTED") ||
-                  (proc.running === "STARTED" && new_running === "STOPPED") ||
-                  (proc.running === "STOPPING" && new_running === "STOPPED") ||
-                  (proc.running === "STOPPED" && new_running === "STARTED") ||
-                  (proc.running === "UNKNOWN")) {
-                new_processors.push({...proc, running: new_running});
-                proc_changed = true;
+              if (proc.id === flow_info.components[proc.name]?.uuid || typeof flow_info.components[proc.name]?.running !== "boolean") {
+                new_running = flow_info.components[proc.name]?.running ? "STARTED" : "STOPPED";
               } else {
-                new_processors.push(proc);
+                new_running = undefined;
               }
+            }
+            if (proc.running === "STARTING" && new_running !== "STARTED") {
+              new_running = proc.running;
+            }
+            if (proc.running === "STOPPING" && new_running !== "STOPPED") {
+              new_running = proc.running;
+            }
+            if (new_running !== proc.running || new_status !== proc.status) {
+              new_processors.push({...proc, status: new_status, running: new_running});
+              proc_changed = true;
+            } else {
+              new_processors.push(proc);
             }
           }
           if (conn_changed || proc_changed) {

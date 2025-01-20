@@ -218,8 +218,8 @@ export function Widget(props: {highlight?: boolean, kind: string, value: Compone
 
 function ComponentState(props: {state: ComponentState, onClick?: ()=>void}) {
   return <div className={`processor-state ${props.state}`} onClick={props.onClick}>
-    {props.state === "STARTED" ? <PlayIcon size={20} /> : null}
-    {props.state === "STOPPED" ? <PauseIcon size={20} /> : null}
+    {props.state === "STARTED" || props.state === "STOPPING" ? <PlayIcon size={20} /> : null}
+    {props.state === "STOPPED" || props.state === "STARTING" ? <PauseIcon size={20} /> : null}
   </div>
 }
 
