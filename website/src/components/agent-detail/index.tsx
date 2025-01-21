@@ -15,7 +15,7 @@ export function AgentDetail() {
   const notif = useContext(NotificationContext)
   const agentId = useParams<any>()["id"]!;
   const navigate = useNavigate();
-  const [agent, setAgent] = useState<{value: AgentLike, manifest: JsonValue, flow_info: JsonValue, response: JsonValue}|null|undefined>(undefined);
+  const [agent, setAgent] = useState<{value: AgentLike, manifest: JsonValue, flow_info: JsonValue, device_info: JsonValue, response: JsonValue}|null|undefined>(undefined);
   const mounted = React.useRef<boolean>(true);
   const openModal = React.useContext(ModalContext);
   useEffect(()=>{
@@ -36,7 +36,14 @@ export function AgentDetail() {
         } catch (e) {
           notif.emit("Failed to parse flow info", "error");
         }
-        setAgent({value: new_agent, manifest, flow_info, response: null});
+        let device_info: JsonValue|null = null;
+        try {
+          console.log("Parsing device_info: ", new_agent.device_info);
+          device_info = JSON.parse(new_agent.device_info ?? "null");
+        } catch (e) {
+          notif.emit("Failed to parse device info", "error");
+        }
+        setAgent({value: new_agent, manifest, flow_info, device_info, response: null});
       } else {
         setAgent(null);
       }
@@ -106,6 +113,7 @@ export function AgentDetail() {
       </div>
       <div className="tab"><div className="title">Manifest</div><div className="content"><JsonView value={agent.manifest}/></div></div>
       <div className="tab"><div className="title">FlowInfo</div><div className="content"><JsonView value={agent.flow_info}/></div></div>
+      <div className="tab"><div className="title">DeviceInfo</div><div className="content"><JsonView value={agent.device_info}/></div></div>
       <div className="tab request">
         <div className="title">Request
         </div>
