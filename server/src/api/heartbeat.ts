@@ -14,6 +14,10 @@ export function CreateHeartbeatRouter(services: Services) {
     const id = req.body.agentInfo.identifier ?? null;
     const class_name = req.body.agentInfo.agentClass ?? null;
     const flow = req.body.flowInfo?.flowId ?? null;
+    let device_info_str = null;
+    if (req.body.deviceInfo) {
+      device_info_str = JSON.stringify(req.body.deviceInfo);
+    }
 
     const update = PendingUpdates.get(id);
     if (update) {
@@ -200,7 +204,7 @@ export function CreateHeartbeatRouter(services: Services) {
       flow_info_str = JSON.stringify(req.body.flowInfo);
     }
 
-    const hb_result = await services.agentService.heartbeat({id, flow, class: class_name, manifest: manifest ? stableStringify(manifest) : null, flow_info: flow_info_str});
+    const hb_result = await services.agentService.heartbeat({id, flow, class: class_name, manifest: manifest ? stableStringify(manifest) : null, flow_info: flow_info_str, device_info: device_info_str});
     const target_flow = hb_result.flow;
     const agent_manifest = hb_result.manifest;
     if (target_flow !== null && target_flow !== flow) {
@@ -244,7 +248,7 @@ export function CreateHeartbeatRouter(services: Services) {
         if (response.agentInfo.agentManifestHash && manifest) {
           manifest.hash = response.agentInfo.agentManifestHash;
         }
-        return services.agentService.heartbeat({id, flow: null, class: class_name, manifest: manifest ? stableStringify(manifest) : null, flow_info: null})
+        return services.agentService.heartbeat({id, flow: null, class: class_name, manifest: manifest ? stableStringify(manifest) : null, flow_info: null, device_info: null});
       })
       PendingOperations.set(opId, {resolve, reject});
       res.json({requestedOperations: [

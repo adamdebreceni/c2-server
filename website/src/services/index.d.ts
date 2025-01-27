@@ -21,6 +21,7 @@ interface AgentLike {
   manifest?: string|null
   last_heartbeat: Date|null,
   flow_info: string|null,
+  device_info: string|null,
   config: string|null,
   flow_update_error: {target_flow: string, error: string}|null
 }
@@ -52,6 +53,24 @@ interface FlowInfo {
       dataSizeUtilization: number
   }},
   processorStatuses: ProcessorStatus[]
+}
+
+interface DeviceInfo {
+  identifier: string,
+  systemInfo: {
+    machineArch: string,
+    operatingSystem: string,
+    vCores: number
+    cpuLoadAverage: number,
+    cpuUtilization?: number,
+    memoryUsage?: number,
+    physicalMem?: number,
+  },
+  networkInfo: {
+    hostname: string,
+    ipAddress: string,
+    deviceId?: string,
+  }
 }
 
 interface AgentMetrics {}

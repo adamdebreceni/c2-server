@@ -22,10 +22,14 @@ import { FunnelEditor } from "../funnel-editor";
 import { ProcessGroupEditor } from "../process-group-editor";
 import { ProcessGroupPortEditor } from "../port-editor";
 import { ParameterContextEditor } from "../parameter-context-editor";
+import { FaLinux, FaApple, FaWindows, FaMemory, FaQuestion } from "react-icons/fa";
+import { GoCpu } from "react-icons/go";
+import { asSize } from "../../utils/formatter";
 
 interface FlowEditorState {
   selected: Uuid[],
   flow: FlowObject,
+  device_info: DeviceInfo | null,
   panning: boolean,
   editingComponent: Uuid | null,
 }
@@ -48,8 +52,48 @@ function isFlowInfoDeprecated(flow_info: FlowInfo | FlowInfoDeprecated): flow_in
   return (flow_info as FlowInfoDeprecated).components !== undefined;
 }
 
+
+const TopBar: React.FC<{ device_info: DeviceInfo | null}> = ({ device_info }) => {
+  const getOSIcon = (os: string) => {
+    switch (os.toLowerCase()) {
+      case "linux":
+        return <FaLinux className="icon os-icon" />;
+      case "mac":
+      case "mac osx":
+        return <FaApple className="icon os-icon" />;
+      case "windows":
+        return <FaWindows className="icon os-icon" />;
+      default:
+        return <FaQuestion className="icon os-icon" />;
+    }
+  };
+
+  if (device_info === null) {
+    return (<div></div>)
+  }
+
+  return (
+      <div className="top-bar">
+        <div className="item">
+          {getOSIcon(device_info.systemInfo.operatingSystem)}
+          <span className="text">{device_info.networkInfo.hostname}</span>
+          <br/>
+        </div>
+        <div className="item">
+          <FaMemory className="icon memory-icon" />
+          <span className="text">{device_info.systemInfo.memoryUsage && device_info.systemInfo.physicalMem ? `${asSize(device_info.systemInfo.memoryUsage ?? 0 )}B / ${asSize(device_info.systemInfo.physicalMem ?? 0 )}B` : `N/A`}</span>
+        </div>
+        <div className="item">
+          <GoCpu className="icon cpu-icon" />
+          <span className="text">{device_info.systemInfo.cpuUtilization ? `${Math.round((device_info.systemInfo.cpuUtilization ?? 0) * 100)}%` : `N/A`}</span>
+        </div>
+      </div>
+  );
+};
+
+
 export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId?: string}) {
-  const [state, setState] = useState<FlowEditorState>({flow: props.flow, panning: false,  editingComponent: null, selected: []});
+  const [state, setState] = useState<FlowEditorState>({flow: props.flow, panning: false, device_info: null, editingComponent: null, selected: []});
   const [errors, setErrors] = useState<ErrorObject[]>([]);
   const areaRef = React.useRef<HTMLDivElement>(null);
   const services = React.useContext(ServiceContext);
@@ -178,12 +222,38 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
     };
     flow_info_id = setTimeout(update_flow_info, flow_info_timeout);
 
+    const device_info_timeout = 1000;
+    let device_info_id: any;
+    const update_device_info = () => {
+      services?.agents.fetchAgentInformation(props.agentId!).then(agent => {
+        if (mounted) {
+          device_info_id = setTimeout(update_device_info, device_info_timeout);
+        }
+        if (!agent || !agent.device_info) {
+          return;
+        }
+        let device_info: DeviceInfo|null = null;
+        try {
+          device_info = JSON.parse(agent.device_info);
+        } catch (e) {
+          notif.emit(`Failed to parse flow info`, "error");
+        }
+        if (!device_info) {
+          return;
+        }
+        setState(st => {
+          return {...st, device_info: device_info};
+        })
+      })
+    };
+    device_info_id = setTimeout(update_device_info, device_info_timeout);
+
     const component_state_timeout = 1000;
-    let compoent_state_id: any;
+    let component_state_id: any;
     const update_component_state = () => {
       services?.agents.fetchAgentComponentState(props.agentId!).then(state => {
         if (mounted) {
-          compoent_state_id = setTimeout(update_component_state, component_state_timeout);
+          component_state_id = setTimeout(update_component_state, component_state_timeout);
         }
         if (!state) {
           return;
@@ -201,11 +271,12 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
         })
       })
     };
-    compoent_state_id = setTimeout(update_component_state, component_state_timeout);
+    component_state_id = setTimeout(update_component_state, component_state_timeout);
     return () => {
       mounted = false;
       clearTimeout(flow_info_id);
-      clearTimeout(compoent_state_id);
+      clearTimeout(component_state_id);
+      clearTimeout(device_info_id);
     }
   }, [props.agentId])
 
@@ -292,6 +363,11 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
         props.agentId ?
         <div className="agent-identifier" onClick={goToAgent}>{props.agentId}</div>
         : null
+      }
+      {
+        <div>
+          <TopBar device_info={state.device_info} />
+        </div>
       }
       {
         !state.editingComponent ? null :
