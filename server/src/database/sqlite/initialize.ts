@@ -28,6 +28,7 @@ export async function initialize(): Promise<Database> {
         manifest TEXT,
         flow_info TEXT,
         device_info TEXT,
+        agent_info TEXT,
         config TEXT,
         flow_update_error TEXT
       )
