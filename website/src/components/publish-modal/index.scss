@@ -64,6 +64,19 @@
           color: var(--text-color);
           margin-left: 10px;
         }
+        .go-to-flow {
+          border: 1px solid rgb(91, 91, 255);
+          cursor: pointer;
+          color: rgb(91, 91, 255);
+          opacity: 0.7;
+          margin-left: 20px;
+          border-radius: 15px;
+          font-size: 0.8em;
+          padding: 0px 5px;
+          &:hover {
+            opacity: 1;
+          }
+        }
         .class-expand-icon {
           line-height: 0;
           cursor: pointer;
