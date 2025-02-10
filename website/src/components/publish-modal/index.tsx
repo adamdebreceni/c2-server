@@ -6,6 +6,7 @@ import "./index.scss";
 import { SuccessIcon } from "../../icons/success";
 import { Tooltip } from "../tooltip";
 import { ErrorIcon } from "../../icons/error";
+import { Link } from "react-router";
 
 export function PublishModal(props: {state: PublishState, setPublishState: (fn: (curr: PublishState)=>PublishState)=>void, onCancel: ()=>void, onPublish?: (agents: string[], classes: string[])=>void}) {
   const services = useContext(ServiceContext);
@@ -58,7 +59,10 @@ function AgentInstance(props: {targetFlow: string|null, model: AgentState, onTog
           if (!props.model.selected) return null;
           if (!props.targetFlow) return null;
           if (props.model.flow === props.targetFlow) {
-            return <SuccessIcon size={20} />
+            return <>
+              <SuccessIcon size={20} />
+              <div className="go-to-flow"><Link to={`/agent/${props.model.id}/flow`}>{props.model.flow.substring(0, 8)}</Link></div>
+            </>
           }
           if (props.model.flow_update_error?.target_flow === props.targetFlow) {
             return <ErrorIcon size={20} />
