@@ -31,6 +31,13 @@ export function CreateManageFlowRouter(services: Services): Router {
     res.end();
   })
 
+  router.post("/serialize", json(), async(req, res) => {
+    const flowId = req.body.flowId;
+    if (typeof flowId !== "string") throw new Error("Invalid request");
+    await services.flowService.serialize(flowId);
+    res.end();
+  })
+
   router.post("/create", json(), async (req, res)=>{
     if ('agent' in req.body && typeof req.body.agent === "string") {
       const manifest = await services.agentService.fetchManifestForAgent(req.body.agent);

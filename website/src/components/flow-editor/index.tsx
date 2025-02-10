@@ -86,6 +86,38 @@ function createDefaultConnection(flow: FlowObject, src: Uuid, dst: Uuid, midPoin
 
 const padding = 5;
 
+const handleExport = async (flow_id: string, services: Services|null) => {
+  if (services === null) {
+    console.error("No services found for download");
+  } else {
+    let url: string | null = null;
+    let link: HTMLAnchorElement | null = null;
+
+    try {
+      let flow_str = JSON.stringify(await services.flows.getSerialized(flow_id));
+      const blob = new Blob([flow_str], { type: "application/json" });
+      url = URL.createObjectURL(blob);
+
+      link = document.createElement("a");
+      link.href = url;
+      link.download = `${flow_id}.json`;
+
+      document.body.appendChild(link);
+      link.click();
+    } catch (error) {
+      console.error("Export failed:", error);
+    } finally {
+      if (link && link.parentNode) {
+        document.body.removeChild(link);
+      }
+
+      if (url) {
+        URL.revokeObjectURL(url);
+      }
+    }
+  }
+};
+
 export function FlowEditor(props: {id: string, flow: FlowObject}) {
   const [state, setState] = useState<FlowEditorState>({
       saved: true, publish: {agents: [], classes: [], targetFlow: null, modal: false, pending: false},
@@ -708,9 +740,15 @@ export function FlowEditor(props: {id: string, flow: FlowObject}) {
             : null
         }
       </Surface>
-      <div className={`open-publish ${state.publish?.pending ? 'pending': ''}`} onClick={()=>setState(st => ({...st, publish: {...st.publish, modal: true}}))}>
-        <span className="label">Publish</span>
-        <div className="publish-loader"/>
+      <div className="publish-buttons">
+        <div className="open-publish" onClick={() => setState(st => ({ ...st, publish: { ...st.publish, modal: true } }))}>
+          <span className="label">Publish</span>
+          <div className="publish-loader"/>
+        </div>
+
+        <div className="open-export" onClick={() => handleExport(props.id, services)}>
+          <span className="label">Export</span>
+        </div>
       </div>
       {
         !state.publish.modal ? null :

@@ -29,4 +29,15 @@ export class FlowServiceImpl implements FlowService {
   async publish(id: string, agents: string[], classes: string[]): Promise<void> {
     return await SendRequest("POST", this.api + "/flow/publish", {flowId: id, agents, classes});
   }
+
+  async serialize(id: string): Promise<void> {
+    return await SendRequest("POST", this.api + "/flow/serialize", {flowId: id});
+  }
+
+  async getSerialized(id: string) : Promise<string> {
+    await SendRequest("POST", this.api + "/flow/serialize", {flowId: id});
+    let flow_content = await SendRequest("GET", "/api/flows/" + id);
+    console.log(flow_content);
+    return flow_content;
+  }
 }

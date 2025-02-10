@@ -102,6 +102,8 @@ interface FlowService {
   create(template: {agent?: string, class?: string}): Promise<string>;
   save(id: string, flow: FlowObject): Promise<string>
   publish(id: string, agents: string[], classes: string[]): Promise<void>
+  serialize(id: string): Promise<void>
+  getSerialized(id: string): Promise<string>
 }
 
 interface AgentService {
