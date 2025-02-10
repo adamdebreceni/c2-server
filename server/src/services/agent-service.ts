@@ -21,7 +21,7 @@ export async function CreateAgentService(db: Database): Promise<AgentService> {
     fetchClasses(): Promise<AgentClass[]> {
       return db.classes.select({});
     },
-    async heartbeat(agent_hb: {id: string, class: string|null, flow: string | null, manifest: string|null, flow_info: string|null, device_info: string|null}): Promise<{flow: FlowId|null, manifest: string|null}> {
+    async heartbeat(agent_hb: {id: string, class: string|null, flow: string | null, manifest: string|null, flow_info: string|null, device_info: string|null, agent_info: string|null}): Promise<{flow: FlowId|null, manifest: string|null}> {
       const agent = {...agent_hb, last_heartbeat: new Date().toISOString()};
       const agents = await db.agents.select({id: agent.id}, true);
       if (agents.length > 1) {
@@ -40,6 +40,9 @@ export async function CreateAgentService(db: Database): Promise<AgentService> {
         }
         if (agent_update.device_info === null) {
           delete agent_update.device_info
+        }
+        if (agent_update.agent_info === null) {
+          delete agent_update.agent_info
         }
         await db.agents.update({id: agent.id}, agent_update);
         target_flow = agents[0].target_flow;

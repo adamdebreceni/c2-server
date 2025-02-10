@@ -123,7 +123,7 @@ interface ProcessorStatus {
   processingNanos: number,
   activeThreadCount: number,
   terminatedThreadCount: number,
-  running?: boolean,
+  runStatus?: string,
 }
 
 interface Processor extends Component {

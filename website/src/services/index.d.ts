@@ -22,6 +22,7 @@ interface AgentLike {
   last_heartbeat: Date|null,
   flow_info: string|null,
   device_info: string|null,
+  agent_info: string|null,
   config: string|null,
   flow_update_error: {target_flow: string, error: string}|null
 }
@@ -70,6 +71,19 @@ interface DeviceInfo {
     hostname: string,
     ipAddress: string,
     deviceId?: string,
+  }
+}
+
+interface AgentInfo {
+  agentManifest?: {
+    agentType: string
+  }
+  status: {
+    resourceConsumption: {
+      cpuUtilization?: number,
+      memoryUsage: number
+    }
+    uptime: number
   }
 }
 
