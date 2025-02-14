@@ -82,6 +82,11 @@ interface PublishState {
   agents: AgentState[]
 }
 
+interface ImportState {
+  modal: boolean,
+  classes: string[]
+}
+
 interface Component extends Positionable {
   id: Uuid,
   type: string,

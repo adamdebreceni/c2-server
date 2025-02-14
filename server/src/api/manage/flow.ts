@@ -1,5 +1,6 @@
 import { json, raw, Router } from "express";
 import { MakeAsyncSafe } from "../../utils/async";
+import {DeserializeJsonToFlow} from "../../utils/json-flow-serializer";
 
 export function CreateManageFlowRouter(services: Services): Router {
   const router = MakeAsyncSafe(Router());
@@ -28,6 +29,21 @@ export function CreateManageFlowRouter(services: Services): Router {
     if (!(agents instanceof Array) || agents.some(agent => typeof agent !== "string")) throw new Error("Invalid request");
     await services.flowService.serialize(flowId);
     await services.agentService.publish(classes, agents, flowId);
+    res.end();
+  })
+
+  router.post("/import", json(), async(req, res) => {
+    const class_name = req.body.class_name;
+    if (typeof class_name !== "string") throw new Error("Missing class");
+    let class_manifest = await services.agentService.fetchManifestForClass(class_name);
+    if (class_manifest === null) throw new Error("Missing class manifest");
+
+    const flow_str = req.body.flow;
+    if (typeof flow_str !== "string") throw new Error("Missing flow");
+
+    const flow_object = DeserializeJsonToFlow(flow_str, JSON.parse(class_manifest));
+    const id = await services.flowService.save(Buffer.from(JSON.stringify(flow_object)));
+    console.log(`Imported as ${id}`);
     res.end();
   })
 

@@ -1,4 +1,4 @@
-import { SendRequest } from "../utils/request";
+import {SendRequest} from "../utils/request";
 
 export class FlowServiceImpl implements FlowService {
   constructor(private api: string) {}
@@ -28,6 +28,10 @@ export class FlowServiceImpl implements FlowService {
 
   async publish(id: string, agents: string[], classes: string[]): Promise<void> {
     return await SendRequest("POST", this.api + "/flow/publish", {flowId: id, agents, classes});
+  }
+
+  async import(class_name: string, flow: string) : Promise<void> {
+    return await SendRequest("POST", this.api + "/flow/import", { class_name: class_name, flow: flow });
   }
 
   async serialize(id: string): Promise<void> {
