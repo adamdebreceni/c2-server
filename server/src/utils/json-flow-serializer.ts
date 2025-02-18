@@ -1,63 +1,58 @@
 export function SerializeFlowToJson(id: string, flow: FlowObject): string {
-    try {
-        let result: any = {
-            "encodingVersion": {
-                "majorVersion": 2,
-                "minorVersion": 0
+    let result: any = {
+        "encodingVersion": {
+            "majorVersion": 2,
+            "minorVersion": 0
+        },
+        "maxTimerDrivenThreadCount": 1,
+        "registries": [],
+        "parameterContexts": (flow.parameterContexts ?? []).map(ctx => {
+            return {
+                "identifier": ctx.id,
+                "name": ctx.name,
+                "description": ctx.description,
+                "parameters": ctx.parameters.map(param => {
+                    return {
+                        "name": param.name,
+                        "description": param.description,
+                        "sensitive": param.sensitive,
+                        "value": param.value
+                    }
+                })
+            }
+        }),
+        "parameterProviders": [],
+        "controllerServices": [],
+        "reportingTasks": [],
+        "templates": []
+    };
+    result["rootGroup"] = {
+        ...serializeProcessGroup(null, flow),
+        "identifier": id,
+        "variables": {},
+        "labels": [],
+        "defaultFlowFileExpiration": "0 sec",
+        "defaultBackPressureObjectThreshold": 10000,
+        "defaultBackPressureDataSizeThreshold": "1 GB",
+        "componentType": "PROCESS_GROUP",
+        "flowFileConcurrency": "UNBOUNDED",
+        "flowFileOutboundPolicy": "STREAM_WHEN_AVAILABLE",
+        "controllerServices": flow.services.map(serv => ({
+            "position": {"x": serv.position.x, "y": serv.position.y},
+            "identifier": serv.id,
+            "name": serv.name,
+            "type": serv.type,
+            "properties": filterNullish(serv.properties),
+            "propertyDescriptors": flow.manifest.controllerServices.find(cs_info => cs_info.type === serv.type)?.propertyDescriptors ?? null,
+            "bundle": {
+                "artifact": flow.manifest.controllerServices.find(cs_info => cs_info.type === serv.type)?.artifact ?? "unknown",
+                "group": flow.manifest.controllerServices.find(cs_info => cs_info.type === serv.type)?.group ?? "unknown",
+                "version": flow.manifest.controllerServices.find(cs_info => cs_info.type === serv.type)?.version ?? "unknown",
             },
-            "maxTimerDrivenThreadCount": 1,
-            "registries": [],
-            "parameterContexts": (flow.parameterContexts ?? []).map(ctx => {
-                return {
-                    "identifier": ctx.id,
-                    "name": ctx.name,
-                    "description": ctx.description,
-                    "parameters": ctx.parameters.map(param => {
-                        return {
-                            "name": param.name,
-                            "description": param.description,
-                            "sensitive": param.sensitive,
-                            "value": param.value
-                        }
-                    })
-                }
-            }),
-            "parameterProviders": [],
-            "controllerServices": [],
-            "reportingTasks": [],
-            "templates": []
-        };
-        result["rootGroup"] = {
-            ...serializeProcessGroup(null, flow),
-            "identifier": id,
-            "variables": {},
-            "labels": [],
-            "defaultFlowFileExpiration": "0 sec",
-            "defaultBackPressureObjectThreshold": 10000,
-            "defaultBackPressureDataSizeThreshold": "1 GB",
-            "componentType": "PROCESS_GROUP",
-            "flowFileConcurrency": "UNBOUNDED",
-            "flowFileOutboundPolicy": "STREAM_WHEN_AVAILABLE",
-            "controllerServices": flow.services.map(serv => ({
-                "position": {"x": serv.position.x, "y": serv.position.y},
-                "identifier": serv.id,
-                "name": serv.name,
-                "type": serv.type,
-                "properties": filterNullish(serv.properties),
-                "propertyDescriptors": flow.manifest.controllerServices.find(cs_info => cs_info.type === serv.type)?.propertyDescriptors ?? null,
-                "bundle": {
-                    "artifact": flow.manifest.controllerServices.find(cs_info => cs_info.type === serv.type)?.artifact ?? "unknown",
-                    "group": flow.manifest.controllerServices.find(cs_info => cs_info.type === serv.type)?.group ?? "unknown",
-                    "version": flow.manifest.controllerServices.find(cs_info => cs_info.type === serv.type)?.version ?? "unknown",
-                },
-                "componentType": "CONTROLLER_SERVICE",
-            }))
-        };
-        return JSON.stringify(result);
-    } catch(error) {
-        console.error(error);
-    }
-    return "";
+            "componentType": "CONTROLLER_SERVICE",
+        }))
+    };
+    return JSON.stringify(result);
 }
 
 function serializeProcessGroup(id: Uuid | null, flow: FlowObject): object {
@@ -177,57 +172,62 @@ function isNullish(val: string | null) {
     return val === null || val === "<null>";
 }
 
-export function DeserializeJsonToFlow(json_str: string, manifest: AgentManifest): FlowObject {
-    const flow_json = JSON.parse(json_str);
+export function DeserializeJsonToFlow(json_str: string, manifest: AgentManifest): FlowObject|null {
+    try {
+        const flow_json = JSON.parse(json_str);
 
-    let flow_object: FlowObject = {
-        manifest: manifest,
-        view: {
-            x: flow_json.rootGroup.position.x,
-            y: flow_json.rootGroup.position.y,
-            zoom: 1
-        },
-        processors: [],
-        remoteProcessGroups: [],
-        connections: [],
-        services: [],
-        parameters: [],
-        funnels: [],
-        state: undefined,
-        runs: undefined,
-        processGroups: [],
-        processGroupsPorts: [],
-        parameterContexts: [],
-    };
+        let flow_object: FlowObject = {
+            manifest: manifest,
+            view: {
+                x: flow_json.rootGroup.position?.x ?? 0,
+                y: flow_json.rootGroup.position?.y ?? 0,
+                zoom: 1
+            },
+            processors: [],
+            remoteProcessGroups: [],
+            connections: [],
+            services: [],
+            parameters: [],
+            funnels: [],
+            state: undefined,
+            runs: undefined,
+            processGroups: [],
+            processGroupsPorts: [],
+            parameterContexts: [],
+        };
 
-    flow_object.parameterContexts = flow_json.parameterContexts.map((ctx: any) => ({
-        id: ctx.identifier,
-        name: ctx.name,
-        description: ctx.description,
-        type: "ParameterContext",
-        position: {
-            x: ctx.position?.x ?? 0,
-            y: ctx.position?.y ?? 0
-        },
-        parameters: ctx.parameters.map((param: any) => ({
-            name: param.name,
-            description: param.description,
-            sensitive: param.sensitive,
-            value: param.value
-        }))
-    }));
+        flow_object.parameterContexts = flow_json.parameterContexts.map((ctx: any) => ({
+            id: ctx.identifier,
+            name: ctx.name,
+            description: ctx.description,
+            type: "ParameterContext",
+            position: {
+                x: ctx.position?.x ?? 0,
+                y: ctx.position?.y ?? 0
+            },
+            parameters: ctx.parameters.map((param: any) => ({
+                name: param.name,
+                description: param.description,
+                sensitive: param.sensitive,
+                value: param.value
+            }))
+        }));
 
-    deserializeProcessGroup(flow_object, null, null, flow_json.rootGroup);
-    reAddNullishProperties(flow_object);
-    return flow_object;
+        deserializeProcessGroup(flow_object, null, null, flow_json.rootGroup);
+        fixFlowObject(flow_object);
+        return flow_object;
+    } catch (error) {
+        console.error(error);
+    }
+    return null;
 }
 
 function deserializeProcessGroup(flow_object: FlowObject, group_id: Uuid | null, parent_id: Uuid | null, process_group_json: any) {
     if (flow_object.processGroups && group_id !== null) {
         flow_object.processGroups.push({
             position: {
-                x: process_group_json.position.x,
-                y: process_group_json.position.y,
+                x: process_group_json.position?.x ?? 0,
+                y: process_group_json.position?.y ?? 0,
             },
             size: {
                 width: process_group_json.size?.width ?? 100,
@@ -297,8 +297,8 @@ function deserializeProcessGroup(flow_object: FlowObject, group_id: Uuid | null,
                 name: serv.name,
                 type: serv.type,
                 position: {
-                    x: serv.position.x,
-                    y: serv.position.y,
+                    x: serv.position?.x ?? 0,
+                    y: serv.position?.y ?? 0,
                 },
                 properties: serv.properties,
                 parentGroup: group_id,
@@ -308,8 +308,8 @@ function deserializeProcessGroup(flow_object: FlowObject, group_id: Uuid | null,
         if (process_group_json.processors) {
             flow_object.processors = flow_object.processors.concat(process_group_json.processors.map((proc: any) => ({
                 position: {
-                    x: proc.position.x,
-                    y: proc.position.y,
+                    x: proc.position?.x ?? 0,
+                    y: proc.position?.y ?? 0,
                 },
                 id: proc.identifier,
                 type: proc.type,
@@ -353,7 +353,7 @@ function deserializeProcessGroup(flow_object: FlowObject, group_id: Uuid | null,
     }
 }
 
-function reAddNullishProperties(flow_object: FlowObject) {
+function fixFlowObject(flow_object: FlowObject) {
     for (let processor of flow_object.processors) {
         const processor_manifest = flow_object.manifest.processors.find(processor_manifest => processor_manifest.type === processor.type);
         if (processor_manifest && processor_manifest.propertyDescriptors) {
@@ -377,6 +377,19 @@ function reAddNullishProperties(flow_object: FlowObject) {
             for (let property_name in service_manifest.propertyDescriptors) {
                 if (!(property_name in service.properties)) {
                     service.properties[property_name] = null;
+                }
+            }
+        }
+    }
+    for (let connection of flow_object.connections) {
+        const source_processor = flow_object.processors.find(processor => processor.id === connection.source.id);
+        if (source_processor) {
+            const source_manifest = flow_object.manifest.processors.find(processor_manifest => processor_manifest.type === source_processor.type);
+            if (source_manifest) {
+                for (let relationship of source_manifest.supportedRelationships) {
+                    if (!(relationship.name in connection.sourceRelationships)) {
+                        connection.sourceRelationships[relationship.name] = false;
+                    }
                 }
             }
         }

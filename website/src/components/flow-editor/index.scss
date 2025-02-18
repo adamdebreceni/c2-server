@@ -75,7 +75,7 @@
     gap: 10px;
   }
 
-  .open-publish, .open-export {
+  .open-publish, .export-btn, .rearrange-btn {
     padding: 7px 14px;
     border-radius: 2px;
     color: rgb(193, 193, 193);
@@ -85,7 +85,7 @@
     transition: all 0.2s ease-in-out;
   }
 
-  .open-publish:hover, .open-export:hover {
+  .open-publish:hover, .export-btn:hover, .rearrange-btn:hover {
     background-color: rgb(19, 152, 19);
     border-color: rgb(19, 152, 19);
     color: white;

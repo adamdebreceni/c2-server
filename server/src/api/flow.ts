@@ -24,6 +24,9 @@ export function CreateFlowRouter(services: Services) {
     if (agent_manifest === null) throw new Error("NO AGENT MANIFEST");
 
     const flow_object = DeserializeJsonToFlow(flow_content.toString(), JSON.parse(agent_manifest));
+    if (flow_object === null) {
+      throw new Error("NO FLOW CONTENT");
+    }
     const flow_reserialized = SerializeFlowToJson(req.params.flowId, flow_object);
     res.setHeader("Content-Type", "application/json");
     res.send(flow_reserialized);

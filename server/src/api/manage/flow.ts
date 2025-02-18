@@ -33,6 +33,7 @@ export function CreateManageFlowRouter(services: Services): Router {
   })
 
   router.post("/import", json(), async(req, res) => {
+    console.log("Importing...");
     const class_name = req.body.class_name;
     if (typeof class_name !== "string") throw new Error("Missing class");
     let class_manifest = await services.agentService.fetchManifestForClass(class_name);
@@ -41,7 +42,14 @@ export function CreateManageFlowRouter(services: Services): Router {
     const flow_str = req.body.flow;
     if (typeof flow_str !== "string") throw new Error("Missing flow");
 
+    console.log("Deserializing...");
     const flow_object = DeserializeJsonToFlow(flow_str, JSON.parse(class_manifest));
+    if (flow_object === null) {
+      console.log("Import failed");
+      res.status(400);
+      res.end();
+      return;
+    }
     const id = await services.flowService.save(Buffer.from(JSON.stringify(flow_object)));
     console.log(`Imported as ${id}`);
     res.end();
