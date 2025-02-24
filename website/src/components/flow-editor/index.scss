@@ -66,24 +66,31 @@
     }
   }
 
-  .open-publish {
+  .publish-buttons {
     position: absolute;
     top: 0;
     right: 0;
     margin: 15px;
+    display: flex;
+    gap: 10px;
+  }
+
+  .open-publish, .export-btn, .rearrange-btn {
     padding: 7px 14px;
     border-radius: 2px;
     color: rgb(193, 193, 193);
     background-color: white;
     border: 1px solid rgb(213, 213, 213);
-    &:hover {
-      background-color: rgb(19, 152, 19);
-      border-color: rgb(19, 152, 19);
-      color: white;
-      cursor: pointer;
-      opacity: 1;
-    }
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
   }
+
+  .open-publish:hover, .export-btn:hover, .rearrange-btn:hover {
+    background-color: rgb(19, 152, 19);
+    border-color: rgb(19, 152, 19);
+    color: white;
+  }
+
 
   .publish-container {
     top: 0;

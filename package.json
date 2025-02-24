@@ -24,6 +24,7 @@
     "copy-webpack-plugin": "^12.0.2",
     "crc-32": "^1.2.2",
     "css-loader": "^7.1.2",
+    "elkjs": "^0.9.3",
     "express": "^4.21.2",
     "multer": "^1.4.5-lts.1",
     "npm-check-updates": "^17.1.13",
