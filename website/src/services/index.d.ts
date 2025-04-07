@@ -101,7 +101,10 @@ interface FlowService {
   fetchAll(): Promise<FlowLike[]>;
   create(template: {agent?: string, class?: string}): Promise<string>;
   save(id: string, flow: FlowObject): Promise<string>
+  import(class_name: string, flow: string): Promise<void>
   publish(id: string, agents: string[], classes: string[]): Promise<void>
+  serialize(id: string): Promise<void>
+  getSerialized(id: string): Promise<string>
 }
 
 interface AgentService {
