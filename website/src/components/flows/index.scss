@@ -30,21 +30,3 @@
   border-color: rgb(19, 152, 19);
   color: white;
 }
-
-.import-container {
-  top: 0;
-  left: 0;
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  .overlay {
-    height: 100%;
-    width: 100%;
-    position: absolute;
-    background-color: rgba(0, 0, 0, 0.182);
-  }
-}
