@@ -44,9 +44,10 @@
       align-items: center;
       width: 50px;
       height: 50px;
-      border: 5px solid rgb(83, 83, 83);
+      border: 5px solid var(--text-color);
       border-radius: 50%;
-      background-color: white;
+      background-color: var(--bg-color);
+      color: var(--text-color);
       .merge-icon {
         fill: rgb(80, 80, 80);
         path {
@@ -72,6 +73,7 @@
     }
     &.extended {
       border: 2px solid transparent;
+      border-radius: 10px;
     }
     box-sizing: border-box;
     position: relative;
@@ -89,7 +91,7 @@
       right: -12px;
       top: -12px;
       border-radius: 50%;
-      background-color: white;
+      background-color: var(--bg-color);
       width: 28px;
       height: 28px;
       padding: 4px;
@@ -145,6 +147,7 @@
     }
 
     .name {
+      color: var(--text-color);
       position: absolute;
       top: 100%;
       left: 50%;
@@ -181,6 +184,6 @@
 
 .widget-container.selected {
   .processor-view {
-    border-color: rgb(60, 60, 249) !important;
+    border-color: var(--highlight-blue) !important;
   }
 }

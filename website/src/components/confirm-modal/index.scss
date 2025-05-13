@@ -3,6 +3,7 @@
   width: 600px;
   display: flex;
   flex-direction: column;
+  color: var(--text-color);
   .text {
     padding: 30px;
     text-align: justify;
@@ -20,8 +21,8 @@
     border-radius: 3px;
     margin-left: 50px;
     &:hover {
-      background-color: rgb(237, 237, 237);
-      color: rgb(64, 64, 64);
+      background-color: var(--hover-bg-color);
+      color: var(--text-active-color);
       cursor: pointer;
     }
   }
@@ -30,17 +31,17 @@
     padding: 10px 20px;
     border-radius: 3px;
     &.DELETE {
-      color: rgb(223, 23, 23);
+      color: var(--highlight-red);
       &:hover {
-        background-color: rgb(223, 23, 23);;
+        background-color: var(--highlight-red);
         color: rgb(231, 231, 231);
         cursor: pointer;
       }
     }
     &.CREATE {
-      color: rgb(35, 117, 18);
+      color: var(--highlight-green);
       &:hover {
-        background-color: rgb(35, 117, 18);
+        background-color: var(--highlight-green);
         color: rgb(231, 231, 231);
         cursor: pointer;
       }

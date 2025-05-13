@@ -22,16 +22,20 @@ export function Flows() {
     }
   }, [])
   
-  return <div className="flow-list">
-    <div className="open-import"
-      onClick={() => openModal(<ImportModal onImport={async (class_str, flow_str) =>
-      {
-        await services!.flows.import(class_str, flow_str);
-        const updatedFlows = await services!.flows.fetchAll();
-        setFlows(updatedFlows);
-      }} />)}>
-      <span className="label">Import</span>
+  return <div className="flow-list-container">
+    <div className="flow-list">
+      {flows.map(flow => <FlowPreview key={flow.id} value={flow}/>)}
     </div>
-    {flows.map(flow => <FlowPreview key={flow.id} value={flow}/>)}
+    <div className="footer">
+      <div className="open-import"
+        onClick={() => openModal(<ImportModal onImport={async (class_str, flow_str) =>
+        {
+          await services!.flows.import(class_str, flow_str);
+          const updatedFlows = await services!.flows.fetchAll();
+          setFlows(updatedFlows);
+        }} />)}>
+        <span className="label">Import</span>
+      </div>
     </div>
+  </div>
   }

@@ -2,7 +2,7 @@
   width: 80%;
   box-sizing: border-box;
   padding: 1em;
-  border: 1px solid rgb(237, 237, 237);
+  border: 1px solid var(--border-color);
   margin: 0.5em;
   border-radius: 5px;
 
@@ -12,11 +12,11 @@
     padding-bottom: 1em;
     align-items: center;
     .id {
-      color: rgb(27, 40, 66);
+      color: var(--text-color);
       font-weight: bold;
       cursor: pointer;
       &:hover {
-        color: rgb(22, 22, 172);
+        color: var(--highlight-blue);
       }
     }
     .class {
@@ -28,7 +28,7 @@
       font-size: 0.9em;
       color: rgb(147, 147, 147);
       &.alive {
-        color: green;
+        color: var(--highlight-green);
         font-weight: bold;
       }
     }
@@ -41,10 +41,10 @@
         visibility: hidden;
         cursor: pointer;
         path {
-          fill: rgb(157, 157, 157);
+          fill: var(--text-color);
         }
         &:hover path {
-          fill: rgb(30, 30, 30);
+          fill: var(--highlight-blue);
         }
       }
       &:not(:focus) .agent-menu {
@@ -59,7 +59,7 @@
     padding: 4px;
     display: inline-block;
     &:hover {
-      background-color: rgb(239, 239, 239);
+      background-color: var(--hover-bg-color);
     }
   }
 }

@@ -14,32 +14,35 @@ import { ModalLayer } from './components/modal-layer';
 import { AgentDetail } from './components/agent-detail';
 import { AgentFlow } from './components/agent-flow';
 import { Navigate } from 'react-router';
+import { Theme } from './components/theme';
 
 const services = CreateServices();
 
 function App() {
   return <ServiceContext.Provider value={services}>
     <Router>
-      <NotificationLayer>
-        <ModalLayer>
-          <AppHeader/>
-          <div className="content">
-            <Routes>
-              <Route path="/agent-classes" element={<AgentClasses/>} />
-              <Route path="/agents" element={<AgentList/>} />
-              <Route path="/agent/:id" element={<AgentDetail/>} />
-              <Route path="/agent/:id/flow" element={<AgentFlow/>} />
-              <Route path="/flows" element={<Flows/>} />
-              <Route path="/flow/:id" element={<FlowView editable={true}/>} />
-              <Route path="/flow/edit/:id" element={<FlowView editable={false}/>} />
-              <Route
-                path="*"
-                element={<Navigate to="/agents" replace />}
-              />
-            </Routes>
-          </div>
-        </ModalLayer>
-      </NotificationLayer>
+      <Theme>
+        <NotificationLayer>
+          <ModalLayer>
+            <AppHeader/>
+            <div className="content">
+              <Routes>
+                <Route path="/agent-classes" element={<AgentClasses/>} />
+                <Route path="/agents" element={<AgentList/>} />
+                <Route path="/agent/:id" element={<AgentDetail/>} />
+                <Route path="/agent/:id/flow" element={<AgentFlow/>} />
+                <Route path="/flows" element={<Flows/>} />
+                <Route path="/flow/:id" element={<FlowView editable={true}/>} />
+                <Route path="/flow/edit/:id" element={<FlowView editable={false}/>} />
+                <Route
+                  path="*"
+                  element={<Navigate to="/agents" replace />}
+                />
+              </Routes>
+            </div>
+          </ModalLayer>
+        </NotificationLayer>
+      </Theme>
     </Router>
   </ServiceContext.Provider>
 }

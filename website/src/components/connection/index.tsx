@@ -273,7 +273,7 @@ function ConnectionName(props: {id: Uuid, model: Connection, x: number, y: numbe
     setInlineRels(false);
   }, [props.id, flow_context?.editComponent]);
 
-  return <div ref={view_ref} className="name" style={{left: `${props.x}px`, top: `${props.y}px`}} onContextMenu={oncontextmenu} onMouseDown={onmousedown} onDoubleClick={ondblclick} onClick={onclick}>
+  return <div ref={view_ref} className="name popout" style={{left: `${props.x}px`, top: `${props.y}px`}} onContextMenu={oncontextmenu} onMouseDown={onmousedown} onDoubleClick={ondblclick} onClick={onclick}>
     {props.name ? props.name : "<unspecified>"}
     {props.model?.errors.length !== 0 ? <ConnectionErrorBadge/> : null}
     <div ref={inline_rel_ref} className={`inline-relationship-picker ${inline_rels ? 'active': ''}`} tabIndex={-1} onBlur={onblur}>

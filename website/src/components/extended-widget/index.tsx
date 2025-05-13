@@ -7,7 +7,7 @@ export function ExtendedWidget(props: {value: Component}) {
   // if (props.value.type.endsWith("AiProcessor")) {
   //   return <AiWidget value={props.value} />
   // }
-  return <div className="extended-widget">
+  return <div className="extended-widget popout">
     {
       props.value.visibleProperties!.map(property => {
         return <div key={property} className="extended-property">
