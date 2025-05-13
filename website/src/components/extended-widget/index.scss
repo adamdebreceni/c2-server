@@ -2,18 +2,19 @@
   padding: 10px;
   font-size: 0.8em;
   filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.318));
-  background-color: white;
+  background-color: var(--bg-color);
   border-radius: 10px;
   .extended-property {
     .extended-property-name {
       font-size: 0.7em;
       margin-bottom: 5px;
       border-radius: 5px;
-      color: rgb(123, 140, 255);
+      color: var(--highlight-blue);
       font-weight: bold;
       white-space: pre;
     }
     .extended-property-value {
+      color: var(--text-color);
       width: max-content;
       max-width: 300px;
       font-family: monospace;

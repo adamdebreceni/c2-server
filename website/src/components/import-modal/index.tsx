@@ -5,6 +5,9 @@ import { Loader } from "../loader";
 import "./index.scss";
 import { Dropdown } from "../dropdown";
 import { ModalContext } from "../../common/modal-context";
+import { CloudUploadIcon } from "../../../src/icons/cloud-upload";
+import { CloseIcon } from "../../../src/icons/close";
+import { Fill } from "../fill/Fill";
 
 export function ImportModal(props: {onImport: (class_str: string, flow_str: string)=>void}) {
   const services = useContext(ServiceContext);
@@ -41,31 +44,32 @@ export function ImportModal(props: {onImport: (class_str: string, flow_str: stri
   
   return (
     <div className="import-modal">
-      <div className="header">Import Flow</div>
-      <div className="agent-list">
-        <div className="agent-list-inner">
-        {classes === null ? (
-          <Loader />
-        ) : (
-          <div className="import-controls">
-            {/* File Upload */}
-            <label className="file-upload">
-              <input type="file" accept=".json" onChange={handleFileChange} />
-              <span>{selectedFile ? selectedFile.name : "Select File"}</span>
-            </label>
-            
-            <Dropdown name="Class" items={classes} onChange={(item) => {
-              setSelectedClass(item);
-            }} />
-          </div>
-        )}
-        </div>
+      <div className="header">
+        Import Flow
+        <Fill />
+        <CloseIcon size={20} onClick={()=>openModal(null as any)} />
       </div>
+      {classes === null ? (
+          <Loader />
+      ) : (
+        <div className="import-controls">
+          {/* File Upload */}
+          <label className={`file-upload ${selectedFile ? 'selected' : ''}`}>
+            <input type="file" accept=".json" onChange={handleFileChange} />
+            <CloudUploadIcon size={50} className="" />
+            <span>{selectedFile ? `File selected: ${selectedFile.name}` : "Select a File"}</span>
+          </label>
+          
+          <Dropdown name="Class" items={classes} onChange={(item) => {
+            setSelectedClass(item);
+          }} />
+        </div>
+      )}
       <div className="footer">
         <div className="cancel" onClick={()=>openModal(null as any)}>
-        CANCEL
+        Cancel
         </div>
-        <div className="import" onClick={
+        <div className={`import ${!selectedFile || !selectedClass ? 'inactive' : ''}`} onClick={
           () => {
             if (selectedFile && selectedClass) {
               const reader = new FileReader();
@@ -75,7 +79,7 @@ export function ImportModal(props: {onImport: (class_str: string, flow_str: stri
               reader.readAsText(selectedFile);
             }
           }}>
-          <span className="label">IMPORT</span>
+          <span className="label">Import</span>
           <div className="import-loader" />
         </div>
       </div>

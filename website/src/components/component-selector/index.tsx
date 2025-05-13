@@ -2,13 +2,16 @@ import * as React from "react";
 import { FlowContext } from "../../common/flow-context";
 
 import "./index.scss";
+import { CloseIcon } from "../../../src/icons/close";
+import { Fill } from "../fill/Fill";
+import { AddIcon } from "../../../src/icons/add";
 
 type ComponentDescription = {id: string, name: string, description: string};
 
 type SelectorState = {
   query: string,
   components: ComponentDescription[],
-  position: number
+  position: number|null
 }
 
 export function ComponentSelector(props: {components: ComponentDescription[], onClose: (value: string|null)=>void, type: "PROCESSOR"|"SERVICE"}) {
@@ -29,7 +32,7 @@ export function ComponentSelector(props: {components: ComponentDescription[], on
   React.useLayoutEffect(()=>{
     if (!list_ref.current) return;
 
-    const item_view = list_ref.current.getElementsByClassName("component-list-item")[state.position];
+    const item_view = state.position ? list_ref.current.getElementsByClassName("component-list-item")[state.position] : null;
     if (!item_view) return;
 
     const begin = item_view.getBoundingClientRect().top - item_view.parentElement!.getBoundingClientRect().top;
@@ -54,16 +57,16 @@ export function ComponentSelector(props: {components: ComponentDescription[], on
     }
     if (e.code === "ArrowDown") {
       setState(st => {
-        return {...st, position: (st.position + 1) % st.components.length}
+        return {...st, position: ((st.position ?? 0) + 1) % st.components.length}
       })
     }
     if (e.code === "ArrowUp") {
       setState(st => {
-        return {...st, position: (st.position - 1 + st.components.length) % st.components.length}
+        return {...st, position: ((st.position ?? 0) - 1 + st.components.length) % st.components.length}
       })
     }
     if (e.code === "Enter") {
-      const comp = stateRef.current?.components?.[stateRef.current?.position];
+      const comp = stateRef.current?.components?.[stateRef.current?.position ?? 0];
       if (comp) {
         props.onClose(comp.id)
       }
@@ -84,14 +87,28 @@ export function ComponentSelector(props: {components: ComponentDescription[], on
     });
   }, [props.components]);
 
-  return <div className="component-selector">
-    <div className="title">{props.type === "PROCESSOR" ? "Processors" : "Services"}</div>
+  return <div className="component-selector popout">
+    <div className="title">
+      {props.type === "PROCESSOR" ? "Processors" : "Services"}
+      <Fill />
+      <CloseIcon size={18} onClick={()=>props.onClose(null)} />
+    </div>
     <input
       type="text"
       placeholder={`Search ${props.type === "PROCESSOR" ? "processors" : "services"}...`}
       value={state.query}
       onInput={handleInput}
       onKeyDown={handleKey}
+      onBlur={()=>{
+        setState(st => {
+          return {...st, position: null}
+        })
+      }}
+      onFocus={()=>{
+        setState(st => {
+          return {...st, position: 0}
+        })
+      }}
       className="search-input"
       ref={searchInputRef}
     />
@@ -99,9 +116,6 @@ export function ComponentSelector(props: {components: ComponentDescription[], on
       <div className="component-list-inner">{
         state.components.map((proc, idx) => <ComponentListItem key={proc.id} id={proc.id} active={state.position === idx} name={proc.name} description={proc.description} onAdd={props.onClose}/>)
       }</div>
-    </div>
-    <div className="footer">
-      <div className="cancel" onClick={()=>props.onClose(null)}>CANCEL</div>
     </div>
   </div>
 }
@@ -123,7 +137,10 @@ function ComponentListItem(props: {id: string, name: string, description: string
       }
       <div className="name">{props.name}</div>
       <div className="fill"/>
-      <div className="add" onClick={()=>props.onAdd(props.id)}>Add</div>
+      <div className="add" onClick={()=>props.onAdd(props.id)}>
+        <AddIcon size={14} />
+        Add
+      </div>
     </div>
     {
       state ? <div className="description">{props.description}</div> : null

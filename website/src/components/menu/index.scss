@@ -1,15 +1,16 @@
 .menu {
   position: absolute;
-  background-color: white;
-  box-shadow: 0 0 4px black;
-  border-radius: 3px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  border-radius: 4px;
   outline: none;
+  overflow: hidden;
   .menu-item {
     white-space: pre;
-    padding: 5px 15px;
+    padding: 10px 20px;
     cursor: pointer;
     &:hover{
-      background-color: rgb(193, 224, 255);
+      background-color: var(--hover-bg-color);
     }
   }
 }

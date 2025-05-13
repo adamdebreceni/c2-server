@@ -917,7 +917,9 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
 
     return <FlowContext.Provider value={flowContext}>
         <div className="flow-editor" ref={areaRef} onMouseDown={mousedown} onClick={mouseclick}>
-            <div className="background" onContextMenu={newComponent}>
+            <div className="background"
+                // style={{backgroundPosition: `-${state.flow.view.x}px -${state.flow.view.y}px`}}
+                onContextMenu={newComponent}>
                 <div className="flow-state">{state.saved ? "Saved" : "Saving..."}</div>
             </div>
             <Surface {...state.flow.view}>

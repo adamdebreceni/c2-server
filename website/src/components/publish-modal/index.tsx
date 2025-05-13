@@ -18,7 +18,7 @@ export function PublishModal(props: {state: PublishState, setPublishState: (fn: 
     })
   }, [props.setPublishState])
 
-  return <div className="publish-modal">
+  return <div className="publish-modal popout">
     <div className="header">Agents</div>
     <div className="agent-list"><div className="agent-list-inner">{
       (()=>{
@@ -30,7 +30,7 @@ export function PublishModal(props: {state: PublishState, setPublishState: (fn: 
       })()
     }</div></div>
     {props.onPublish ? <div className="footer">
-      <div className="cancel" onClick={props.onCancel}>CANCEL</div>
+      <div className="cancel" onClick={props.onCancel}>Cancel</div>
       <div className="publish" onClick={()=>{
         const agents: string[] = props.state!.agents.filter(agent => agent.selected).map(agent => agent.id);
         const classes: string[] = props.state!.classes.filter(clazz => clazz.selected).map(clazz => clazz.id);
@@ -41,7 +41,7 @@ export function PublishModal(props: {state: PublishState, setPublishState: (fn: 
         }
         props.onPublish!(agents, classes)
       }}>
-        <span className="label">PUBLISH</span>
+        <span className="label">Publish</span>
         <div className="publish-loader"/>
       </div>
     </div>

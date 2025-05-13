@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: row;
   padding: 1em;
-  border: 1px solid rgb(237, 237, 237);
+  border: 1px solid var(--border-color);
   margin: 0.5em;
   border-radius: 5px;
   align-items: flex-start;
@@ -12,7 +12,7 @@
   .name-flow {
     .name {
       padding-bottom: 1em;
-      color: rgb(27, 40, 66);
+      color: var(--text-color);
       font-weight: bold;
     }
     .flow {
@@ -22,7 +22,7 @@
       padding: 4px;
       display: inline-block;
       &:hover {
-        background-color: rgb(239, 239, 239);
+        background-color: var(--hover-bg-color);
       }
     }
   }
@@ -34,7 +34,7 @@
     border-radius: 3px;
     cursor: pointer;
     &:hover {
-      background-color: rgb(239, 239, 239);
+      background-color: var(--hover-bg-color);
     }
   }
 
@@ -43,13 +43,13 @@
     margin-left: 20px;
     font-size: 0.8em;
     border-radius: 15px;
-    background-color: rgb(227, 255, 227);
-    color: rgb(1, 103, 1);
+    background-color: var(--hover-bg-color);
+    color: var(--highlight-green);
     padding: 2px 10px;
     cursor: pointer;
     &:hover {
-      background-color: rgb(13, 161, 13);
-      color: white;
+      background-color: var(--highlight-green);
+      color: var(--bg-color);
     }
   }
 }

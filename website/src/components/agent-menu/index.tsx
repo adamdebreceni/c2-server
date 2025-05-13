@@ -42,7 +42,7 @@ export function AgentMenu(props: {id: string}) {
       notif.emit(`Failed to dump debug info for agent "${props.id}"`, "error");
     })
   }, [props.id])
-  return <div className="agent-menu">
+  return <div className="agent-menu popout">
       <div className="menu-item" onClick={openPropChange}>Configure</div>
       <div className="menu-item" onClick={openInstallExtension}>Install assets</div>
       <div className="menu-item" onClick={restart}>Restart</div>

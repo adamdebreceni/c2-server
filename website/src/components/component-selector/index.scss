@@ -3,37 +3,51 @@
   width: 600px;
   max-width: 100%;
   max-height: 100%;
-  background-color: white;
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.497);
+  background-color: var(--bg-color);
   box-sizing: border-box;
-  border-radius: 3px;
+  border-radius: var(--border-radius);
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  color: var(--text-color);
 
   .title {
     flex: none;
     padding: 20px;
-    border-bottom: 1px solid rgb(224, 224, 224);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    .close {
+      cursor: pointer;
+      svg {
+        fill: var(--text-inactive-color);
+      }
+      &:hover {
+        svg {
+          fill: var(--text-active-color);
+        }
+      }
+    }
   }
   .search-input {
     width: calc(100% - 40px);
     margin: 10px 20px;
+    margin-bottom: 30px;
     padding: 10px 15px;
-    border: 1px solid rgb(224, 224, 224);
-    border-radius: 3px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
     font-size: 14px;
-    color: rgb(55, 55, 55);
     box-sizing: border-box;
+    background-color: var(--bg-color);
     &:focus {
       outline: none;
-      border-color: rgb(53, 53, 255);
+      border-color: var(--highlight-blue);
     }
   }
   .footer {
     flex: none;
     padding: 20px;
-    border-top: 1px solid rgb(224, 224, 224);
+    border-top: 1px solid var(--border-color);
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
@@ -43,10 +57,10 @@
       cursor: pointer;
       padding: 10px 20px;
       border-radius: 3px;
-      color: grey;
+      color: var(--text-inactive-color);
       &:hover {
-        background-color: rgb(231, 231, 231);
-        color: black;
+        background-color: var(--hover-bg-color);
+        color: var(--text-active-color);
       }
     }
   }
@@ -54,31 +68,31 @@
   .component-list {
     height: 500px;
     overflow: scroll;
-    --text-color: rgb(55, 55, 55);
 
     .component-list-inner {
       .component-list-item {
+        // border-bottom: 1px solid var(--border-color);
         &.active {
           .header {
-            background-color: rgb(241, 241, 241);
+            background-color: var(--bg-color);
           }
         }
         .header {
           padding: 15px;
-          border-bottom: 1px solid rgb(241, 241, 241);
+          // border-bottom: 1px solid var(--border-color);
           position: relative;
           display: flex;
           flex-direction: row;
           align-items: center;
           cursor: pointer;
           .name {
-            color: var(--text-color);
+            color: var(--text-inactive-color);
             margin-left: 10px;
           }
           .description-icon {
             line-height: 0;
             path {
-              fill: var(--text-color);
+              fill: var(--text-inactive-color);
             }
           }
           .add {
@@ -86,28 +100,58 @@
             top: 50%;
             transform: translate(0, -50%);
             right: 20px;
-            color: rgb(115, 115, 115);
-            border: 1px solid grey;
-            padding: 5px 20px;
+            color: var(--text-inactive-color);
+            svg {
+              margin-right: 5px;
+              fill: var(--text-inactive-color);
+            }
+            border: 1px solid var(--text-inactive-color);
+            padding: 6px 20px;
+            padding-left: 15px;
             border-radius: 20px;
+            font-size: 0.8em;
             display: none;
             cursor: pointer;
             &:hover {
-              color: rgb(12, 183, 12);
-              border-color: rgb(12, 183, 12);
+              color: var(--highlight-green);
+              background-color: var(--light-green);
+              border-color: var(--highlight-green);
+              svg {
+                fill: var(--highlight-green);
+              }
             }
           }
-          &:hover {
-            background-color: rgb(241, 241, 241);
-            .add {
-              display: block;
+        }
+        &:hover, &.active {
+          // background-color: var(--hover-bg-color);
+          .add {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+          }
+          .description-icon {
+            path {
+              fill: var(--text-active-color);
+            }
+          }
+          .name {
+            color: var(--text-active-color);
+          }
+        }
+        &.active {
+          .add {
+            color: var(--highlight-green);
+            background-color: var(--light-green);
+            border-color: var(--highlight-green);
+            svg {
+              fill: var(--highlight-green);
             }
           }
         }
         .description {
-          color: var(--text-color);
           padding: 25px;
-          box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.237);
+          padding-left: 50px;
+          // box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.237);
         }
       }
     }

@@ -14,8 +14,8 @@
   }
   .modal {
     position: relative;
-    background-color: white;
-    border-radius: 3px;
+    background-color: var(--bg-color);
+    border-radius: var(--border-radius);
     box-shadow: 0 0 2px rgb(197, 197, 197);
   }
 }

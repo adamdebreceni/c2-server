@@ -121,14 +121,14 @@ export function AgentDetail() {
       <div className="tab"><div className="title">Manifest</div><div className="content"><JsonView value={agent.manifest}/></div></div>
       <div className="tab"><div className="title">FlowInfo</div><div className="content"><JsonView value={agent.flow_info}/></div></div>
       <div className="tab"><div className="title">DeviceInfo</div><div className="content"><JsonView value={agent.device_info}/></div></div>
-      <div className="tab"><div className="title">AgentInfo</div><div className="content"><JsonView value={agent.agent_info}/></div></div>
+      <div className="tab "><div className="title">AgentInfo</div><div className="content"><JsonView value={agent.agent_info}/></div></div>
       <div className="tab request">
         <div className="title">Request
         </div>
         <div className="content">
-          <textarea ref={req_widget} className="border border-gray-400 focus:border-blue-600 w-full h-40 resize-none"/>
+          <textarea ref={req_widget} className="border w-full h-40 resize-none"/>
         </div>
-        <SendButton onClick={req_cb} />
+        <div className="request-send-button" onClick={req_cb}>Send</div>
         <div className="title">Response</div>
         <div className="content">{
           agent.response === "<PENDING>" ? <Center><Loader/></Center> :
@@ -136,10 +136,4 @@ export function AgentDetail() {
         }</div>
       </div>
     </div>;
-}
-
-function SendButton(props: {onClick: ()=>void}) {
-  return <div className="inline-block items-center justify-center
-    hover:bg-blue-800 hover:text-white text-blue-900 bg-blue-100 text-sm
-    cursor-pointer px-10 py-3 rounded-[3px] ml-4" onClick={props.onClick}>Send</div>
 }
