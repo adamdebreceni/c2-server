@@ -9,10 +9,13 @@
       display: flex;
       padding-bottom: 20px;
     }
-    .delete-icon:hover {
+    .delete-icon {
       cursor: pointer;
-      svg {
-        fill: rgb(222, 67, 67);
+      background-color: var(--bg-color) !important;
+      &:hover {
+        svg {
+          fill: var(--highlight-red);
+        }
       }
     }
   }
