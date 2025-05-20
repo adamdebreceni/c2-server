@@ -31,7 +31,7 @@ export function Dropdown(props: {name: string, items: string[], initial?: string
           </>}
       </div>
       <div className={`dropdown ${state.active ? "active": ""}`} tabIndex={-1} onBlur={onBlur} onFocus={onFocus}>
-      <div className="selected">{state.current}
+      <div className="selected">{state.current === '' ? <span>&nbsp;</span> : state.current}
         {
           props.onChange ?
           <div className="down-icon">
@@ -46,7 +46,7 @@ export function Dropdown(props: {name: string, items: string[], initial?: string
             setState(curr => ({...curr, current: item}));
             props.onChange?.(item, idx);
             e.currentTarget.parentElement?.parentElement?.blur();
-          }}>{item}</div>
+          }}>{item === '' ? <span>&nbsp;</span> : item}</div>
         })}
       </div>
     </div>

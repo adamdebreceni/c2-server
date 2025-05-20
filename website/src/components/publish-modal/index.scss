@@ -75,6 +75,7 @@
           padding: 0px 5px;
           &:hover {
             opacity: 1;
+            background-color: var(--light-blue);
           }
         }
         .class-expand-icon {
@@ -108,7 +109,7 @@
         }
         .agent-publish-loader {
           margin-left: 20px;
-          border: 4px solid #f4f4f4;
+          border: 4px solid var(--light-blue);
           border-top: 4px solid #389fe3;
           border-radius: 50%;
           width: 20px;
@@ -123,7 +124,7 @@
 
         svg.success-icon {
           margin-left: 20px;
-          fill: green;
+          fill: rgb(14, 149, 14);
         }
 
         svg.error-icon {

@@ -3,6 +3,7 @@
   width: 400px;
   display: flex;
   flex-direction: column;
+  color: var(--text-color);
   .title {
     padding-bottom: 20px;
   }
@@ -11,18 +12,19 @@
     padding: 10px;
     width: 100%;
     box-sizing: border-box;
-    border: 1px solid rgb(200, 200, 200);
+    border: 1px solid var(--border-color);
     border-radius: 3px;
     outline: none;
+    background-color: var(--bg-color);
   }
   .ok {
     align-self: flex-end;
     display: inline-block;
-    padding: 10px;
-    border-radius: 2px;
+    padding: 10px 20px;
+    border-radius: 5px;
     &:hover {
-      background-color: rgb(237, 237, 237);
-      color: rgb(8, 85, 8);
+      background-color: var(--light-green);
+      color: var(--highlight-green);
       cursor: pointer;
     }
   }

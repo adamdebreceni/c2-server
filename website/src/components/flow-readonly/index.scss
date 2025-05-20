@@ -1,0 +1,18 @@
+.edit-flow-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 15px;
+  padding: 8px 20px;
+  border-radius: 5px;
+  color: var(--text-inactive-color);
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--highlight-blue);
+    background-color: var(--light-blue);
+    border-color: var(--highlight-blue);
+  }
+}

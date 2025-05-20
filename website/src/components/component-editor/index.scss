@@ -1,0 +1,9 @@
+.component-editor-resizer {
+  position: absolute;
+  height: 100%;
+  width: 20px;
+  left: -10px;
+  top: 0px;
+  cursor: col-resize;
+  z-index: 100;
+}

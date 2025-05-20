@@ -14,6 +14,19 @@ type ComponentKVState = {[k: string]: string};
 type ComponentExtendedState = ComponentKVState|"DELETING"
 type ComponentKVStateMap = {[id: string]: ComponentExtendedState}
 
+interface ProcessorBulletin {
+  id: number,
+  timestamp: Date,
+  level: string,
+  category: string,
+  message: string,
+  groupId: string,
+  groupName: string,
+  groupPath: string,
+  sourceId: string,
+  sourceName: string
+}
+
 interface FlowObject {
   manifest: AgentManifest,
   view: {x: number, y: number, zoom: number}
@@ -25,6 +38,7 @@ interface FlowObject {
   funnels: Funnel[]
   state?: ComponentKVStateMap;
   runs?: {[id: Uuid]: ProcessorRun[]|undefined}
+  bulletins?: ProcessorBulletin[]
   processGroups?: ProcessGroup[],
   processGroupsPorts?: ProcessGroupPort[],
   parameterContexts?: ParameterContext[]
@@ -136,6 +150,7 @@ interface Processor extends Component {
   yield: string,
   autoterminatedRelationships: {[name: string]: boolean},
   scheduling: Scheduling,
+  bulletinLevel?: string,
   parentGroup: Uuid|null,
   status?: ProcessorStatus|null
 }

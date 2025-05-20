@@ -21,6 +21,12 @@ export function CreateManageAgentRouter(services: Services): Router {
     res.send(manifest ?? 'null');
   })
 
+  router.get("/:id/bulletin", async (req, res)=>{
+    const bulletins = await services.agentService.fetchBulletinsForAgent(req.params.id, new Date(req.query.from as string), new Date(req.query.to as string), parseInt(req.query.limit as string));
+    res.setHeader("Content-Type", "application/json");
+    res.send(bulletins);
+  })
+
   router.get("/:id/componentstate", async (req, res)=>{
     console.log(`Scheduling component state query for ${req.params.id}`);
     let resolve: (state: string)=>void = null as any;

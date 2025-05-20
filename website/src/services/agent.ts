@@ -73,6 +73,14 @@ export class AgentServiceImpl implements AgentService {
     return SendRequest("POST", this.api + `/agent/${encodeURIComponent(agentId)}/config`, data);
   }
 
+  async fetchAgentBulletins(agentId: string, from: Date, to: Date, limit: number): Promise<ProcessorBulletin[]> {
+    const bulletins = await SendRequest("GET", this.api + `/agent/${encodeURIComponent(agentId)}/bulletin?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&limit=${limit}`);
+    for (const bulletin of bulletins) {
+      bulletin.timestamp = new Date(bulletin.timestamp);
+    }
+    return bulletins;
+  }
+
   // async fetchManifestForAgent(id: string): Promise<AgentManifest|null> {
   //   const response = await SendRequest("GET", this.api + "/agent/manifest/" + encodeURIComponent(id));
   //   return JSON.parse(response);

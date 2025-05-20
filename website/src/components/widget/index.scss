@@ -97,11 +97,11 @@
       padding: 4px;
 
       .pause-icon {
-        fill:  #8a8a8a;
+        fill:  var(--text-inactive-color);
       }
 
       .play-icon {
-        fill: #008A00;
+        fill: var(--highlight-green);
       }
 
       &::after {
@@ -116,28 +116,28 @@
       }
 
       &.STARTED::after {
-        border-color: #008A00;
+        border-color: var(--highlight-green);
       }
 
       &.STOPPED::after {
-        border-color: #8a8a8a;
+        border-color: var(--text-inactive-color);
       }
 
       &.STARTING::after, &.STOPPING::after, &.UNKNOWN::after {
-        border-color: #f4f4f4;
+        border-color: var(--light-bg-color);
         animation: spin 2s linear infinite;
       }
 
       &.UNKNOWN::after {
-        border-top-color: #389fe3;
+        border-top-color: var(--highlight-blue);
       }
 
       &.STARTING::after {
-        border-top-color: #008A00;
+        border-top-color: var(--highlight-green);
       }
 
       &.STOPPING::after {
-        border-top-color: #8a8a8a;
+        border-top-color: var(--text-inactive-color);
       }
         
       @keyframes spin {

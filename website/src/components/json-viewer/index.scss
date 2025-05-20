@@ -42,8 +42,18 @@
   margin-left: 20px;
 }
 
-.json-number, .json-null, .json-undefined, .json-string, .json-boolean {
+.json-number, .json-null, .json-undefined, .json-string, .json-boolean, .json-date {
   display: inline;
+}
+
+.json-date {
+  color: rgb(47, 169, 225);
+  border: 1px solid rgb(47, 169, 225);
+  border-radius: 4px;
+  padding: 0px 5px;
+  .tooltip-container {
+    display: inline !important;
+  }
 }
 
 .json-number {

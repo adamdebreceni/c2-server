@@ -26,6 +26,7 @@ import {ProcessGroupView} from "../process-group-view";
 import {width, height} from "../../utils/widget-size";
 
 import {autoLayout, createGraph} from "../../utils/auto-layout"
+import { ComponentEditor } from "../component-editor";
 
 interface NewConnection {
     source: Uuid,
@@ -1023,7 +1024,7 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
                 !state.editingComponent ? null :
                     <div className="component-editor-container">
                         <div className="overlay" onClick={flowContext.closeComponentEditor}/>
-                        <div className="component-editor">{
+                        <ComponentEditor>{
                             (() => {
                                 const conn = state.flow.connections.find(conn => conn.id === state.editingComponent);
                                 if (conn) {
@@ -1060,7 +1061,7 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
                                 return null;
                             })()
                         }
-                        </div>
+                        </ComponentEditor>
                     </div>
             }
             {

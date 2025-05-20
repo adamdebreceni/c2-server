@@ -115,6 +115,7 @@ interface AgentService {
   restart(id: string): Promise<void>
   fetchAgentInformation(id: string): Promise<AgentLike|null>;
   fetchAgentComponentState(agentId: string): Promise<ComponentKVStateMap|null>; 
+  fetchAgentBulletins(agentId: string, from: Date, to: Date, limit: number): Promise<ProcessorBulletin[]>
   dumpDebugInfo(id: string): Promise<{file: string}>
   sendRequest(id: string, req: JsonValue): Promise<string>
   stopComponent(agentId: string, componentId: string): Promise<void>

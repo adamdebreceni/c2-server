@@ -10,6 +10,11 @@ interface Database{
     deleteBefore(agent: AgentId, time: Date): Promise<void>
     selectAfter(agent: AgentId, time: Date): Promise<Alert[]>
   },
+  // bulletins: {
+  //   insert(bulletin: ProcessorBulletin): Promise<void>
+  //   // deleteBefore(time: Date): Promise<void>
+  //   selectRange(agent: AgentId, from: Date, to: Date): Promise<ProcessorBulletin[]>
+  // },
   classes: {
     insert(clazz: AgentClass): Promise<void>
     update(clazz: Partial<AgentClass>, new_values: Partial<AgentClass>): Promise<void>

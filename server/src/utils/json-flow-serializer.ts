@@ -68,7 +68,7 @@ function serializeProcessGroup(id: Uuid | null, flow: FlowObject): object {
             "position": {"x": proc.position.x, "y": proc.position.y},
             "identifier": proc.id,
             "instanceIdentifier": proc.id,
-            "bulletinLevel": "WARN",
+            ...(proc.bulletinLevel && proc.bulletinLevel !== '<disable>' ? {"bulletinLevel": proc.bulletinLevel} : null),
             "executionNode": "ALL",
             "name": proc.name,
             "type": proc.type,

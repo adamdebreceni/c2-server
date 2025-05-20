@@ -208,6 +208,10 @@ export function CreateHeartbeatRouter(services: Services) {
       flow_info_str = JSON.stringify(req.body.flowInfo);
     }
 
+    if (req.body.flowInfo?.processorBulletins) {
+      await services.agentService.pushBulletins(id, (req.body.flowInfo?.processorBulletins as ProcessorBulletin[]).map(bulletin => ({...bulletin, timestamp: new Date(bulletin.timestamp as any)})));
+    }
+
     const hb_result = await services.agentService.heartbeat({id, flow, class: class_name, manifest: manifest ? stableStringify(manifest) : null, flow_info: flow_info_str, device_info: device_info_str, agent_info: agent_info_str});
     const target_flow = hb_result.flow;
     const agent_manifest = hb_result.manifest;

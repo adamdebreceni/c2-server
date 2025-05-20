@@ -16,16 +16,20 @@ export function ProcessGroupPortEditor(props: {model: ProcessGroupPort}) {
     return (fn: (curr: ProcessGroupPort)=>ProcessGroupPort) => flow_context!.updatePort(props.model.id, fn);
   }, [props.model.id, flow_context!.updatePort]);
   return <div className="component-settings">
-    <div className="type">Process Group {props.model.type === 'INPUT' ? 'Input' : 'Output'} Port</div>
-    <div className="uuid">{props.model.id}</div>
-    <div className="section">
-      <div className="section-title">General</div>
-      <InputField name="NAME" width="100%" default={props.model.name} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, name: val})) : undefined}/>
+    <div className="component-header">
+      <div className="type">Process Group {props.model.type === 'INPUT' ? 'Input' : 'Output'} Port</div>
+      <div className="uuid">{props.model.id}</div>
+      <div className="close" onClick={()=>flow_context?.closeComponentEditor()}>
+        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+      </div>
     </div>
-    <div className="close" onClick={()=>flow_context?.closeComponentEditor()}>
-      <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
-        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-      </svg>
+    <div className="component-content">
+      <div className="section">
+        <div className="section-title">General</div>
+        <InputField name="NAME" width="100%" default={props.model.name} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, name: val})) : undefined}/>
+      </div>
     </div>
   </div>
 }
