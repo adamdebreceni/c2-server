@@ -49,13 +49,13 @@
       background-color: var(--bg-color);
       color: var(--text-color);
       .merge-icon {
-        fill: rgb(80, 80, 80);
+        fill: var(--text-color);
         path {
           stroke-width: 4px;
         }
       }
-      .arrow-left-icon, .arrow-right-icon {
-        fill: rgb(26, 26, 26);
+      .arrow-left-icon, .arrow-right-icon, .arrow-full-right-icon, .arrow-full-left-icon, .arrow-full-up-icon, .arrow-full-down-icon {
+        fill: var(--text-color);
       }
       .ripple-1, .ripple-2, .ripple-3 {
         position: absolute;

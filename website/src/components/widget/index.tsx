@@ -183,7 +183,7 @@ export function Widget(props: {highlight?: boolean, kind: string, value: Compone
       }
       {
         props.kind === 'parameter-context' ? <>
-          <svg xmlns="http://www.w3.org/2000/svg" height='20' viewBox="0 0 24 24" width='20' fill="#333333">
+          <svg xmlns="http://www.w3.org/2000/svg" height='20' viewBox="0 0 24 24" width='20' fill="var(--text-color)">
             <path d="M3 18h12v-2H3zM3 6v2h18V6zm0 7h18v-2H3z"></path>
           </svg>
         </> : null
