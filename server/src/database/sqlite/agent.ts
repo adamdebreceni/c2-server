@@ -76,7 +76,7 @@ export class AgentDatabase {
           //console.log(`Selected ${rows.length} agents from ${serialize(agent)}`);
           resolve(rows);
         } else {
-          console.error(`Failed to select agents ${serialize(agent)}`);
+          console.error(`Failed to select agents ${serialize(agent)}`, err);
           reject(err);
         }
       })

@@ -27,6 +27,8 @@ import { FaComputer } from "react-icons/fa6";
 import { GoCpu } from "react-icons/go";
 import { asSize } from "../../utils/formatter";
 import NiFiIcon from "../../icons/nifi-icon";
+import "./index.scss"
+import { ComponentEditor } from "../component-editor";
 
 interface FlowEditorState {
   selected: Uuid[],
@@ -289,7 +291,7 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
         if (!agent_info) {
           return;
         }
-        console.log(agent_info);
+        // console.log(agent_info);
         setState(st => {
           return {...st, agent_info: agent_info};
         })
@@ -321,11 +323,26 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
       })
     };
     component_state_id = setTimeout(update_component_state, component_state_timeout);
+
+    const bulletin_timeout = 1000;
+    let bulletin_id: any;
+    const update_bulletins = () => {
+      services?.agents.fetchAgentBulletins(props.agentId!, new Date(0), new Date(), 10000).then(bulletins => {
+        if (mounted) {
+          bulletin_id = setTimeout(update_bulletins, bulletin_timeout);
+        }
+        setState(st => {
+          return {...st, flow: {...st.flow, bulletins: bulletins}};
+        })
+      })
+    };
+    bulletin_id = setTimeout(update_bulletins, bulletin_timeout);
     return () => {
       mounted = false;
       clearTimeout(flow_info_id);
       clearTimeout(component_state_id);
       clearTimeout(device_info_id);
+      clearTimeout(bulletin_id);
     }
   }, [props.agentId])
 
@@ -405,7 +422,7 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
           })()
         }
       </Surface>
-      <div className="absolute right-0 top-0 px-5 py-2 text-gray-400 bg-white hover:text-gray-800 cursor-pointer m-5 border-gray-400 hover:border-gray-800 border-solid border-[1px] rounded-[3px]" onClick={()=>{
+      <div className="edit-flow-button" onClick={()=>{
         navigate(`/flow/${props.id}`);
       }}>Edit</div>
       {
@@ -422,7 +439,7 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
         !state.editingComponent ? null :
         <div className="component-editor-container">
           <div className="overlay" onClick={flowContext.closeComponentEditor}/>
-          <div className="component-editor">{
+          <ComponentEditor>{
             (()=>{
               const conn = state.flow.connections.find(conn => conn.id === state.editingComponent);
               if (conn) {
@@ -432,7 +449,7 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
               if (proc) {
                 const proc_manifest = state.flow.manifest.processors.find(proc_manifest => proc_manifest.type === proc.type)!;
                 const proc_errors = errors.filter(err => err.component === proc.id);
-                return <ProcessorEditor model={proc} manifest={proc_manifest} errors={proc_errors} state={state.flow.state?.[state.editingComponent]} runs={state.flow.runs?.[state.editingComponent]} />
+                return <ProcessorEditor model={proc} manifest={proc_manifest} errors={proc_errors} state={state.flow.state?.[state.editingComponent]} runs={state.flow.runs?.[state.editingComponent]} bulletins={state.flow.bulletins?.filter(bulletin => bulletin.sourceId === proc.id)} />
               }
               const serv = state.flow.services.find(serv => serv.id === state.editingComponent);
               if (serv) {
@@ -458,7 +475,7 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
               return null;
             })()
           }
-          </div>
+          </ComponentEditor>
         </div>
       }
     </div>

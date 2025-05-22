@@ -5,7 +5,7 @@
   flex-direction: row;
   align-items: center;
   justify-content: start;
-  background-color: white;
+  background-color: var(--bg-color);
   border-bottom: 1px solid rgba(207, 207, 207, 0.428);
   flex: none;
 
@@ -15,11 +15,11 @@
     border-radius: 2px;
     color: rgb(173, 173, 173);
     &:hover{
-      background-color: rgba(231, 231, 231, 0.476);
+      background-color: var(--hover-bg-color);
       cursor: pointer;
     }
     &.active {
-      color: rgb(0, 0, 0);
+      color: var(--text-active-color);
     }
   }
 }

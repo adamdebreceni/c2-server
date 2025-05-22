@@ -4,7 +4,7 @@
   border-radius: 2px;
   padding: 2px;
   &:hover {
-    background-color: rgb(230, 230, 230);
+    background-color: var(--hover-bg-color);
   }
 }
 
@@ -25,7 +25,7 @@
   padding: 2px;
   color:rgb(218, 74, 30);
   &:hover {
-    background-color: rgb(230, 230, 230);
+    background-color: var(--hover-bg-color);
   }
 }
 
@@ -42,8 +42,18 @@
   margin-left: 20px;
 }
 
-.json-number, .json-null, .json-undefined, .json-string, .json-boolean {
+.json-number, .json-null, .json-undefined, .json-string, .json-boolean, .json-date {
   display: inline;
+}
+
+.json-date {
+  color: rgb(47, 169, 225);
+  border: 1px solid rgb(47, 169, 225);
+  border-radius: 4px;
+  padding: 0px 5px;
+  .tooltip-container {
+    display: inline !important;
+  }
 }
 
 .json-number {
@@ -55,7 +65,8 @@
 }
 
 .json-string {
-  color: rgb(17, 160, 17);
+  // color: rgb(17, 160, 17);
+  color: var(--highlight-green);
 }
 
 .json-boolean {

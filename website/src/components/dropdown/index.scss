@@ -6,7 +6,7 @@
   font-size: 13px;
   .selected {
     position: relative;
-    border: 1px solid rgb(201, 201, 201);
+    border: 1px solid var(--border-color);
     border-radius: 3px;
     padding: 7px 10px;
     width: 100%;
@@ -19,7 +19,7 @@
       transform: translate(0, -50%);
     }
     &:focus {
-      border-color: rgb(53, 53, 255);
+      border-color: var(--highlight-blue);
     }
   }
   .dropdown-menu {
@@ -30,15 +30,14 @@
     left: 0;
     width: 100%;
     border-radius: 3px;
-    background-color: white;
-    box-shadow: 0 0 4px rgba(0, 0, 0, 0.627);
+    background-color: var(--bg-color);
     .dropdown-item {
       padding: 7px 10px;
       box-sizing: border-box;
       width: 100%;
       &:hover{
         cursor:pointer;
-        background-color: rgb(215, 215, 255);
+        background-color: var(--hover-bg-color);
       }
     }
   }

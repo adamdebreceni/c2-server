@@ -1,19 +1,21 @@
 .agent-detail {
   overflow: auto;
   height: 100%;
-  background-color: rgb(242, 242, 242);
+  background-color: var(--bg-color);
   .basic {
     margin: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
     .property {
       margin: 40px;
       display: inline-block;
       .name {
-        color: rgb(49, 49, 49);
+        color: var(--text-color);
         margin-bottom: 10px;
       }
       .value {
         display: inline-block;
-        color: rgb(124, 124, 124);
+        color: var(--text-inactive-color);
         font-size: 0.9em;
       }
     }
@@ -21,6 +23,9 @@
   .tab {
     margin: 20px;
     margin-top: 40px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
     .content {
       overflow: auto;
       padding: 20px;
@@ -28,7 +33,7 @@
       box-sizing: border-box;
     }
     .title {
-      color: rgb(49, 49, 49);
+      color: var(--text-color);
       //height: 50px;
       // border-bottom: 1px solid rgb(235, 235, 235);
       display: flex;
@@ -38,22 +43,41 @@
     &.request {
       textarea {
         outline: none;
-        border-radius: 3px;
+        border-radius: 6px;
         padding: 20px;
+        background-color: var(--bg-color);
+        border: 1px solid var(--border-color);
+        &:focus {
+          border-color: var(--highlight-blue);
+        }
+      }
+      .request-send-button {
+        margin-left: 20px;
+        border: 1px solid var(--text-inactive-color);
+        color: var(--text-inactive-color);
+        display: inline-block;
+        padding: 7px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        &:hover {
+          border-color: var(--highlight-blue);
+          color: var(--highlight-blue);
+          background-color: var(--light-blue);
+        }
       }
     }
   }
 
   .basic, .tab {
-    background-color: white;
-    border-radius: 3px;
+    background-color: var(--bg-color);
+    border-radius: 4px;
     box-sizing: border-box;
   }
 
   .flow .value {
     cursor: pointer;
     &:hover {
-      color: rgb(49, 49, 49);
+      color: var(--text-active-color);
     }
   }
 }

@@ -9,17 +9,18 @@
     transform: translate(-50%, -50%);
     padding: 3px 6px;
     border-radius: 3px;
-    background-color: white;
+    background-color: var(--bg-color);
     box-shadow: 0 0 3px black;
     white-space: pre;
     pointer-events: all;
+    color: var(--text-color);
 
     .inline-relationship-picker {
       position: absolute;
       top: 100%;
       left: 50%;
       transform: translate(-50%, 10px);
-      background-color: white;
+      background-color: var(--bg-color);
       box-shadow: 0 0 3px rgba(0, 0, 0, 0.603);
       padding: 10px;
       padding-bottom: 0px;
@@ -38,7 +39,7 @@
       top: 100%;
       left: 50%;
       transform: translate(-50%, 10px);
-      background-color: white;
+      background-color: var(--bg-color);
       box-shadow: 0 0 3px rgba(0, 0, 0, 0.603);
       padding: 10px;
       border-radius: 3px;
@@ -61,9 +62,9 @@
 
 .widget-container {
   &.selected {
-    --selection-color: rgb(60, 60, 249);
+    --selection-color: var(--highlight-blue);
   }
   &:not(.selected) {
-    --selection-color: black;
+    --selection-color: var(--text-color);
   }
 }

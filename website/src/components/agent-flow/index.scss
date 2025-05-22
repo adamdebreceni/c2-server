@@ -3,14 +3,14 @@
   top: 0;
   left: 0;
   padding: 5px 20px;
-  border: 1px solid rgb(235, 235, 235);
-  color: rgb(163, 163, 163);
+  border: 1px solid var(--text-inactive-color);
+  color: var(--text-inactive-color);
   border-radius: 30px;
   margin: 20px;
   cursor: pointer;
   &:hover {
-    border: 1px solid rgb(70, 70, 70);
-    color: rgb(59, 59, 59);
+    border: 1px solid var(--text-active-color);
+    color: var(--text-active-color);
   }
 }
 

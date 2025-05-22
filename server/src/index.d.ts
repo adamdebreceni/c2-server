@@ -19,6 +19,8 @@ interface FlowService {
 
 interface AgentService {
   fetchManifestForAgent(id: AgentId): Promise<string|null>
+  pushBulletins(id: AgentId, bulletins: ProcessorBulletin[]): Promise<void>
+  fetchBulletinsForAgent(id: AgentId, from: Date, to: Date, limit: number): Promise<ProcessorBulletin[]>
   fetchManifestForClass(name: string): Promise<string|null>
   fetch(): Promise<Agent[]>
   fetchAgent(id: AgentId): Promise<Agent|null>

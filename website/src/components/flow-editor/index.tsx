@@ -26,6 +26,7 @@ import {ProcessGroupView} from "../process-group-view";
 import {width, height} from "../../utils/widget-size";
 
 import {autoLayout, createGraph} from "../../utils/auto-layout"
+import { ComponentEditor } from "../component-editor";
 
 interface NewConnection {
     source: Uuid,
@@ -917,7 +918,9 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
 
     return <FlowContext.Provider value={flowContext}>
         <div className="flow-editor" ref={areaRef} onMouseDown={mousedown} onClick={mouseclick}>
-            <div className="background" onContextMenu={newComponent}>
+            <div className="background"
+                // style={{backgroundPosition: `-${state.flow.view.x}px -${state.flow.view.y}px`}}
+                onContextMenu={newComponent}>
                 <div className="flow-state">{state.saved ? "Saved" : "Saving..."}</div>
             </div>
             <Surface {...state.flow.view}>
@@ -1021,7 +1024,7 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
                 !state.editingComponent ? null :
                     <div className="component-editor-container">
                         <div className="overlay" onClick={flowContext.closeComponentEditor}/>
-                        <div className="component-editor">{
+                        <ComponentEditor>{
                             (() => {
                                 const conn = state.flow.connections.find(conn => conn.id === state.editingComponent);
                                 if (conn) {
@@ -1058,7 +1061,7 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
                                 return null;
                             })()
                         }
-                        </div>
+                        </ComponentEditor>
                     </div>
             }
             {

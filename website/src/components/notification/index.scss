@@ -21,8 +21,8 @@
     padding: 20px;
     margin: 20px;
     filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.318));
-    background-color: white;
-    color: rgb(44, 44, 44);
+    background-color: var(--bg-color);
+    color: var(--text-color);
     overflow: hidden;
     .close {
       position: absolute;
@@ -32,10 +32,10 @@
       cursor: pointer;
       padding: 3px;
       path {
-        fill: rgb(176, 176, 176);
+        fill: var(--text-inactive-color);
       }
       &:hover path{
-        fill: black;
+        fill: var(--text-active-color);
       }
     }
     &:hover .close {
@@ -45,14 +45,14 @@
       // color: rgb(34, 169, 34);
       .success-icon {
         margin-right: 20px;
-        fill: rgb(23, 166, 23);
+        fill: var(--highlight-green);
         flex: none;
       }
       .timeout {
         position: absolute;
         bottom: 0;
         left: 0;
-        background-color: rgb(23, 166, 23);
+        background-color: var(--highlight-green);
         height: 4px;
       }
     }
@@ -60,14 +60,14 @@
       // color: rgb(210, 47, 47);
       .error-icon {
         margin-right: 20px;
-        fill: rgb(210, 47, 47);
+        fill: var(--highlight-red);
         flex: none;
       }
       .timeout {
         position: absolute;
         bottom: 0;
         left: 0;
-        background-color: rgb(210, 47, 47);
+        background-color: var(--highlight-red);
         height: 4px;
       }
     }

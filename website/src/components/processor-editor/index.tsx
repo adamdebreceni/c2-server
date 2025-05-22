@@ -23,10 +23,13 @@ import { PasteIcon } from "../../icons/paste";
 import { EditIcon } from "../../icons/edit";
 import { isSpecialInputField, SpecialInputField } from "../special-input";
 import { asSize } from "../../utils/formatter";
+import { JsonView } from "../json-viewer";
+import { ArrowFullUpIcon } from "../../../src/icons/arrow-full-up";
+import { LockIcon } from "../../../src/icons/lock";
 
 type ActiveRunInfo = {runIdx: number, triggerIdx: number|null}|null;
 
-export function ProcessorEditor(props: {model: Processor, manifest: ProcessorManifest, errors: ErrorObject[], state?: ComponentExtendedState, runs?: ProcessorRun[]|undefined}) {
+export function ProcessorEditor(props: {model: Processor, manifest: ProcessorManifest, errors: ErrorObject[], state?: ComponentExtendedState, runs?: ProcessorRun[]|undefined, bulletins?: ProcessorBulletin[]}) {
   const notif = useContext(NotificationContext);
   const flow_context = useContext(FlowContext);
   const openModal = useContext(ModalContext);
@@ -114,278 +117,287 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
       flow_context?.clearProcessorState?.(props.model.id);
     }}/>)
   }, [!!props.state, props.model.id]);
-  const [activeTab, setActiveTab] = React.useState<"configuration"|"state"|"runs"|"status">("configuration");
+  const [activeTab, setActiveTab] = React.useState<"configuration"|"state"|"runs"|"status"|"logs">("configuration");
   const [activeRunInfo, setActiveRunInfo] = React.useState<ActiveRunInfo>(null);
   const [style_version, setStyleVersion] = React.useState<number>(4);
   return <div className="component-settings">
-    <div className="type">{model.type}</div>
-    <div className="uuid">{model.id}</div>
-    {
-      flow_context?.agentId !== undefined ?
-      <div className="tab-headers">
-        <div className={`tab-header ${activeTab === "configuration" ? 'active': ''}`} onClick={()=>setActiveTab("configuration")}>Config</div>
-        <div className={`tab-header ${activeTab === "state" ? 'active': ''}`} onClick={()=>setActiveTab("state")}>State</div>
-        <div className={`tab-header ${activeTab === "runs" ? 'active': ''}`} onClick={()=>{setActiveTab("runs"); setActiveRunInfo(null)}}>Runs</div>
-        <div className={`tab-header ${activeTab === "status" ? 'active': ''}`} onClick={()=>setActiveTab("status")}>Status</div>
+    <div className="component-header">
+      <div className="type">{model.type}</div>
+      <div className="uuid">{model.id}</div>
+      {
+        flow_context?.agentId !== undefined ?
+        <div className="tab-headers">
+          <div className={`tab-header ${activeTab === "configuration" ? 'active': ''}`} onClick={()=>setActiveTab("configuration")}>Config</div>
+          <div className={`tab-header ${activeTab === "state" ? 'active': ''}`} onClick={()=>setActiveTab("state")}>State</div>
+          <div className={`tab-header ${activeTab === "runs" ? 'active': ''}`} onClick={()=>{setActiveTab("runs"); setActiveRunInfo(null)}}>Runs</div>
+          <div className={`tab-header ${activeTab === "status" ? 'active': ''}`} onClick={()=>setActiveTab("status")}>Status</div>
+          <div className={`tab-header ${activeTab === "logs" ? 'active': ''}`} onClick={()=>setActiveTab("logs")}>Logs</div>
+        </div>
+        : null
+      }
+      <div className="close" onClick={() => flow_context?.closeComponentEditor()}>
+        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
       </div>
-      : null
-    }
-    <div className={`tab ${activeTab === "state" ? 'active': ''}`}>
-      {props.state ?
-      <div className={`section processor-state version-${style_version}`}>
-        <div className="section-title"><span onClick={()=>setStyleVersion(v => (v + 1) % 5)}>Processor State</span>
-          <div className="copy-state" onClick={() => {
-            navigator.clipboard.writeText(JSON.stringify(props.state)).then(()=>{
-              notif.emit("Copied state to clipboard", "success");
-            }).catch(()=>{
-              notif.emit("Failed to copy state", "error");
-            });
-          }}><CopyIcon size={20}/></div><Fill/>
-          <DeleteIcon size={20} onClick={onClearState}/></div>
+    </div>
+    <div className="component-content">
+      <div className={`tab ${activeTab === "state" ? 'active': ''}`}>
+        {props.state ?
+        <div className={`section processor-state version-${style_version}`}>
+          <div className="section-title"><span onClick={()=>setStyleVersion(v => (v + 1) % 5)}>Processor State</span>
+            <div className="copy-state" onClick={() => {
+              navigator.clipboard.writeText(JSON.stringify(props.state)).then(()=>{
+                notif.emit("Copied state to clipboard", "success");
+              }).catch(()=>{
+                notif.emit("Failed to copy state", "error");
+              });
+            }}><CopyIcon size={20}/></div><Fill/>
+            <DeleteIcon size={20} onClick={onClearState}/></div>
+            {
+              typeof props.state === "string" ?
+              <div className="state-loader-container"><div className="state-loader"></div></div>
+              : Object.keys(props.state).map(key => {
+                // return <InputField key={key} name={key} width="100%" default={props.state![key]}/>
+                return <div key={key} className="component-state-entry">
+                  <div className="key">{key}</div>
+                  <div className="value">{(props.state as ComponentKVState)[key]}</div>
+                </div>
+              })
+            }
+          </div>
+          : null
+        }
+      </div>
+      <div className={`tab ${activeTab === "configuration" ? 'active': ''}`}>
+        <div className="section">
+          <div className="section-title">General</div>
+          <InputField name="NAME" width="100%" default={model.name} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, name: val})) : undefined}/>
+          <InputField name="PENALTY DURATION" width="100%" default={model.penalty} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, penalty: val})) : undefined}/>
+          <InputField name="YIELD DURATION" width="100%" default={model.yield} onChange={flow_context?.editable ? val => setModel(curr => ({...curr, yield: val})) : undefined}/>
+          <Dropdown name="BULLETIN LEVEL" width="100%" initial={model.bulletinLevel ?? '<disable>'} items={["<disable>", "TRACE", "DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"]} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, bulletinLevel: val})) : undefined}/>
+        </div>
+        <div className="section">
+          <div className="section-title">Auto-terminated relationships</div>
           {
-            typeof props.state === "string" ?
-            <div className="state-loader-container"><div className="state-loader"></div></div>
-            : Object.keys(props.state).map(key => {
-              // return <InputField key={key} name={key} width="100%" default={props.state![key]}/>
-              return <div key={key} className="component-state-entry">
-                <div className="key">{key}</div>
-                <div className="value">{(props.state as ComponentKVState)[key]}</div>
+            props.manifest.supportedRelationships.sort().map(rel=>{
+              let err = props.errors.find(err => err.type === "RELATIONSHIP" && err.target === rel.name);
+              return <Toggle key={rel.name} marginBottom="10px" name={rel.name} initial={model.autoterminatedRelationships[rel.name]} onChange={flow_context?.editable ? val => setModel(curr => ({...curr, autoterminatedRelationships: {...curr.autoterminatedRelationships, [rel.name]: val}})) : undefined} error={err?.message}/>
+            })
+          }
+        </div>
+        {!props.manifest.supportsDynamicRelationships ? null : 
+        <div className="section">
+          <div className="section-title">Dynamic Relationships<span style={{flexGrow: 1}}/>
+            {
+              flow_context?.editable ? 
+              <div className="add-dynamic-relationship" onClick={openCreateDynRelCb}>
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              </div>
+              : null
+            }
+          </div>
+          {
+            Object.keys(model.autoterminatedRelationships).sort().map(rel_name => {
+              if (props.manifest.supportedRelationships.find(rel => rel.name === rel_name)) {
+                // not dynamic property
+                return null;
+              }
+              let err = props.errors.find(err => err.type === "RELATIONSHIP" && err.target === rel_name);
+              return <div className="dynamic-relationship">
+                <Toggle key={rel_name} name={rel_name} initial={model.autoterminatedRelationships[rel_name]} onChange={flow_context?.editable ? val => setModel(curr => ({...curr, autoterminatedRelationships: {...curr.autoterminatedRelationships, [rel_name]: val}})) : undefined} error={err?.message}/>
+                <Fill/>
+                {
+                  flow_context?.editable ? 
+                  <DeleteIcon size={24} onClick={() => {
+                    setModel(model => {
+                      let new_autorels = {...model.autoterminatedRelationships};
+                      delete new_autorels[rel_name];
+                      return {...model, autoterminatedRelationships: new_autorels};
+                    })
+                  }}/>
+                  : null
+                }
+              </div>;
+            })
+          }
+        </div>
+        }
+        <div className="section">
+          <div className="section-title">Scheduling</div>
+          <Dropdown name="STRATEGY" width="100%" initial={model.scheduling.strategy} items={["TIMER_DRIVEN", "EVENT_DRIVEN", "CRON_DRIVEN"]} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, scheduling: {...curr.scheduling, strategy: val as any}})) : undefined}/>
+          <InputField name="MAX CONCURRENT TASKS" width="100%" default={`${model.scheduling.concurrentTasks}`} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, scheduling: {...curr.scheduling, concurrentTasks: val}})) : undefined}/>
+          <InputField name="RUN SCHEDULE" width="100%" default={model.scheduling.runSchedule} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, scheduling: {...curr.scheduling, runSchedule: val}})) : undefined}/>
+          <InputField name="RUN DURATION" width="100%" default={model.scheduling.runDuration} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, scheduling: {...curr.scheduling, runDuration: val}})) : undefined}/>
+        </div>
+        <div className="section">
+          <div className="section-title">Properties</div>
+          {
+            Object.keys(model.properties).sort().map(prop_name => {
+              if (!props.manifest.propertyDescriptors || !(prop_name in props.manifest.propertyDescriptors)) {
+                // dynamic property
+                return null;
+              }
+              let err = props.errors.find(err => err.type === "PROPERTY" && err.target === prop_name);
+
+              if (isSpecialInputField(props.model.type, prop_name)) {
+                return null;
+              }
+              const values = props.manifest.propertyDescriptors[prop_name].allowableValues;
+              if (values) {
+                return <PropertyDropdown key={prop_name} name={prop_name} width="100%" items={values.map(val => val.value)} initial={model.properties[prop_name]}
+                    onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: val}})) : undefined} visible={model.visibleProperties?.includes(prop_name) ?? false} onChangeVisibility={onChangeVisibility} error={err?.message}/>
+              }
+              return <PropertyField key={prop_name} name={prop_name} width="100%" default={model.properties[prop_name]}
+                  onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: val}})) : undefined} visible={model.visibleProperties?.includes(prop_name) ?? false} onChangeVisibility={onChangeVisibility} error={err?.message}/>
+            })
+          }
+        </div>
+        {!props.manifest.supportsDynamicProperties ? null : 
+        <div className="section">
+          <div className="section-title">Dynamic Properties<span style={{flexGrow: 1}}/>
+            {
+              flow_context?.editable ? 
+              <div className="add-dynamic-property" onClick={openCreateDynPropCb}>
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              </div>
+              : null
+            }
+          </div>
+          {
+            Object.keys(model.properties).sort().map(prop_name => {
+              if (props.manifest.propertyDescriptors && prop_name in props.manifest.propertyDescriptors) {
+                // not dynamic property
+                return null;
+              }
+              return <div className="dynamic-property">
+                <PropertyField key={prop_name} name={prop_name} width="100%" default={model.properties[prop_name]} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: val}})) : undefined}/>
+                <Fill/>
+                {
+                  flow_context?.editable ? 
+                  <DeleteIcon size={24} onClick={() => {
+                    setModel(model => {
+                      let new_props = {...model.properties};
+                      delete new_props[prop_name];
+                      return {...model, properties: new_props};
+                    })
+                  }}/>
+                  : null
+                }
               </div>
             })
           }
         </div>
-        : null
-      }
-    </div>
-    <div className={`tab ${activeTab === "configuration" ? 'active': ''}`}>
-      <div className="section">
-        <div className="section-title">General</div>
-        <InputField name="NAME" width="100%" default={model.name} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, name: val})) : undefined}/>
-        <InputField name="PENALTY DURATION" width="100%" default={model.penalty} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, penalty: val})) : undefined}/>
-        <InputField name="YIELD DURATION" width="100%" default={model.yield} onChange={flow_context?.editable ? val => setModel(curr => ({...curr, yield: val})) : undefined}/>
-      </div>
-      <div className="section">
-        <div className="section-title">Auto-terminated relationships</div>
-        {
-          props.manifest.supportedRelationships.sort().map(rel=>{
-            let err = props.errors.find(err => err.type === "RELATIONSHIP" && err.target === rel.name);
-            return <Toggle key={rel.name} marginBottom="10px" name={rel.name} initial={model.autoterminatedRelationships[rel.name]} onChange={flow_context?.editable ? val => setModel(curr => ({...curr, autoterminatedRelationships: {...curr.autoterminatedRelationships, [rel.name]: val}})) : undefined} error={err?.message}/>
-          })
         }
-      </div>
-      {!props.manifest.supportsDynamicRelationships ? null : 
-      <div className="section">
-        <div className="section-title">Dynamic Relationships<span style={{flexGrow: 1}}/>
-          {
-            flow_context?.editable ? 
-            <div className="add-dynamic-relationship" onClick={openCreateDynRelCb}>
-              <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-            </div>
-            : null
-          }
-        </div>
-        {
-          Object.keys(model.autoterminatedRelationships).sort().map(rel_name => {
-            if (props.manifest.supportedRelationships.find(rel => rel.name === rel_name)) {
-              // not dynamic property
-              return null;
-            }
-            let err = props.errors.find(err => err.type === "RELATIONSHIP" && err.target === rel_name);
-            return <div className="dynamic-relationship">
-              <Toggle key={rel_name} name={rel_name} initial={model.autoterminatedRelationships[rel_name]} onChange={flow_context?.editable ? val => setModel(curr => ({...curr, autoterminatedRelationships: {...curr.autoterminatedRelationships, [rel_name]: val}})) : undefined} error={err?.message}/>
-              <Fill/>
-              {
-                flow_context?.editable ? 
-                <DeleteIcon size={24} onClick={() => {
-                  setModel(model => {
-                    let new_autorels = {...model.autoterminatedRelationships};
-                    delete new_autorels[rel_name];
-                    return {...model, autoterminatedRelationships: new_autorels};
-                  })
-                }}/>
-                : null
-              }
-            </div>;
-          })
-        }
-      </div>
-      }
-      <div className="section">
-        <div className="section-title">Scheduling</div>
-        <Dropdown name="STRATEGY" width="100%" initial={model.scheduling.strategy} items={["TIMER_DRIVEN", "EVENT_DRIVEN", "CRON_DRIVEN"]} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, scheduling: {...curr.scheduling, strategy: val as any}})) : undefined}/>
-        <InputField name="MAX CONCURRENT TASKS" width="100%" default={`${model.scheduling.concurrentTasks}`} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, scheduling: {...curr.scheduling, concurrentTasks: val}})) : undefined}/>
-        <InputField name="RUN SCHEDULE" width="100%" default={model.scheduling.runSchedule} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, scheduling: {...curr.scheduling, runSchedule: val}})) : undefined}/>
-        <InputField name="RUN DURATION" width="100%" default={model.scheduling.runDuration} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, scheduling: {...curr.scheduling, runDuration: val}})) : undefined}/>
-      </div>
-      <div className="section">
-        <div className="section-title">Properties</div>
         {
           Object.keys(model.properties).sort().map(prop_name => {
-            if (!props.manifest.propertyDescriptors || !(prop_name in props.manifest.propertyDescriptors)) {
-              // dynamic property
+            if (!isSpecialInputField(props.model.type, prop_name)) {
               return null;
             }
-            let err = props.errors.find(err => err.type === "PROPERTY" && err.target === prop_name);
-
-            if (isSpecialInputField(props.model.type, prop_name)) {
-              return null;
-            }
-            const values = props.manifest.propertyDescriptors[prop_name].allowableValues;
-            if (values) {
-              return <PropertyDropdown key={prop_name} name={prop_name} width="100%" items={values.map(val => val.value)} initial={model.properties[prop_name]}
-                  onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: val}})) : undefined} visible={model.visibleProperties?.includes(prop_name) ?? false} onChangeVisibility={onChangeVisibility} error={err?.message}/>
-            }
-            return <PropertyField key={prop_name} name={prop_name} width="100%" default={model.properties[prop_name]}
-                onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: val}})) : undefined} visible={model.visibleProperties?.includes(prop_name) ?? false} onChangeVisibility={onChangeVisibility} error={err?.message}/>
+            return <SpecialInputField key={prop_name} name={prop_name} width="100%" default={model.properties[prop_name]}
+                onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: val}})) : undefined} visible={model.visibleProperties?.includes(prop_name) ?? false} onChangeVisibility={onChangeVisibility}/>
           })
         }
       </div>
-      {!props.manifest.supportsDynamicProperties ? null : 
-      <div className="section">
-        <div className="section-title">Dynamic Properties<span style={{flexGrow: 1}}/>
-          {
-            flow_context?.editable ? 
-            <div className="add-dynamic-property" onClick={openCreateDynPropCb}>
-              <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-            </div>
-            : null
-          }
-        </div>
-        {
-          Object.keys(model.properties).sort().map(prop_name => {
-            if (props.manifest.propertyDescriptors && prop_name in props.manifest.propertyDescriptors) {
-              // not dynamic property
-              return null;
-            }
-            return <div className="dynamic-property">
-              <PropertyField key={prop_name} name={prop_name} width="100%" default={model.properties[prop_name]} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: val}})) : undefined}/>
-              <Fill/>
-              {
-                flow_context?.editable ? 
-                <DeleteIcon size={24} onClick={() => {
-                  setModel(model => {
-                    let new_props = {...model.properties};
-                    delete new_props[prop_name];
-                    return {...model, properties: new_props};
-                  })
-                }}/>
-                : null
-              }
-            </div>
-          })
+      <div className={`tab ${activeTab === "runs" && activeRunInfo === null ? 'active': ''}`}>
+        {flow_context?.agentId !== undefined ? 
+          <>
+            {(props.runs ?? []).map((run, idx) => {
+              return <div key={run.id} className="run-item" onClick={()=>setActiveRunInfo({runIdx: idx, triggerIdx: null})}>Run {idx + 1}
+                <div className="duplicate-run" onClick={(e) => {
+                  e.stopPropagation();
+                  updateRun(run.id, (curr)=>[curr, {...curr, id: uuid.v4() as Uuid}])
+                }}><CopyIcon size={20}/></div>
+                {
+                  run.output ?
+                  <div className="edit-run" onClick={(e)=>{
+                    e.stopPropagation();
+                    openModal(<ConfirmModal confirmLabel="Edit" text={`Warning, you are about to delete the output of this run. Are you sure?`} onConfirm={()=>{
+                      updateRun(run.id, curr => ({...curr, output: undefined})); setActiveRunInfo(null)
+                    }}/>)
+                  }}><EditIcon size={20}/></div>
+                  : null
+                }
+                <Fill/>
+                {
+                  (()=>{
+                    if (!run.output || run.output === "PENDING") return null;
+                    if (run.output.schedule_error !== undefined || run.output.trigger_error !== undefined) {
+                      return <div className="run-tag failed">failed</div>
+                    }
+                    return <div className="run-tag success">success</div>
+                  })()
+                }
+                {
+                  <DeleteIcon size={20} onClick={(e)=>{
+                    e.stopPropagation();
+                    openModal(<ConfirmModal confirmLabel="Delete" text={`Warning, you are about to irrevocably delete this run. Are you sure?`} onConfirm={()=>{
+                      updateRun(run.id, curr => undefined); setActiveRunInfo(null)
+                    }}/>)
+                  }} />
+                }
+              </div>
+            })}
+            <div className="new-run"><div onClick={()=>updateRun(uuid.v4() as Uuid, (curr)=>curr)}>Add new run</div></div>
+          </>
+          : null
         }
       </div>
-      }
-      {
-        Object.keys(model.properties).sort().map(prop_name => {
-          if (!isSpecialInputField(props.model.type, prop_name)) {
-            return null;
+      <div className={`tab ${activeTab === "runs" ? 'active': ''}`}>
+        {(()=>{
+          if (activeRunInfo === null) return null;
+          const activeRun = props.runs?.[activeRunInfo.runIdx];
+          if (!activeRun) return null;
+          const activeTrigger = activeRunInfo.triggerIdx !== null ? activeRun.input.triggers[activeRunInfo.triggerIdx] : null;
+          if (activeTrigger) {
+            return <>
+              <div className="run-navigation-header">
+                <div className="navigation-item" onClick={()=>setActiveRunInfo(curr => (curr ? {...curr, triggerIdx: null} : null))}>Run {activeRunInfo.runIdx + 1}</div>
+                <ArrowRightIcon size={20} />
+                <div className="navigation-item">Trigger {activeRunInfo.triggerIdx! + 1}</div>
+              </div>
+              <RunTriggerInstance run={activeRun} model={activeTrigger} runId={activeRun.id} triggerIdx={activeRunInfo.triggerIdx!} updateTrigger={activeRun.output ? undefined : updateTrigger} updateTriggerFF={activeRun.output ? undefined : updateTriggerFF} />
+            </>
           }
-          return <SpecialInputField key={prop_name} name={prop_name} width="100%" default={model.properties[prop_name]}
-              onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: val}})) : undefined} visible={model.visibleProperties?.includes(prop_name) ?? false} onChangeVisibility={onChangeVisibility}/>
-        })
-      }
-    </div>
-    <div className={`tab ${activeTab === "runs" && activeRunInfo === null ? 'active': ''}`}>
-      {flow_context?.agentId !== undefined ? 
-        <>
-          {(props.runs ?? []).map((run, idx) => {
-            return <div key={run.id} className="run-item" onClick={()=>setActiveRunInfo({runIdx: idx, triggerIdx: null})}>Run {idx + 1}
-              <div className="duplicate-run" onClick={(e) => {
-                e.stopPropagation();
-                updateRun(run.id, (curr)=>[curr, {...curr, id: uuid.v4() as Uuid}])
-              }}><CopyIcon size={20}/></div>
-              {
-                run.output ?
-                <div className="edit-run" onClick={(e)=>{
-                  e.stopPropagation();
-                  openModal(<ConfirmModal confirmLabel="Edit" text={`Warning, you are about to delete the output of this run. Are you sure?`} onConfirm={()=>{
-                    updateRun(run.id, curr => ({...curr, output: undefined})); setActiveRunInfo(null)
-                  }}/>)
-                }}><EditIcon size={20}/></div>
-                : null
-              }
-              <Fill/>
-              {
-                (()=>{
-                  if (!run.output || run.output === "PENDING") return null;
-                  if (run.output.schedule_error !== undefined || run.output.trigger_error !== undefined) {
-                    return <div className="run-tag failed">failed</div>
-                  }
-                  return <div className="run-tag success">success</div>
-                })()
-              }
-              {
-                <DeleteIcon size={20} onClick={(e)=>{
-                  e.stopPropagation();
-                  openModal(<ConfirmModal confirmLabel="Delete" text={`Warning, you are about to irrevocably delete this run. Are you sure?`} onConfirm={()=>{
-                    updateRun(run.id, curr => undefined); setActiveRunInfo(null)
-                  }}/>)
-                }} />
-              }
-            </div>
-          })}
-          <div className="new-run"><div onClick={()=>updateRun(uuid.v4() as Uuid, (curr)=>curr)}>Add new run</div></div>
-        </>
-        : null
-      }
-    </div>
-    <div className={`tab ${activeTab === "runs" ? 'active': ''}`}>
-      {(()=>{
-        if (activeRunInfo === null) return null;
-        const activeRun = props.runs?.[activeRunInfo.runIdx];
-        if (!activeRun) return null;
-        const activeTrigger = activeRunInfo.triggerIdx !== null ? activeRun.input.triggers[activeRunInfo.triggerIdx] : null;
-        if (activeTrigger) {
           return <>
             <div className="run-navigation-header">
-              <div className="navigation-item" onClick={()=>setActiveRunInfo(curr => (curr ? {...curr, triggerIdx: null} : null))}>Run {activeRunInfo.runIdx + 1}</div>
-              <ArrowRightIcon size={20} />
-              <div className="navigation-item">Trigger {activeRunInfo.triggerIdx! + 1}</div>
+                <div className="navigation-item">Run {activeRunInfo.runIdx + 1}</div>
             </div>
-            <RunTriggerInstance run={activeRun} model={activeTrigger} runId={activeRun.id} triggerIdx={activeRunInfo.triggerIdx!} updateTrigger={activeRun.output ? undefined : updateTrigger} updateTriggerFF={activeRun.output ? undefined : updateTriggerFF} />
+            <RunInstance model={activeRun} updateRun={activeRun.output ? undefined : updateRun} setActiveRunInfo={setActiveRunInfo} idx={activeRunInfo.runIdx} updateTrigger={activeRun.output ? undefined : updateTrigger} updateTriggerFF={activeRun.output ? undefined : updateTriggerFF} triggerRun={activeRun.output ? undefined : triggerRun}/>
           </>
-        }
-        return <>
-          <div className="run-navigation-header">
-              <div className="navigation-item">Run {activeRunInfo.runIdx + 1}</div>
+        })()}
+      </div>
+      <div className={`tab ${activeTab === "status" ? 'active' : ''}`}>
+        <div className="processor-status">
+          <div className="status-row">
+            <span className="status-label">In:</span>
+            <span className="status-value">
+              {model.status ? `${model.status.flowFilesIn} (${asSize(model.status.bytesIn)}B)` : "N/A"}
+        </span>
           </div>
-          <RunInstance model={activeRun} updateRun={activeRun.output ? undefined : updateRun} setActiveRunInfo={setActiveRunInfo} idx={activeRunInfo.runIdx} updateTrigger={activeRun.output ? undefined : updateTrigger} updateTriggerFF={activeRun.output ? undefined : updateTriggerFF} triggerRun={activeRun.output ? undefined : triggerRun}/>
-        </>
-      })()}
-    </div>
-    <div className={`tab ${activeTab === "status" ? 'active' : ''}`}>
-      <div className="processor-status">
-        <div className="status-row">
-          <span className="status-label">In:</span>
-          <span className="status-value">
-            {model.status ? `${model.status.flowFilesIn} (${asSize(model.status.bytesIn)}B)` : "N/A"}
-      </span>
-        </div>
-        <div className="status-row">
-          <span className="status-label">Out:</span>
-          <span className="status-value">
-            {model.status ? `${model.status.flowFilesOut} (${asSize(model.status.bytesOut)}B)` : "N/A"}
-      </span>
-        </div>
-        <div className="status-row">
-          <span className="status-label">Read / Write:</span>
-          <span className="status-value">
-            {model.status ? `${asSize(model.status.bytesRead)}B / ${asSize(model.status.bytesWritten)}B` : "N/A"}
-          </span>
-        </div>
-        <div className="status-row">
-          <span className="status-label">Invocations:</span>
-          <span className="status-value">
-            {model.status ? model.status.invocations : "N/A"}
-          </span>
+          <div className="status-row">
+            <span className="status-label">Out:</span>
+            <span className="status-value">
+              {model.status ? `${model.status.flowFilesOut} (${asSize(model.status.bytesOut)}B)` : "N/A"}
+        </span>
+          </div>
+          <div className="status-row">
+            <span className="status-label">Read / Write:</span>
+            <span className="status-value">
+              {model.status ? `${asSize(model.status.bytesRead)}B / ${asSize(model.status.bytesWritten)}B` : "N/A"}
+            </span>
+          </div>
+          <div className="status-row">
+            <span className="status-label">Invocations:</span>
+            <span className="status-value">
+              {model.status ? model.status.invocations : "N/A"}
+            </span>
+          </div>
         </div>
       </div>
-    </div>
-    <div className="close" onClick={() => flow_context?.closeComponentEditor()}>
-      <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
-        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-      </svg>
+      <div className={`tab ${activeTab === "logs" ? 'active' : ''}`}>
+        <BulletinsView value={props.bulletins ?? []} />
+      </div>
     </div>
   </div>
 }
@@ -738,4 +750,60 @@ function RunInputFF(props: {
     </div>
   </div>
 </div>;
+}
+
+function BulletinsView(props: {value: ProcessorBulletin[]}) {
+  const logs_view_ref = React.useRef<HTMLDivElement|null>(null);
+  const onGoToTop = React.useCallback(()=>{
+    if (logs_view_ref.current) {
+      logs_view_ref.current.scrollTop = 0;
+    }
+  }, []);
+  const [scrollLock, setScrollLock] = React.useState<boolean>(true);
+  const [offset, setOffset] = React.useState<number>(0);
+  React.useEffect(()=>{
+    const el = logs_view_ref.current;
+    if (!el) {
+      return;
+    }
+    const cb = () => {
+      setScrollLock(el.scrollTop === 0);
+      const top = el.getBoundingClientRect().top;
+      for (let idx = 0; idx < el.childElementCount; ++idx) {
+        if (el.children[idx].getBoundingClientRect().bottom > top) {
+          setOffset(idx);
+          break;
+        }
+      }
+    }
+    el.addEventListener('scroll', cb);
+    return () => {
+      el.removeEventListener('scroll', cb);
+    }
+  }, [logs_view_ref.current])
+  return <div className="processor-logs-container">
+    <div className="processor-logs" ref={logs_view_ref}>
+      {props.value.map(bulletin => {
+        return <BulletinView key={bulletin.id} value={bulletin} />
+      })}
+    </div>
+    <div className="jump-to-top popout" onClick={onGoToTop}>
+      <ArrowFullUpIcon size={20} />
+      {(()=>{
+        if (scrollLock) {
+          return <LockIcon size={14} />;
+        }
+        if (offset !== 0) {
+          return <div className="count-badge popout">{offset}</div>
+        }
+      })()}
+    </div>
+  </div>
+}
+
+function BulletinView(props: {value: ProcessorBulletin}) {
+  return <div className={`bulletin-view ${props.value.level}`}>
+    <div className="message">{props.value.message}</div>
+    <div className="timestamp">{props.value.timestamp.toLocaleString()}</div>
+  </div>
 }

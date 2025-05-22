@@ -3,10 +3,10 @@
   width: 600px;
   max-width: 100%;
   max-height: 100%;
-  background-color: white;
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.497);
+  background-color: var(--bg-color);
+  color: var(--text-color);
   box-sizing: border-box;
-  border-radius: 3px;
+  border-radius: 4px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -14,12 +14,12 @@
   .header {
     flex: none;
     padding: 20px;
-    border-bottom: 1px solid rgb(224, 224, 224);
+    border-bottom: 1px solid var(--border-color);
   }
   .footer {
     flex: none;
     padding: 20px;
-    border-top: 1px solid rgb(224, 224, 224);
+    border-top: 1px solid var(--border-color);
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
@@ -27,18 +27,18 @@
     .cancel, .publish {
       font-size: 14px;
       cursor: pointer;
-      padding: 5px 10px;
-      color: grey;
+      padding: 8px 14px;
+      color: var(--text-inactive-color);
       margin-left: 20px;
+      border-radius: 3px;
       &:hover {
-        background-color: rgb(231, 231, 231);
-        color: black;
+        color: var(--text-active-color);
+        background-color: var(--hover-bg-color);
       }
     }
   }
 
   .agent-list {
-    --text-color: rgb(84, 84, 84);
     height: 500px;
     overflow: scroll;
     .instance {
@@ -48,14 +48,14 @@
         box-sizing: border-box;
         & > div {
           border-radius: 3px;
-          border: 1px solid rgb(222, 26, 26);
+          border: 1px solid var(--highlight-red);
           border-left-width: 4px;
-          color: rgb(222, 26, 26);
+          color: var(--highlight-red);
         }
       }
       .instance-header {
         padding: 15px;
-        border-bottom: 1px solid rgb(241, 241, 241);
+        border-bottom: 1px solid var(--border-color);
         position: relative;
         display: flex;
         flex-direction: row;
@@ -65,9 +65,9 @@
           margin-left: 10px;
         }
         .go-to-flow {
-          border: 1px solid rgb(91, 91, 255);
+          border: 1px solid var(--highlight-blue);
           cursor: pointer;
-          color: rgb(91, 91, 255);
+          color: var(--highlight-blue);
           opacity: 0.7;
           margin-left: 20px;
           border-radius: 15px;
@@ -75,13 +75,14 @@
           padding: 0px 5px;
           &:hover {
             opacity: 1;
+            background-color: var(--light-blue);
           }
         }
         .class-expand-icon {
           line-height: 0;
           cursor: pointer;
           &:hover {
-            background-color: rgb(237, 237, 237);
+            background-color: var(--hover-bg-color);
             border-radius: 50%;
           }
           path {
@@ -108,7 +109,7 @@
         }
         .agent-publish-loader {
           margin-left: 20px;
-          border: 4px solid #f4f4f4;
+          border: 4px solid var(--light-blue);
           border-top: 4px solid #389fe3;
           border-radius: 50%;
           width: 20px;
@@ -123,7 +124,7 @@
 
         svg.success-icon {
           margin-left: 20px;
-          fill: green;
+          fill: rgb(14, 149, 14);
         }
 
         svg.error-icon {

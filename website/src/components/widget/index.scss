@@ -44,17 +44,18 @@
       align-items: center;
       width: 50px;
       height: 50px;
-      border: 5px solid rgb(83, 83, 83);
+      border: 5px solid var(--text-color);
       border-radius: 50%;
-      background-color: white;
+      background-color: var(--bg-color);
+      color: var(--text-color);
       .merge-icon {
-        fill: rgb(80, 80, 80);
+        fill: var(--text-color);
         path {
           stroke-width: 4px;
         }
       }
-      .arrow-left-icon, .arrow-right-icon {
-        fill: rgb(26, 26, 26);
+      .arrow-left-icon, .arrow-right-icon, .arrow-full-right-icon, .arrow-full-left-icon, .arrow-full-up-icon, .arrow-full-down-icon {
+        fill: var(--text-color);
       }
       .ripple-1, .ripple-2, .ripple-3 {
         position: absolute;
@@ -72,6 +73,7 @@
     }
     &.extended {
       border: 2px solid transparent;
+      border-radius: 10px;
     }
     box-sizing: border-box;
     position: relative;
@@ -89,17 +91,17 @@
       right: -12px;
       top: -12px;
       border-radius: 50%;
-      background-color: white;
+      background-color: var(--bg-color);
       width: 28px;
       height: 28px;
       padding: 4px;
 
       .pause-icon {
-        fill:  #8a8a8a;
+        fill:  var(--text-inactive-color);
       }
 
       .play-icon {
-        fill: #008A00;
+        fill: var(--highlight-green);
       }
 
       &::after {
@@ -114,28 +116,28 @@
       }
 
       &.STARTED::after {
-        border-color: #008A00;
+        border-color: var(--highlight-green);
       }
 
       &.STOPPED::after {
-        border-color: #8a8a8a;
+        border-color: var(--text-inactive-color);
       }
 
       &.STARTING::after, &.STOPPING::after, &.UNKNOWN::after {
-        border-color: #f4f4f4;
+        border-color: var(--light-bg-color);
         animation: spin 2s linear infinite;
       }
 
       &.UNKNOWN::after {
-        border-top-color: #389fe3;
+        border-top-color: var(--highlight-blue);
       }
 
       &.STARTING::after {
-        border-top-color: #008A00;
+        border-top-color: var(--highlight-green);
       }
 
       &.STOPPING::after {
-        border-top-color: #8a8a8a;
+        border-top-color: var(--text-inactive-color);
       }
         
       @keyframes spin {
@@ -145,6 +147,7 @@
     }
 
     .name {
+      color: var(--text-color);
       position: absolute;
       top: 100%;
       left: 50%;
@@ -181,6 +184,6 @@
 
 .widget-container.selected {
   .processor-view {
-    border-color: rgb(60, 60, 249) !important;
+    border-color: var(--highlight-blue) !important;
   }
 }

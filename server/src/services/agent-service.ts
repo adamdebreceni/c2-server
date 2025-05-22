@@ -1,3 +1,5 @@
+let bulletin_store: {[id: AgentId]: {bulletins: ProcessorBulletin[]}} = {};
+
 export async function CreateAgentService(db: Database): Promise<AgentService> {
   return {
     async fetchManifestForAgent(id: string): Promise<string|null> {
@@ -93,5 +95,29 @@ export async function CreateAgentService(db: Database): Promise<AgentService> {
     async saveFlowUpdateFailure(id, targetFlow, error): Promise<void> {
       return db.agents.update({id}, {flow_update_error: JSON.stringify({target_flow: targetFlow, error})});
     },
+    async pushBulletins(id: AgentId, bulletins: ProcessorBulletin[]): Promise<void> {
+      if (!(id in bulletin_store)) {
+        bulletin_store[id] = {bulletins: []};
+      }
+      bulletin_store[id].bulletins = bulletins;
+      // const bulletin_list = bulletin_store[id];
+      // for (const bulletin of bulletins) {
+      //   if (!bulletin_list.ids.has(bulletin.id)) {
+      //     bulletin_list.bulletins.push(bulletin);
+      //     bulletin_list.ids.add(bulletin.id);
+      //   }
+      // }
+      bulletins.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    },
+    async fetchBulletinsForAgent(id: AgentId, from: Date, to: Date, limit: number): Promise<ProcessorBulletin[]> {
+      if (!(id in bulletin_store)) {
+        return [];
+      }
+      const result: ProcessorBulletin[] = bulletin_store[id].bulletins.filter(bulletin => {
+        return from < bulletin.timestamp && bulletin.timestamp <= to;
+      });
+      const count = Math.min(limit, result.length);
+      return result.slice(result.length - count);
+    }
   }
 }

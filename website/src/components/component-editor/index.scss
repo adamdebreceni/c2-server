@@ -1,0 +1,19 @@
+.component-editor-resizer {
+  position: absolute;
+  height: 100%;
+  width: 20px;
+  left: -10px;
+  top: 0px;
+  cursor: col-resize;
+  z-index: 100;
+
+  &:hover:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 2px;
+    left: 9px;
+    background-color: var(--highlight-blue);
+  }
+}

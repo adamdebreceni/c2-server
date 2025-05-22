@@ -65,7 +65,7 @@ function NotificationWidget(props: {model: {id: number, msg: string, type: "succ
     }
   }, [props.destroy, props.model.id, state])
 
-  return <div className={`notification ${props.model.type}`} onMouseLeave={()=>setState(true)} onMouseEnter={()=>setState(false)}>
+  return <div className={`notification popout ${props.model.type}`} onMouseLeave={()=>setState(true)} onMouseEnter={()=>setState(false)}>
     {props.model.type === "success" ?
       <SuccessIcon size={24} /> :
       <ErrorIcon size={24} />  

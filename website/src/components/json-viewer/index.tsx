@@ -1,5 +1,6 @@
 import * as React from "react";
 import "./index.scss"
+import { Tooltip } from "../tooltip";
 
 export function JsonView(props: {value: JsonValue}) {
   const [collapsed, setCollapsed] = React.useState<boolean>(true); 
@@ -20,6 +21,9 @@ export function JsonView(props: {value: JsonValue}) {
   }
   if (typeof props.value === "boolean") {
     return <div className="json-boolean">{`${props.value}`}</div>
+  }
+  if (props.value instanceof Date) {
+    return <div className="json-date"><Tooltip message={props.value.toUTCString()}>{props.value.toLocaleString()}</Tooltip></div>
   }
   if (collapsed) {
     if (props.value instanceof Array) {

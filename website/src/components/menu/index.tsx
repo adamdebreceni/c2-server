@@ -11,7 +11,7 @@ export function Menu(props: {items: {name: string, on: ()=>void}[]}) {
   React.useLayoutEffect(()=>{
     ref.current?.focus();
   }, [])
-  return <div className="menu" ref={ref} tabIndex={-1} onBlur={onBlur}>
+  return <div className="menu popout text-sm" ref={ref} tabIndex={-1} onBlur={onBlur}>
     {
       props.items.map(item => <MenuItem key={item.name} name={item.name} on={item.on}/>)
     }

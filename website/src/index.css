@@ -12,6 +12,59 @@ html, body, #root {
 #root {
   display: flex;
   flex-direction: column;
+
+  --border-radius: 10px;
+}
+
+#root.theme-light {
+  --bg-color: white;
+  --hover-bg-color: rgba(241, 241, 241, 0.696);
+  --text-color: rgb(39, 39, 39);
+  --text-active-color: rgb(39, 39, 39);
+  --text-inactive-color: rgb(173, 173, 173);
+  --border-color: rgb(224, 224, 224);
+  --highlight-blue: rgb(53, 53, 255);
+  --highlight-green: rgb(37, 196, 50);
+  /* --highlight-green: rgb(5, 152, 5); */
+  --highlight-orange: rgb(252, 128, 45);
+  --highlight-red: rgb(220, 16, 16);
+  --disabled-bg: rgb(248, 248, 248);
+  --disabled-text: rgb(149, 149, 149);
+
+  --light-green: rgb(242, 255, 242);
+  --light-blue: rgb(235, 243, 255);
+  --light-bg-color: rgb(248, 248, 248);
+
+  --bg-dot-color: rgb(37, 91, 228);
+
+  .popout {
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.497);
+  }
+}
+
+#root.theme-dark {
+  --bg-color: rgb(39, 39, 39);
+  --hover-bg-color: rgb(75, 75, 75);
+  --text-color: white;
+  --text-active-color: rgb(255, 255, 255);
+  --text-inactive-color: rgb(173, 173, 173);
+  --border-color: rgb(115, 115, 115);
+  --highlight-blue: rgb(123, 123, 255);
+  --highlight-green: rgb(41, 193, 41);
+  --highlight-orange: rgb(255, 122, 34);
+  --highlight-red: rgb(255, 34, 34);
+  --disabled-bg: rgb(39, 39, 39);
+  --disabled-text: rgb(95, 95, 95);
+
+  --light-green: rgb(34, 49, 34);
+  --light-blue: rgb(33, 44, 55);
+  --light-bg-color: rgb(72, 72, 72);
+
+  --bg-dot-color: rgb(74, 108, 146);
+
+  .popout {
+    border: 1px solid rgb(115, 115, 115);
+  }
 }
 
 .content {
@@ -19,6 +72,8 @@ html, body, #root {
   width: 100%;
   overflow: hidden;
   position: relative;
+  background-color: var(--bg-color);
+  color: var(--text-color);
 }
 
 input {

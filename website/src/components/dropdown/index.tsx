@@ -31,22 +31,22 @@ export function Dropdown(props: {name: string, items: string[], initial?: string
           </>}
       </div>
       <div className={`dropdown ${state.active ? "active": ""}`} tabIndex={-1} onBlur={onBlur} onFocus={onFocus}>
-      <div className="selected">{state.current}
+      <div className="selected">{state.current === '' ? <span>&nbsp;</span> : state.current}
         {
           props.onChange ?
           <div className="down-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M7 10l5 5 5-5z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path style={{fill: 'var(--text-color)'}} d="M7 10l5 5 5-5z"/></svg>
           </div>
           : null
         }
       </div>
-      <div className="dropdown-menu">
+      <div className="dropdown-menu popout">
         {props.items.map((item, idx)=>{
           return <div key={item} className="dropdown-item" onClick={(e)=>{
             setState(curr => ({...curr, current: item}));
             props.onChange?.(item, idx);
             e.currentTarget.parentElement?.parentElement?.blur();
-          }}>{item}</div>
+          }}>{item === '' ? <span>&nbsp;</span> : item}</div>
         })}
       </div>
     </div>

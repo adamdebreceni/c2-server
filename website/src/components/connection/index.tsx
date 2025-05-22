@@ -273,16 +273,16 @@ function ConnectionName(props: {id: Uuid, model: Connection, x: number, y: numbe
     setInlineRels(false);
   }, [props.id, flow_context?.editComponent]);
 
-  return <div ref={view_ref} className="name" style={{left: `${props.x}px`, top: `${props.y}px`}} onContextMenu={oncontextmenu} onMouseDown={onmousedown} onDoubleClick={ondblclick} onClick={onclick}>
+  return <div ref={view_ref} className="name popout" style={{left: `${props.x}px`, top: `${props.y}px`}} onContextMenu={oncontextmenu} onMouseDown={onmousedown} onDoubleClick={ondblclick} onClick={onclick}>
     {props.name ? props.name : "<unspecified>"}
     {props.model?.errors.length !== 0 ? <ConnectionErrorBadge/> : null}
-    <div ref={inline_rel_ref} className={`inline-relationship-picker ${inline_rels ? 'active': ''}`} tabIndex={-1} onBlur={onblur}>
+    <div ref={inline_rel_ref} className={`inline-relationship-picker popout ${inline_rels ? 'active': ''}`} tabIndex={-1} onBlur={onblur}>
       {Object.keys(props.model.sourceRelationships).map(rel => {
         return <Toggle key={rel} marginBottom="10px" name={rel} initial={props.model.sourceRelationships[rel]} onChange={val => flow_context!.updateConnection(props.model.id, curr => ({...curr, sourceRelationships: {...curr.sourceRelationships, [rel]: val}}))} />
       })}
     </div>
     {props.model.size ? 
-      <div className="inline-usage">
+      <div className="inline-usage popout">
         <div className="size">{asSize(props.model.size!.data)}B / {asSize(props.model.size!.dataMax)}B</div>
         <div className="count">{asSize(props.model.size!.count)} / {asSize(props.model.size!.countMax)}</div>
         <div className="scale" style={getColor(props.model.size)}></div>
