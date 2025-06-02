@@ -81,6 +81,11 @@ export function CreateManageAgentRouter(services: Services): Router {
     res.sendStatus(200);
   })
 
+  router.post("/:agentId/link-class", async (req, res) => {
+    await services.agentService.linkClass(req.params.agentId);
+    res.sendStatus(200);
+  })
+
   router.post("/:agentId/stop-component/:componentId", async (req, res) => {
     let resolve: ()=>void = null as any;
     let reject: ()=>void = null as any;

@@ -16,7 +16,10 @@ export class Filter{
 
   match(item: {[x: string]: any}): boolean {
     for (const [field, val] of this.fields) {
-      if (typeof item[field] === "string" && !val.reg.test(item[field])) {
+      if (typeof item[field] !== 'string') {
+        return false;
+      }
+      if (!val.reg.test(item[field])) {
         return false;
       }
     }
