@@ -43,14 +43,14 @@ export function CreateManageFlowRouter(services: Services): Router {
     if (typeof flow_str !== "string") throw new Error("Missing flow");
 
     console.log("Deserializing...");
-    const flow_object = DeserializeJsonToFlow(flow_str, JSON.parse(class_manifest));
+    const flow_object = DeserializeJsonToFlow(flow_str, class_name, JSON.parse(class_manifest));
     if (flow_object === null) {
       console.log("Import failed");
       res.status(400);
       res.end();
       return;
     }
-    const id = await services.flowService.save(Buffer.from(JSON.stringify(flow_object)));
+    const id = await services.flowService.save(flow_object);
     console.log(`Imported as ${id}`);
     res.end();
   })
@@ -64,10 +64,12 @@ export function CreateManageFlowRouter(services: Services): Router {
 
   router.post("/create", json(), async (req, res)=>{
     if ('agent' in req.body && typeof req.body.agent === "string") {
-      const manifest = await services.agentService.fetchManifestForAgent(req.body.agent);
-      if (manifest === null) throw new Error(`No manifest for agent ${req.body.agent}`);
+      const agent = await services.agentService.fetchAgent(req.body.agent);
+      const manifest = agent?.manifest;
+      if (!manifest) throw new Error(`No manifest for agent ${req.body.agent}`);
       const flow = services.flowService.createDefaultFlowObject(JSON.parse(manifest));
-      const id = await services.flowService.save(Buffer.from(JSON.stringify(flow)));
+      flow.className = agent.class;
+      const id = await services.flowService.save(flow);
       res.json(id);
       return;
     }
@@ -75,7 +77,8 @@ export function CreateManageFlowRouter(services: Services): Router {
       const manifest = await services.agentService.fetchManifestForClass(req.body.class);
       if (manifest === null) throw new Error(`No manifest for agent class "${req.body.class}"`);
       const flow = services.flowService.createDefaultFlowObject(JSON.parse(manifest));
-      const id = await services.flowService.save(Buffer.from(JSON.stringify(flow)));
+      flow.className = req.body.class;
+      const id = await services.flowService.save(flow);
       res.json(id);
       return;
     }
@@ -83,7 +86,7 @@ export function CreateManageFlowRouter(services: Services): Router {
   })
 
   router.patch("/:id", json({limit: "80 MB"}), async (req, res)=>{
-    const id = await services.flowService.save(Buffer.from(JSON.stringify(req.body)), req.params.id);
+    const id = await services.flowService.save(req.body, req.params.id);
     res.json(id);
   })
 

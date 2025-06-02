@@ -17,6 +17,7 @@ interface AgentLike {
   id: string,
   class: string|null,
   flow: string|null,
+  target_flow: string|null,  // null indicates that the class dictates the flow
   metrics: AgentMetrics|null,
   manifest?: string|null
   last_heartbeat: Date|null,
@@ -123,6 +124,7 @@ interface AgentService {
   clearComponentState(agentId: string, componentId: string): Promise<void>
   triggerComponent(agentId: string, componentId: string, args: RunInput): Promise<RunResult>
   saveConfig(agentId: string, data: any): Promise<void>
+  linkClass(agentId: string): Promise<void>
   // fetchManifestForAgent(id: string): Promise<AgentManifest|null>;
   // fetchManifestForClass(name: string): Promise<AgentManifest|null>;
 }

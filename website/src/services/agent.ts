@@ -81,6 +81,10 @@ export class AgentServiceImpl implements AgentService {
     return bulletins;
   }
 
+  async linkClass(agentId: string): Promise<void> {
+    return SendRequest("POST", this.api + `/agent/${encodeURIComponent(agentId)}/link-class`);
+  }
+
   // async fetchManifestForAgent(id: string): Promise<AgentManifest|null> {
   //   const response = await SendRequest("GET", this.api + "/agent/manifest/" + encodeURIComponent(id));
   //   return JSON.parse(response);

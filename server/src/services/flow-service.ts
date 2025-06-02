@@ -9,7 +9,7 @@ export async function CreateFlowService(db: Database): Promise<FlowService> {
     get(id: FlowId): Promise<Buffer|null> {
       return db.flows.get(id);
     },
-    save(flow: Buffer, id?: FlowId): Promise<FlowId> {
+    save(flow: FlowObject, id?: FlowId): Promise<FlowId> {
       return db.flows.save(flow, id);
     },
     serialize(id: FlowId): Promise<void> {
@@ -23,6 +23,7 @@ export async function CreateFlowService(db: Database): Promise<FlowService> {
     createDefaultFlowObject(manifest: AgentManifest): FlowObject {
       return {
         manifest,
+        parent: null,
         view: {x: 0, y: 0, zoom: 1},
         processors: [],
         connections: [],

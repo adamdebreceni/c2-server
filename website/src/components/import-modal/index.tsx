@@ -60,7 +60,7 @@ export function ImportModal(props: {onImport: (class_str: string, flow_str: stri
             <span>{selectedFile ? `File selected: ${selectedFile.name}` : "Select a File"}</span>
           </label>
           
-          <Dropdown name="Class" items={classes} onChange={(item) => {
+          <Dropdown name="Class" items={classes} initial='' onChange={(item) => {
             setSelectedClass(item);
           }} />
         </div>

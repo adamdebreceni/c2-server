@@ -118,6 +118,9 @@ export async function CreateAgentService(db: Database): Promise<AgentService> {
       });
       const count = Math.min(limit, result.length);
       return result.slice(result.length - count);
+    },
+    async linkClass(id: AgentId): Promise<void> {
+      return db.agents.update({id}, {target_flow: null});
     }
   }
 }

@@ -11,7 +11,7 @@ type AgentId = string;
 interface FlowService {
   getSerialized(id: FlowId): Promise<Buffer|null>
   get(id: FlowId): Promise<Buffer|null>
-  save(flow: Buffer, id?: FlowId): Promise<FlowId>
+  save(flow: FlowObject, id?: FlowId): Promise<FlowId>
   serialize(id: FlowId): Promise<void>
   createDefaultFlowObject(manifest: AgentManifest): FlowObject
   listAll(): Promise<FlowLike[]>
@@ -25,6 +25,7 @@ interface AgentService {
   fetch(): Promise<Agent[]>
   fetchAgent(id: AgentId): Promise<Agent|null>
   fetchClasses(): Promise<AgentClass[]>
+  linkClass(id: AgentId): Promise<void>
   heartbeat(agent_heartbeat: {id: AgentId, class: string|null, flow: string|null, manifest: string|null, flow_info: string|null, device_info: string|null, agent_info: string|null}): Promise<{flow: FlowId|null, manifest: string|null}>
   publish(classes: string[], agents: AgentId[], flowId: FlowId): Promise<void>
   deleteAlertsBefore(id: AgentId, time: Date): Promise<void>

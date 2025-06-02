@@ -19,11 +19,12 @@ export function CreateFlowRouter(services: Services) {
 
   router.get("/deserialize_test/:flowId", async (req, res) => {
     const flow_content = await services.flowService.getSerialized(req.params.flowId);
-    let agent_manifest = await services.agentService.fetchManifestForClass("my_class_cpp_localhost");
+    const test_class_name = "my_class_cpp_localhost";
+    let agent_manifest = await services.agentService.fetchManifestForClass(test_class_name);
     if (flow_content === null) throw new Error("NO FLOW CONTENT");
     if (agent_manifest === null) throw new Error("NO AGENT MANIFEST");
 
-    const flow_object = DeserializeJsonToFlow(flow_content.toString(), JSON.parse(agent_manifest));
+    const flow_object = DeserializeJsonToFlow(flow_content.toString(), test_class_name, JSON.parse(agent_manifest));
     if (flow_object === null) {
       throw new Error("NO FLOW CONTENT");
     }

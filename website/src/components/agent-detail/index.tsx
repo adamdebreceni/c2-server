@@ -9,6 +9,9 @@ import { Loader } from "../loader";
 import "./index.scss"
 import { ModalContext } from "../../common/modal-context";
 import { ConfirmModal } from "../confirm-modal";
+import { LinkOffIcon } from "../../../src/icons/link-off";
+import { LinkAddIcon } from "../../../src/icons/link-add";
+import { LinkClassFlow } from "../link-class-flow";
 
 export function AgentDetail() {
   const services = useContext(ServiceContext);
@@ -97,7 +100,9 @@ export function AgentDetail() {
     <div className="agent-detail">
       <div className="basic">
         <div className="property id"><div className="name">Identifier</div><div className="value">{agent.value.id}</div></div>
-        <div className="property class"><div className="name">Class</div><div className="value">{agent.value.class}</div></div>
+        <div className="property class"><div className="name">Class</div>
+          <div className="value">{agent.value.class}<LinkClassFlow agent={agent.value} /></div>
+        </div>
         <div className="property flow"><div className="name">Flow</div><div className="value" onClick={()=>{
           if (agent.value.flow) {
             services?.flows.fetch(agent.value.flow).then(flow=>{

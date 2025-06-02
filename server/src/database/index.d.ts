@@ -23,7 +23,7 @@ interface Database{
   flows: {
     get(id: FlowId): Promise<Buffer|null>
     getSerialized(id: FlowId): Promise<Buffer|null>
-    save(flow: Buffer, id?: FlowId): Promise<FlowId>
+    save(flow: FlowObject, id?: FlowId): Promise<FlowId>
     serialize(id: FlowId, serializer: (data: Buffer)=>Buffer): Promise<void>
     listAll(): Promise<FlowLike[]>;
   }

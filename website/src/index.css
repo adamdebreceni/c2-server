@@ -24,9 +24,13 @@ html, body, #root {
   --text-inactive-color: rgb(173, 173, 173);
   --border-color: rgb(224, 224, 224);
   --highlight-blue: rgb(53, 53, 255);
+  --highlight-lightblue: rgb(120, 120, 255);
   --highlight-green: rgb(37, 196, 50);
   /* --highlight-green: rgb(5, 152, 5); */
   --highlight-orange: rgb(252, 128, 45);
+  --highlight-purple: rgb(196, 34, 255);
+  --highlight-yellow: rgb(255, 214, 34);
+  --highlight-teal: rgb(34, 255, 248);
   --highlight-red: rgb(220, 16, 16);
   --disabled-bg: rgb(248, 248, 248);
   --disabled-text: rgb(149, 149, 149);
@@ -50,8 +54,12 @@ html, body, #root {
   --text-inactive-color: rgb(173, 173, 173);
   --border-color: rgb(115, 115, 115);
   --highlight-blue: rgb(123, 123, 255);
+  --highlight-lightblue: rgb(96, 96, 255);
   --highlight-green: rgb(41, 193, 41);
   --highlight-orange: rgb(255, 122, 34);
+  --highlight-purple: rgb(196, 34, 255);
+  --highlight-yellow: rgb(255, 214, 34);
+  --highlight-teal: rgb(34, 255, 248);
   --highlight-red: rgb(255, 34, 34);
   --disabled-bg: rgb(39, 39, 39);
   --disabled-text: rgb(95, 95, 95);

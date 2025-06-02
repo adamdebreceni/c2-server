@@ -29,6 +29,8 @@ interface ProcessorBulletin {
 
 interface FlowObject {
   manifest: AgentManifest,
+  className?: string|null,
+  parent?: string|null,
   view: {x: number, y: number, zoom: number}
   processors: Processor[]
   remoteProcessGroups: RPC[]
@@ -201,7 +203,9 @@ interface Connection {
 interface MiNiFiService extends Component {}
 
 type FlowLike = {
-  id: string
+  id: string,
+  parent: string|null,
+  className: string|null
 } & ({status: "editing", modified: Date} | {status: "published", publishedOn: Date})
 
 type AssetInfo = {

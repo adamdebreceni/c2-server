@@ -1,19 +1,54 @@
 .flow-preview {
   width: 80%;
   display: flex;
-  flex-direction: column;
-  padding: 1.5em;
-  border: 1px solid var(--border-color);
-  margin: 0.5em;
+  flex-direction: row;
+  align-items: center;
+  padding: 5px 20px;
+  // border: 1px solid var(--border-color);
   border-radius: 5px;
+  height: 40px;
+  box-sizing: border-box;
+  flex: none;
+  white-space: pre;
+
+  .flow-class-name {
+    border-radius: 10px;
+    border: 1px solid var(--text-inactive-color);
+    color: var(--text-inactive-color);
+    padding: 5px 10px;
+    margin-left: 20px;
+    font-size: 0.8em;
+    line-height: 0.8em;
+    &.assigned {
+      border: 1px solid var(--highlight-green);
+      color: var(--highlight-green);
+    }
+  }
+
+  .agent-count {
+    border-radius: 10px;
+    border: 1px solid var(--text-inactive-color);
+    color: var(--text-inactive-color);
+    padding: 5px 10px;
+    margin-left: 20px;
+    font-size: 0.8em;
+    line-height: 0.8em;
+    cursor: pointer;
+    &:hover {
+      border: 1px solid var(--highlight-blue);
+      background-color: var(--light-blue);
+      color: var(--highlight-blue);
+    }
+  }
 
   .flow-id {
     color: var(--highlight-blue);
     cursor: pointer;
+    font-family: monospace;
   }
 
   .date {
-    margin-top: 1em;
+    margin-left: 20px;
     font-size: 0.8em;
     color: rgb(152, 152, 152);
   }
