@@ -27,6 +27,7 @@ import {width, height} from "../../utils/widget-size";
 
 import {autoLayout, createGraph} from "../../utils/auto-layout"
 import { ComponentEditor } from "../component-editor";
+import { AssetManager } from "../asset-manager";
 
 interface NewConnection {
     source: Uuid,
@@ -289,6 +290,32 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
                         message: `Property '${property_key}' is required`
                     });
                 }
+
+                if (proc.properties[property_key]) {
+                    const asset_pattern = /@\{asset-id:([^}]*)\}/g;
+                    const ms = proc.properties[property_key].matchAll(asset_pattern);
+                    if (ms) {
+                        for (const m of ms) {
+                            const find_asset: (entries: FlowAssetDirectory['entries'])=>boolean = (entries) => {
+                                return entries.some(entry => {
+                                    if ('entries' in entry) {
+                                        return find_asset(entry.entries);
+                                    }
+                                    return entry.id === m[1];
+                                })
+                            }
+                            if (!find_asset(state.flow.assets ?? [])) {
+                                errors.push({
+                                    component: proc.id,
+                                    type: "PROPERTY",
+                                    target: property_key,
+                                    message: `No such asset '${m[1]}' id`
+                                });
+                            }
+                        }
+                    }
+                }
+
             }
         }
         setErrors(errors);
@@ -916,6 +943,10 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
         });
     }
 
+    const setAssets = React.useCallback((fn: (assets: NonNullable<FlowObject['assets']>)=>NonNullable<FlowObject['assets']>) => {
+        setState(st => ({...st, flow: {...st.flow, assets: fn(st.flow.assets ?? [])}}))
+    }, [setState])
+
     return <FlowContext.Provider value={flowContext}>
         <div className="flow-editor" ref={areaRef} onMouseDown={mousedown} onClick={mouseclick}>
             <div className="background"
@@ -990,6 +1021,9 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
                         : null
                 }
             </Surface>
+            <div className="flow-info">
+                <AssetManager assets={state.flow.assets} setAssets={setAssets} />
+            </div>
             <div className="publish-buttons">
                 <div className="open-publish"
                      onClick={() => setState(st => ({...st, publish: {...st.publish, modal: true}}))}>
