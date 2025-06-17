@@ -8,6 +8,7 @@ import { InstallExtensionModal } from "../extension-install";
 import "./index.scss";
 import { AgentMenu } from "../agent-menu";
 import { ConfirmModal } from "../confirm-modal";
+import { LinkClassFlow } from "../link-class-flow";
 
 export function Agent(props: {value: AgentLike}) {
   const services = React.useContext(ServiceContext);
@@ -21,6 +22,7 @@ export function Agent(props: {value: AgentLike}) {
       <div className="header">
         <div className="id" onClick={goToAgent}>{props.value.id}</div>
         <div className="class">{props.value.class}</div>
+        <LinkClassFlow agent={props.value} />
         <div className={`last-heartbeat ${Date.now() - (props.value.last_heartbeat?.getTime() ?? 0) < 10000 ? "alive" : ""}`}>{props.value.last_heartbeat?.toLocaleString()}</div>
         <div className="fill"/>
         <div className="settings" tabIndex={-1}>
@@ -48,6 +50,6 @@ export function Agent(props: {value: AgentLike}) {
             navigate(`/flow/${id}`);
           })
         }
-      }}>{props.value.flow ?? "<using class flow>"}</div>
+      }}>{props.value.flow ?? "No flow is running"}</div>
   </div>
 }

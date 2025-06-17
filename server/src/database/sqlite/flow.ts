@@ -27,10 +27,11 @@ export class FlowDatabase {
     for (const file of fs.readdirSync(FLOW_DIR)) {
       const stat = fs.statSync(path.join(FLOW_DIR, file));
       if (stat.isDirectory()) continue;
+      const flow = JSON.parse(fs.readFileSync(path.join(FLOW_DIR, file)).toString('utf8'));
       if (fs.existsSync(path.join(SERIALIZED_FLOW_DIR, file))) {
-        flows.push({id: file, status: "published", publishedOn: stat.mtime});
+        flows.push({id: file, parent: flow.parent ?? null, className: flow.className, status: "published", publishedOn: stat.mtime});
       } else {
-        flows.push({id: file, status: "editing", modified: stat.mtime});
+        flows.push({id: file, parent: flow.parent ?? null, className: flow.className, status: "editing", modified: stat.mtime});
       }
     }
     function getTime(f: FlowLike) {
@@ -56,13 +57,19 @@ export class FlowDatabase {
     });
   }
 
-  async save(flow: Buffer, id?: FlowId): Promise<FlowId> {
+  async save(flow: FlowObject, id?: FlowId): Promise<FlowId> {
     if (id && !id.match(/^[0-9a-zA-Z_-]+$/)) {
       throw new Error(`Invalid flow id: ${id}`);
     }
+    if (id && fs.existsSync(path.join(SERIALIZED_FLOW_DIR, id))) {
+      flow.parent = id;
+    } else if (id && fs.existsSync(path.join(FLOW_DIR, id))) {
+      const prev_version = JSON.parse(fs.readFileSync(path.join(FLOW_DIR, id)).toString('utf8'));
+      flow.parent = prev_version.parent;
+    }
     const flow_id = (!id || fs.existsSync(path.join(SERIALIZED_FLOW_DIR, id))) ? uuid.v4() : id;
     return new Promise((resolve, reject)=>{
-      fs.writeFile(path.join(FLOW_DIR, flow_id), flow, {}, (err)=>{
+      fs.writeFile(path.join(FLOW_DIR, flow_id), Buffer.from(JSON.stringify(flow)), {}, (err)=>{
         if (!err) {
           resolve(flow_id);
         } else {

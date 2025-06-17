@@ -172,12 +172,14 @@ function isNullish(val: string | null) {
     return val === null || val === "<null>";
 }
 
-export function DeserializeJsonToFlow(json_str: string, manifest: AgentManifest): FlowObject|null {
+export function DeserializeJsonToFlow(json_str: string, class_name: string, manifest: AgentManifest): FlowObject|null {
     try {
         const flow_json = JSON.parse(json_str);
 
         let flow_object: FlowObject = {
             manifest: manifest,
+            parent: null,
+            className: class_name,
             view: {
                 x: flow_json.rootGroup.position?.x ?? 0,
                 y: flow_json.rootGroup.position?.y ?? 0,
