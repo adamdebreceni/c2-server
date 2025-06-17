@@ -1,7 +1,4 @@
 .agent-identifier {
-  position: absolute;
-  top: 0;
-  left: 0;
   padding: 5px 20px;
   border: 1px solid var(--text-inactive-color);
   color: var(--text-inactive-color);
@@ -12,17 +9,16 @@
     border: 1px solid var(--text-active-color);
     color: var(--text-active-color);
   }
+  pointer-events: all;
 }
 
 .top-bar {
   display: flex;
-  position: absolute;
-  top: 5em;
-  left: 0;
   flex-direction: column;
   align-items: flex-start;
   padding: 10px 20px;
   font-family: sans-serif;
+  pointer-events: all;
 
   .item {
     display: flex;

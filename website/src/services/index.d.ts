@@ -136,4 +136,5 @@ interface AlertService {
 
 interface FileService {
   fetch(file: string): Promise<void>
+  upload(file: File): {result: Promise<string>, abort: ()=>void, onProgress: (cb: (progress: number)=>void)=>void}
 }

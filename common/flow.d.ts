@@ -27,6 +27,14 @@ interface ProcessorBulletin {
   sourceName: string
 }
 
+type FlowAsset = {id: Uuid, name: string, hash: string, size: number};
+
+interface FlowAssetDirectory {
+  id: Uuid,
+  name: string,
+  entries: (FlowAssetDirectory|FlowAsset)[]
+}
+
 interface FlowObject {
   manifest: AgentManifest,
   className?: string|null,
@@ -43,7 +51,8 @@ interface FlowObject {
   bulletins?: ProcessorBulletin[]
   processGroups?: ProcessGroup[],
   processGroupsPorts?: ProcessGroupPort[],
-  parameterContexts?: ParameterContext[]
+  parameterContexts?: ParameterContext[],
+  assets?: FlowAssetDirectory['entries']
 }
 
 interface ParameterContextParam {

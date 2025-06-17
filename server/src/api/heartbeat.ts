@@ -217,24 +217,61 @@ export function CreateHeartbeatRouter(services: Services) {
     const agent_manifest = hb_result.manifest;
     if (target_flow !== null && target_flow !== flow) {
       console.log(`Sending flow update request, expected flow: ${target_flow}, actual: ${flow}`);
+      const target_flow_obj: FlowObject = JSON.parse((await services.flowService.get(target_flow))?.toString('utf8') ?? 'null');
+      const req_ops: any[] = [];
+      if (target_flow_obj) {
+        const assetOpId = `${nextOperationId++}`;
+        PendingOperations.set(assetOpId, {resolve: ()=>{
+          console.log(`Successful asset update for agent ${id}`);
+        }, reject: (reason: any) => {
+          console.log(`Failed asset update for agent ${id}`);
+        }});
+        const assets: {resourceId: string, resourceName: string, resourceType: 'ASSET', resourcePath: string, url: string}[] = [];
+        const flatten_assets: (entries: (FlowAsset|FlowAssetDirectory)[], path: string[])=>void = (entries, path) => {
+          for (const entry of entries) {
+            if ('entries' in entry) {
+              flatten_assets(entry.entries, [...path, entry.name]);
+            } else {
+              assets.push({
+                resourceId: entry.id,
+                resourceName: entry.name,
+                resourceType: 'ASSET',
+                resourcePath: path.join('/'),
+                url: `/file/${entry.id}`
+              })
+            }
+          }
+        };
+        flatten_assets(target_flow_obj.assets ?? [], []);
+        req_ops.push({
+          identifier: assetOpId,
+          operation: "SYNC",
+          operand: "resource",
+          args: {
+            globalHash: {
+              digest: target_flow,
+            },
+            resourceList: assets
+          }
+        })
+      }
       const opId = `${nextOperationId++}`;
       PendingOperations.set(opId, {resolve: ()=>{}, reject: (reason: any) => {
         services.agentService.saveFlowUpdateFailure(id, target_flow, reason);
         // agentId: id, flowId: target_flow
       }});
-      res.json({requestedOperations: [
-        {
-          identifier: opId,
-          operation: "UPDATE",
-          operand: "configuration",
-          args: {
-            flowId: target_flow,
-            persist: "true",
-            location: `/${target_flow}`,
-            relativeFlowUrl: `/flows/${target_flow}`
-          }
+      req_ops.push({
+        identifier: opId,
+        operation: "UPDATE",
+        operand: "configuration",
+        args: {
+          flowId: target_flow,
+          persist: "true",
+          location: `/${target_flow}`,
+          relativeFlowUrl: `/flows/${target_flow}`
         }
-      ]});
+      });
+      res.json({requestedOperations: req_ops});
       return;
     }
     if (agent_manifest === null) {

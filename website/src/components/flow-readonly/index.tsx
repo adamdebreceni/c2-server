@@ -29,6 +29,7 @@ import { asSize } from "../../utils/formatter";
 import NiFiIcon from "../../icons/nifi-icon";
 import "./index.scss"
 import { ComponentEditor } from "../component-editor";
+import { AssetManager } from "../asset-manager";
 
 interface FlowEditorState {
   selected: Uuid[],
@@ -425,16 +426,19 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
       <div className="edit-flow-button" onClick={()=>{
         navigate(`/flow/${props.id}`);
       }}>Edit</div>
-      {
-        props.agentId ?
-        <div className="agent-identifier" onClick={goToAgent}>{props.agentId}</div>
-        : null
-      }
-      {
-        <div>
-          <TopBar device_info={state.device_info} agent_info={state.agent_info} />
-        </div>
-      }
+      <div className="flow-info">
+        {
+          props.agentId ?
+          <div className="agent-identifier" onClick={goToAgent}>{props.agentId}</div>
+          : null
+        }
+        {
+          <div>
+            <TopBar device_info={state.device_info} agent_info={state.agent_info} />
+          </div>
+        }
+        <AssetManager assets={state.flow.assets} setAssets={null}/>
+      </div>
       {
         !state.editingComponent ? null :
         <div className="component-editor-container">
