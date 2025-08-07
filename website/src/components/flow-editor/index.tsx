@@ -293,7 +293,7 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
 
                 if (proc.properties[property_key]) {
                     const asset_pattern = /@\{asset-id:([^}]*)\}/g;
-                    const ms = proc.properties[property_key].matchAll(asset_pattern);
+                    const ms = proc.properties[property_key]?.matchAll?.(asset_pattern);
                     if (ms) {
                         for (const m of ms) {
                             const find_asset: (entries: FlowAssetDirectory['entries'])=>boolean = (entries) => {
@@ -1068,7 +1068,7 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
                                 if (proc) {
                                     const proc_manifest = state.flow.manifest.processors.find(proc_manifest => proc_manifest.type === proc.type)!;
                                     const proc_errors = errors.filter(err => err.component === proc.id);
-                                    return <ProcessorEditor model={proc} manifest={proc_manifest} errors={proc_errors}/>
+                                    return <ProcessorEditor model={proc} manifest={proc_manifest} errors={proc_errors} minifi_services={state.flow.services} manifest_services={state.flow.manifest.controllerServices}/>
                                 }
                                 const serv = state.flow.services.find(serv => serv.id === state.editingComponent);
                                 if (serv) {
