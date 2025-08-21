@@ -29,7 +29,7 @@ import { LockIcon } from "../../../src/icons/lock";
 
 type ActiveRunInfo = {runIdx: number, triggerIdx: number|null}|null;
 
-export function ProcessorEditor(props: {model: Processor, manifest: ProcessorManifest, errors: ErrorObject[], state?: ComponentExtendedState, runs?: ProcessorRun[]|undefined, bulletins?: ProcessorBulletin[]}) {
+export function ProcessorEditor(props: {model: Processor, manifest: ProcessorManifest, errors: ErrorObject[], state?: ComponentExtendedState, runs?: ProcessorRun[]|undefined, bulletins?: ProcessorBulletin[], minifi_services?: MiNiFiService[], manifest_services?: ControllerServiceManifest[]}) {
   const notif = useContext(NotificationContext);
   const flow_context = useContext(FlowContext);
   const openModal = useContext(ModalContext);
@@ -243,11 +243,48 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
               if (isSpecialInputField(props.model.type, prop_name)) {
                 return null;
               }
-              const values = props.manifest.propertyDescriptors[prop_name].allowableValues;
-              if (values) {
-                return <PropertyDropdown key={prop_name} name={prop_name} width="100%" items={values.map(val => val.value)} initial={model.properties[prop_name]}
-                    onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: val}})) : undefined} visible={model.visibleProperties?.includes(prop_name) ?? false} onChangeVisibility={onChangeVisibility} error={err?.message}/>
+              {
+                const values = props.manifest.propertyDescriptors[prop_name].allowableValues;
+                if (values) {
+                  return <PropertyDropdown key={prop_name} name={prop_name} width="100%"
+                                           items={values.map(val => val.value)}
+                                           initial={model.properties[prop_name]}
+                                           onChange={flow_context?.editable ? val => setModel(curr => ({
+                                             ...curr,
+                                             properties: {...curr.properties, [prop_name]: val}
+                                           })) : undefined}
+                                           visible={model.visibleProperties?.includes(prop_name) ?? false}
+                                           onChangeVisibility={onChangeVisibility} error={err?.message}/>
+                }
               }
+              {
+                const type_provided_by_value = props.manifest.propertyDescriptors[prop_name].typeProvidedByValue;
+                if (type_provided_by_value) {
+                  let values = [];
+                  if (props.manifest_services && props.minifi_services) {
+                    for (const minifi_service of props.minifi_services) {
+                      let service_manifest = props.manifest_services.find(controller_service_manifest => controller_service_manifest.type === minifi_service.type);
+                      if (minifi_service.type === type_provided_by_value.type) {
+                        values.push(minifi_service.name);
+                      } else if (service_manifest?.providedApiImplementations?.find(impl => impl.type === type_provided_by_value.type)) {
+                        values.push(minifi_service.name);
+                      }
+                    }
+                  }
+                  if (values.length > 0) {
+                    return <PropertyDropdown key={prop_name} name={prop_name} width="100%"
+                                             items={values}
+                                             initial={model.properties[prop_name]}
+                                             onChange={flow_context?.editable ? val => setModel(curr => ({
+                                               ...curr,
+                                               properties: {...curr.properties, [prop_name]: val}
+                                             })) : undefined}
+                                             visible={model.visibleProperties?.includes(prop_name) ?? false}
+                                             onChangeVisibility={onChangeVisibility} error={err?.message}/>
+                  }
+                }
+              }
+
               return <PropertyField key={prop_name} name={prop_name} width="100%" default={model.properties[prop_name]}
                   onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: val}})) : undefined} visible={model.visibleProperties?.includes(prop_name) ?? false} onChangeVisibility={onChangeVisibility} error={err?.message}/>
             })

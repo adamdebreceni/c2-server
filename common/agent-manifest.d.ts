@@ -85,6 +85,9 @@ interface PropertyDescriptor {
   defaultValue?: string
   expressionLanguageScope: string
   validator?: string
+  typeProvidedByValue?: {artifact: string, group: string, type: string}
 }
 
-interface ControllerServiceManifest extends ComponentManifest {}
+interface ControllerServiceManifest extends ComponentManifest {
+    providedApiImplementations? : {artifact: string, group: string, type: string}[]
+}

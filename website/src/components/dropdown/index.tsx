@@ -8,7 +8,7 @@ import { Tooltip } from "../tooltip";
 import { WarningIcon } from "../../icons/warning";
 
 export function Dropdown(props: {name: string, items: string[], initial?: string|null, onChange?: (item: string, idx: number)=>void, width?: string, visible?: boolean, onChangeVisibility?: (name: string)=>void, error?: string}) {
-  const [state, setState] = useState({current: props.initial ?? props.items[0], active: false});
+  const [state, setState] = useState({current: props.initial ?? null, active: false});
   const onBlur = React.useCallback(()=>{
     if (!props.onChange) return;
     setState(curr => ({...curr, active: false}));
