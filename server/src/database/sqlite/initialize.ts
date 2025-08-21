@@ -22,6 +22,7 @@ export async function initialize(): Promise<Database> {
       CREATE TABLE agents(
         id TEXT PRIMARY KEY NOT NULL,
         class TEXT,
+        hb TEXT,
         flow TEXT,
         target_flow TEXT,
         last_heartbeat TEXT,

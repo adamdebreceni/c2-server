@@ -16,6 +16,7 @@ interface AgentClassLike {
 interface AgentLike {
   id: string,
   class: string|null,
+  hb: string|null,
   flow: string|null,
   target_flow: string|null,  // null indicates that the class dictates the flow
   metrics: AgentMetrics|null,
