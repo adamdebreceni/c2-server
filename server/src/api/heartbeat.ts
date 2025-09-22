@@ -212,7 +212,7 @@ export function CreateHeartbeatRouter(services: Services) {
       await services.agentService.pushBulletins(id, (req.body.flowInfo?.processorBulletins as ProcessorBulletin[]).map(bulletin => ({...bulletin, timestamp: new Date(bulletin.timestamp as any)})));
     }
 
-    const hb_result = await services.agentService.heartbeat({id, flow, class: class_name, manifest: manifest ? stableStringify(manifest) : null, flow_info: flow_info_str, device_info: device_info_str, agent_info: agent_info_str});
+    const hb_result = await services.agentService.heartbeat({id, flow, hb: JSON.stringify(req.body), class: class_name, manifest: manifest ? stableStringify(manifest) : null, flow_info: flow_info_str, device_info: device_info_str, agent_info: agent_info_str});
     const target_flow = hb_result.flow;
     const agent_manifest = hb_result.manifest;
     if (target_flow !== null && target_flow !== flow) {
@@ -293,7 +293,7 @@ export function CreateHeartbeatRouter(services: Services) {
         if (response.agentInfo.agentManifestHash && manifest) {
           manifest.hash = response.agentInfo.agentManifestHash;
         }
-        return services.agentService.heartbeat({id, flow: null, class: class_name, manifest: manifest ? stableStringify(manifest) : null, flow_info: null, device_info: null, agent_info: null});
+        return services.agentService.heartbeat({id, flow: null, hb: null, class: class_name, manifest: manifest ? stableStringify(manifest) : null, flow_info: null, device_info: null, agent_info: null});
       })
       PendingOperations.set(opId, {resolve, reject});
       res.json({requestedOperations: [

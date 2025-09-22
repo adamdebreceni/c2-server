@@ -18,13 +18,20 @@ export function AgentDetail() {
   const notif = useContext(NotificationContext)
   const agentId = useParams<any>()["id"]!;
   const navigate = useNavigate();
-  const [agent, setAgent] = useState<{value: AgentLike, manifest: JsonValue, flow_info: JsonValue, device_info: JsonValue, agent_info: JsonValue, response: JsonValue}|null|undefined>(undefined);
+  const [agent, setAgent] = useState<{value: AgentLike, hb: unknown, manifest: JsonValue, flow_info: JsonValue, device_info: JsonValue, agent_info: JsonValue, response: JsonValue}|null|undefined>(undefined);
   const mounted = React.useRef<boolean>(true);
   const openModal = React.useContext(ModalContext);
   useEffect(()=>{
     services!.agents.fetchAgentInformation(agentId).then(new_agent => {
       if (!mounted.current) return;
       if (new_agent) {
+        let hb: unknown = null;
+        try {
+          console.log("Parsing hb: ", new_agent.hb);
+          hb = JSON.parse(new_agent.hb ?? "null");
+        } catch (e) {
+          notif.emit("Failed to parse agent heartbeat", "error");
+        }
         let manifest: AgentManifest|null = null;
         try {
           console.log("Parsing manifest: ", new_agent.manifest);
@@ -53,7 +60,7 @@ export function AgentDetail() {
         } catch (e) {
           notif.emit("Failed to parse agent_info info", "error");
         }
-        setAgent({value: new_agent, manifest, flow_info, device_info, agent_info, response: null});
+        setAgent({value: new_agent, hb, manifest, flow_info, device_info, agent_info, response: null});
       } else {
         setAgent(null);
       }
@@ -123,6 +130,7 @@ export function AgentDetail() {
           }
         }}>{agent.value.flow}</div></div>
       </div>
+      <div className="tab"><div className="title">Heartbeat</div><div className="content"><JsonView value={agent.hb as any}/></div></div>
       <div className="tab"><div className="title">Manifest</div><div className="content"><JsonView value={agent.manifest}/></div></div>
       <div className="tab"><div className="title">FlowInfo</div><div className="content"><JsonView value={agent.flow_info}/></div></div>
       <div className="tab"><div className="title">DeviceInfo</div><div className="content"><JsonView value={agent.device_info}/></div></div>
