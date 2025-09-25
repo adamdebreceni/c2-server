@@ -127,7 +127,7 @@ interface AgentService {
   saveConfig(agentId: string, data: any): Promise<void>
   linkClass(agentId: string): Promise<void>
   // fetchManifestForAgent(id: string): Promise<AgentManifest|null>;
-  // fetchManifestForClass(name: string): Promise<AgentManifest|null>;
+  fetchManifestForClass(name: string): Promise<AgentManifest|null>;
 }
 
 interface AlertService {

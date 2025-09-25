@@ -89,8 +89,7 @@ export class AgentServiceImpl implements AgentService {
   //   const response = await SendRequest("GET", this.api + "/agent/manifest/" + encodeURIComponent(id));
   //   return JSON.parse(response);
   // }
-  // async fetchManifestForClass(name: string): Promise<AgentManifest|null> {
-  //   const response = await SendRequest("GET", this.api + "/class/manifest/" + encodeURIComponent(name));
-  //   return JSON.parse(response);
-  // }
+  async fetchManifestForClass(name: string): Promise<AgentManifest|null> {
+    return SendRequest("GET", this.api + "/class/manifest/" + encodeURIComponent(name));
+  }
 }
