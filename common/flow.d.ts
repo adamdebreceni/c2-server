@@ -41,7 +41,8 @@ interface FlowObject {
   parent?: string|null,
   view: {x: number, y: number, zoom: number}
   processors: Processor[]
-  remoteProcessGroups: RPC[]
+  remoteProcessGroups: RPG[]
+  remoteProcessGroupPorts: RPGPort[]
   connections: Connection[]
   services: MiNiFiService[]
   parameters: Parameter[]
@@ -173,15 +174,22 @@ interface Scheduling {
   runDuration: string
 }
 
-interface RPC extends Positionable {
-  id: Uuid,
+interface RPG extends Component {
   url: string,
   protocol: "RAW" | "HTTP",
-  proxy: {host: string, port: number},
+  proxy: {host: string, port: number, user: string, password: string},
   localNetworkInterface: string
   connectionTimeout: Time,
-  yield: Time,
-  parentGroup: Uuid|null
+  yield: Time
+}
+
+interface RPGPort extends Component {
+  type: 'INPUT' | 'OUTPUT'
+  compression: boolean,
+  batch: {count: number, size: Size, duration: Time},
+  targetId: Uuid | null,
+  parentGroup: Uuid | null,
+  rpg: Uuid | null
 }
 
 interface ConnectionSize {

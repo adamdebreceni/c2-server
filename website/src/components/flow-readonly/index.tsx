@@ -606,7 +606,7 @@ function useFlowContext(services: Services|null, agentId: string|undefined, area
 
   return React.useMemo(()=>(
       {showMenu, deleteComponent, hideMenu, editComponent, updateProcessor: noopUpdate,
-      updateConnection: noopUpdate, updateService: noopUpdate, updateGroup: noopUpdate, updateFunnel: noopUpdate, updateParameterContext: noopUpdate, updatePort: noopUpdate, closeComponentEditor, closeNewProcessor, closeNewService,
+      updateConnection: noopUpdate, updateService: noopUpdate, updateGroup: noopUpdate, updateFunnel: noopUpdate, updateParameterContext: noopUpdate, updatePort: noopUpdate, updateRpg: noopUpdate, updateRpgPort: noopUpdate, closeComponentEditor, closeNewProcessor, closeNewService,
       moveConnection, startProcessor, stopProcessor, clearProcessorState, updateRun, setMovingComponent, editable: false, agentId}),
     [showMenu, deleteComponent, hideMenu, editComponent, noopUpdate, closeComponentEditor, closeNewProcessor, closeNewService,
     moveConnection, startProcessor, stopProcessor, clearProcessorState, updateRun, setMovingComponent, agentId]);

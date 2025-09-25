@@ -28,6 +28,8 @@ import {width, height} from "../../utils/widget-size";
 import {autoLayout, createGraph} from "../../utils/auto-layout"
 import { ComponentEditor } from "../component-editor";
 import { AssetManager } from "../asset-manager";
+import { RpgEditor } from "../rpg-editor";
+import { RpgPortEditor } from "../rpg-port-editor";
 
 interface NewConnection {
     source: Uuid,
@@ -42,6 +44,7 @@ export type ResizeDir = 'top' | 'top-left' | 'left' | 'bottom-left' | 'bottom' |
 interface FlowEditorState {
     saved: boolean,
     flow: FlowObject
+    classManifest: AgentManifest|null
     menu: { position: { x: number, y: number }, items: { name: string, on: () => void }[] } | null
     panning: boolean,
     editingComponent: Uuid | null,
@@ -152,7 +155,7 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
     const [state, setState] = useState<FlowEditorState>({
         saved: true, publish: {agents: [], classes: [], targetFlow: null, modal: false, pending: false},
         flow: props.flow, panning: false, menu: null, editingComponent: null, newConnection: null, newComponent: null,
-        resizeGroup: null, movingComponent: null, newProcessGroup: null, selected: []
+        resizeGroup: null, movingComponent: null, newProcessGroup: null, selected: [], classManifest: null
     });
     const [errors, setErrors] = useState<ErrorObject[]>([]);
     const areaRef = React.useRef<HTMLDivElement>(null);
@@ -222,7 +225,7 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
                         processors: setComponentGroupParents(st.flow.processors, st.selected, id),
                         funnels: setComponentGroupParents(st.flow.funnels, st.selected, id),
                         processGroupsPorts: setComponentGroupParents(st.flow.processGroupsPorts ?? [], st.selected, id),
-                        remoteProcessGroups: setComponentGroupParents(st.flow.remoteProcessGroups ?? [], st.selected, id)
+                        remoteProcessGroupPorts: setComponentGroupParents(st.flow.remoteProcessGroupPorts ?? [], st.selected, id)
                     },
                     selected: []
                 };
@@ -255,6 +258,21 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
     const notif = React.useContext(NotificationContext);
 
     const isSavePending = React.useRef(false);
+
+    React.useEffect(() => {
+        if (!props.flow.className) return;
+        let mounted = true;
+        let fn = () => {services?.agents.fetchManifestForClass(props.flow.className!).then(manifest => {
+            if (!mounted || !manifest?.hash || manifest?.hash === props.flow.manifest.hash) return;
+            setState(st => ({...st, classManifest: manifest!}));
+        })};
+        fn();
+        const timer = setInterval(fn, 2000);
+        return () => {
+            mounted = false;
+            clearInterval(timer);
+        }
+    }, [props.flow.className, props.flow.manifest.hash])
 
     React.useEffect(() => {
         let errors: ErrorObject[] = [];
@@ -766,6 +784,86 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
                     flowContext.hideMenu();
                 }
             },
+            {
+                name: "Add remote", on: () => {
+                    setState(st => {
+                        const {x, y} = toAreaCoords(areaRef, st, {clientX, clientY});
+                        const id = uuid.v4() as Uuid;
+                        return {
+                            ...st,
+                            flow: {...st.flow, remoteProcessGroups: [...(st.flow.remoteProcessGroups ?? []), {
+                                id,
+                                type: 'RemoteProcessGroup',
+                                name: id,
+                                position: {x, y},
+                                url: '',
+                                protocol: "HTTP",
+                                proxy: {host: '', port: 0, user: '', password: ''},
+                                localNetworkInterface: '',
+                                connectionTimeout: '0s' as Time,
+                                yield: '0s' as Time,
+                                parentGroup: null,
+                                properties: {}
+                            }]}
+                        };
+                    })
+                    flowContext.hideMenu();
+                }
+            },
+            {
+                name: "Add remote input port", on: () => {
+                    setState(st => {
+                        const {x, y} = toAreaCoords(areaRef, st, {clientX, clientY});
+                        const id = uuid.v4() as Uuid;
+                        return {
+                            ...st,
+                            flow: {
+                                ...st.flow,
+                                remoteProcessGroupPorts: [...(st.flow.remoteProcessGroupPorts ?? []), {
+                                    id,
+                                    name: id,
+                                    position: {x, y},
+                                    parentGroup: findProcessGroup(st, {x, y}),
+                                    type: 'INPUT',
+                                    compression: false,
+                                    batch: {count: 0, size: '0 B' as Size, duration: '0 s' as Time},
+                                    targetId: null,
+                                    properties: {},
+                                    rpg: null
+                                }]
+                            }
+                        };
+                    })
+                    flowContext.hideMenu();
+                }
+            },
+            {
+                name: "Add remote output port", on: () => {
+                    setState(st => {
+                        const {x, y} = toAreaCoords(areaRef, st, {clientX, clientY});
+                        const id = uuid.v4() as Uuid;
+                        return {
+                            ...st,
+                            flow: {
+                                ...st.flow,
+                                remoteProcessGroupPorts: [...(st.flow.remoteProcessGroupPorts ?? []), {
+                                    id,
+                                    name: id,
+                                    position: {x, y},
+                                    parentGroup: findProcessGroup(st, {x, y}),
+                                    type: 'OUTPUT',
+                                    compression: false,
+                                    batch: {count: 0, size: '0 B' as Size, duration: '0 s' as Time},
+                                    targetId: null,
+                                    properties: {},
+                                    rpg: null
+                                }]
+                            }
+                        };
+                    })
+                    flowContext.hideMenu();
+                }
+            },
         ])
     }, [flowContext.showMenu, flowContext.hideMenu]);
 
@@ -967,6 +1065,12 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
                     })
                 }
                 {
+                    state.flow.remoteProcessGroups.map(rpg => {
+                        const rpg_errors = errors.filter(err => err.component === rpg.id);
+                        return <Widget key={rpg.id} value={rpg} errors={rpg_errors} kind='rpg'/>
+                    })
+                }
+                {
                     emitProcessGroupItems(state, errors, null, null)
                 }
                 {
@@ -1038,6 +1142,12 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
                 <div className="rearrange-btn" onClick={rearrange}>
                     <span className="label">Rearrange</span>
                 </div>
+                {
+                    state.classManifest && state.flow.manifest.hash !== state.classManifest?.hash ? 
+                    <div className="upgrade-manifest-btn" onClick={() => setState(st => ({...st, flow: {...st.flow, manifest: st.classManifest!}}))}>
+                        <span className="label">Upgrade manifest</span>
+                    </div> : null
+                }
             </div>
             {
                 !state.publish.modal ? null :
@@ -1091,6 +1201,16 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
                                 const ctx = state.flow.parameterContexts?.find(ctx => ctx.id === state.editingComponent);
                                 if (ctx) {
                                     return <ParameterContextEditor model={ctx}/>
+                                }
+                                const rpg = state.flow.remoteProcessGroups?.find(rpg => rpg.id === state.editingComponent);
+                                if (rpg) {
+                                    const rpg_errors = errors.filter(err => err.component === rpg.id);
+                                    return <RpgEditor model={rpg} errors={rpg_errors}/>
+                                }
+                                const rpgPort = state.flow.remoteProcessGroupPorts?.find(port => port.id === state.editingComponent);
+                                if (rpgPort) {
+                                    const port_errors = errors.filter(err => err.component === rpgPort.id);
+                                    return <RpgPortEditor model={rpgPort} rpgs={state.flow.remoteProcessGroups} errors={port_errors} />
                                 }
                                 return null;
                             })()
@@ -1196,9 +1316,10 @@ export function emitProcessGroupItems(state: {
             state.flow.processors.map(proc => {
                 if ((proc.parentGroup ?? null) !== (group?.id ?? null)) return null;
                 const proc_errors = errors.filter(err => err.component === proc.id);
-                return <Widget key={proc.id} kind='processor' container={container}
+                return <Widget key={proc.id} value={proc} kind='processor' container={container}
                                selected={state.selected.includes(proc.id)}
-                               errors={proc_errors} highlight={state.newConnection?.to === proc.id} value={proc}
+                               errors={proc_errors}
+                               highlight={state.newConnection?.to === proc.id}
                                link={state.newConnection?.source === proc.id && !state.newConnection.to}/>
             })
         ),
@@ -1216,6 +1337,17 @@ export function emitProcessGroupItems(state: {
             state.flow.processGroupsPorts?.map(port => {
                 if ((port.parentGroup ?? null) !== (group?.id ?? null)) return null;
                 return <Widget key={port.id} value={port} kind={port.type === 'INPUT' ? 'input-port' : 'output-port'}
+                               container={group ? containers?.get(group.parentGroup as any) : null}
+                               selected={state.selected.includes(port.id)}
+                               highlight={state.newConnection?.to === port.id}
+                               link={state.newConnection?.source === port.id && !state.newConnection.to}
+                />
+            })
+        ),
+        (
+            state.flow.remoteProcessGroupPorts?.map(port => {
+                if ((port.parentGroup ?? null) !== (group?.id ?? null)) return null;
+                return <Widget key={port.id} value={port} kind={port.type === 'INPUT' ? 'remote-input-port' : 'remote-output-port'}
                                target={group}
                                container={group ? containers?.get(group.parentGroup as any) : null}
                                selected={state.selected.includes(port.id)}
@@ -1348,7 +1480,10 @@ function findConnSourceProc(st: FlowEditorState, pos: { x: number, y: number }) 
         }
         return false;
     }
-    return st.flow.processors.find(matcher) ?? st.flow.funnels.find(matcher) ?? st.flow.processGroupsPorts?.find(matcher);
+    return st.flow.processors.find(matcher)
+        ?? st.flow.funnels.find(matcher)
+        ?? st.flow.processGroupsPorts?.find(matcher)
+        ?? st.flow.remoteProcessGroupPorts?.find(matcher);
 }
 
 function updateProcessGroupChildren(st: FlowEditorState, id: Uuid, x: number, y: number): FlowEditorState {
@@ -1364,6 +1499,7 @@ function updateProcessGroupChildren(st: FlowEditorState, id: Uuid, x: number, y:
                     funnels: updateComponentList(st.flow.funnels, id, group.id),
                     processGroupsPorts: updateComponentList(st.flow.processGroupsPorts ?? [], id, group.id),
                     processGroups: updateComponentList(st.flow.processGroups ?? [], id, group.id),
+                    remoteProcessGroupPorts: updateComponentList(st.flow.remoteProcessGroupPorts ?? [], id, group.id),
                 }
             }
         }
@@ -1375,6 +1511,7 @@ function updateProcessGroupChildren(st: FlowEditorState, id: Uuid, x: number, y:
             funnels: updateComponentList(st.flow.funnels, id, null),
             processGroupsPorts: updateComponentList(st.flow.processGroupsPorts ?? [], id, null),
             processGroups: updateComponentList(st.flow.processGroups ?? [], id, null),
+            remoteProcessGroupPorts: updateComponentList(st.flow.remoteProcessGroupPorts ?? [], id, null),
         }
     };
 }
@@ -1420,7 +1557,10 @@ function findConnDestProc(st: FlowEditorState, pos: { x: number, y: number }) {
         return proc.position.x - limit <= pos.x && pos.x <= proc.position.x + width(proc) + limit &&
             proc.position.y - limit <= pos.y && pos.y <= proc.position.y + height(proc) + limit;
     }
-    return st.flow.processors.find(matcher) ?? st.flow.funnels.find(matcher) ?? st.flow.processGroupsPorts?.find(matcher);
+    return st.flow.processors.find(matcher)
+        ?? st.flow.funnels.find(matcher)
+        ?? st.flow.processGroupsPorts?.find(matcher)
+        ?? st.flow.remoteProcessGroupPorts?.find(matcher);
 }
 
 function toAreaCoords(areaRef: React.RefObject<HTMLDivElement | null>, st: FlowEditorState, e: {
@@ -1569,6 +1709,38 @@ function moveComponentImpl(st: FlowEditorState, id: Uuid, position: { x: number,
                     })
                 }
             }, original: ctx
+        };
+    }
+    const rpg = st.flow.remoteProcessGroups.find(rpg => rpg.id === id);
+    if (rpg) {
+        if (!position) {
+            return {state: st, original: rpg};
+        }
+        return {
+            state: {
+                ...st, flow: {
+                    ...st.flow, remoteProcessGroups: st.flow.remoteProcessGroups.map(rpg => {
+                        if (rpg.id !== id) return rpg;
+                        return {...rpg, position}
+                    })
+                }
+            }, original: rpg
+        };
+    }
+    const rpgPort = st.flow.remoteProcessGroupPorts.find(port => port.id === id);
+    if (rpgPort) {
+        if (!position) {
+            return {state: st, original: rpgPort};
+        }
+        return {
+            state: {
+                ...st, flow: {
+                    ...st.flow, remoteProcessGroupPorts: st.flow.remoteProcessGroupPorts.map(port => {
+                        if (port.id !== id) return port;
+                        return {...port, position}
+                    })
+                }
+            }, original: rpgPort
         };
     }
     console.error(`No component with id '${id}'`);
@@ -1754,12 +1926,16 @@ function useFlowContext(areaRef: React.RefObject<HTMLDivElement | null>, state: 
                 for (const item of (st.flow.processGroupsPorts ?? [])) {
                     if (group_ids.includes(item.parentGroup as any)) resources.push(item.id);
                 }
+                for (const item of (st.flow.remoteProcessGroupPorts ?? [])) {
+                    if (group_ids.includes(item.parentGroup as any)) resources.push(item.id);
+                }
                 return {
                     ...st, flow: {
                         ...st.flow,
                         processGroups: st.flow.processGroups!.filter(group => group.id !== id && !group_ids.includes(group.parentGroup as any)),
                         processors: st.flow.processors.filter(item => !resources.includes(item.id)),
                         funnels: st.flow.funnels.filter(item => !resources.includes(item.id)),
+                        remoteProcessGroupPorts: st.flow.remoteProcessGroupPorts.filter(item => !resources.includes(item.id)),
                         processGroupsPorts: st.flow.processGroupsPorts?.filter(item => !resources.includes(item.id)),
                         connections: st.flow.connections.filter(conn => !resources.includes(conn.source.id) && !resources.includes(conn.destination.id))
                     }
@@ -1776,6 +1952,28 @@ function useFlowContext(areaRef: React.RefObject<HTMLDivElement | null>, state: 
                         })
                     }
                 };
+            }
+            if (st.flow.remoteProcessGroups?.find(rpg => rpg.id === id)) {
+                return {
+                    ...st, flow: {
+                        ...st.flow,
+                        remoteProcessGroups: st.flow.remoteProcessGroups!.filter(ctx => ctx.id !== id),
+                        remoteProcessGroupPorts: st.flow.remoteProcessGroupPorts?.map(port => {
+                            if (port.rpg !== id) return port;
+                            return {...port, rpg: null};
+                        })
+                    }
+                };
+            }
+            if (st.flow.remoteProcessGroupPorts?.find(port => port.id === id)) {
+                return {
+                    ...st,
+                    flow: {
+                        ...st.flow,
+                        remoteProcessGroupPorts: st.flow.remoteProcessGroupPorts!.filter(port => port.id !== id),
+                        connections: st.flow.connections.filter(conn => conn.id !== id && conn.source.id !== id && conn.destination.id !== id)
+                    }
+                }
             }
             return {...st, flow: {...st.flow, services: st.flow.services.filter(serv => serv.id !== id)}};
         })
@@ -1916,6 +2114,40 @@ function useFlowContext(areaRef: React.RefObject<HTMLDivElement | null>, state: 
         })
     }, []);
 
+    const updateRpg = React.useCallback((id: Uuid, fn: (curr: RPG) => RPG) => {
+        setState(st => {
+            const curr = st.flow.remoteProcessGroups?.find(rpg => rpg.id === id);
+            if (!curr) return st;
+            const updated = fn(curr);
+            if (updated === curr) return st;
+            return {
+                ...st, flow: {
+                    ...st.flow, remoteProcessGroups: st.flow.remoteProcessGroups!.map(ctx => {
+                        if (ctx.id !== id) return ctx;
+                        return updated;
+                    })
+                }
+            }
+        })
+    }, []);
+
+    const updateRpgPort = React.useCallback((id: Uuid, fn: (curr: RPGPort) => RPGPort) => {
+        setState(st => {
+            const curr = st.flow.remoteProcessGroupPorts?.find(port => port.id === id);
+            if (!curr) return st;
+            const updated = fn(curr);
+            if (updated === curr) return st;
+            return {
+                ...st, flow: {
+                    ...st.flow, remoteProcessGroupPorts: st.flow.remoteProcessGroupPorts!.map(ctx => {
+                        if (ctx.id !== id) return ctx;
+                        return updated;
+                    })
+                }
+            }
+        })
+    }, []);
+
     const closeComponentEditor = React.useCallback(() => {
         setState(st => ({...st, editingComponent: null}))
     }, [])
@@ -2004,6 +2236,8 @@ function useFlowContext(areaRef: React.RefObject<HTMLDivElement | null>, state: 
             updateFunnel,
             updateParameterContext,
             updatePort,
+            updateRpg,
+            updateRpgPort,
             closeComponentEditor,
             closeNewProcessor,
             closeNewService,
@@ -2012,7 +2246,7 @@ function useFlowContext(areaRef: React.RefObject<HTMLDivElement | null>, state: 
             editable: true
         }),
         [showMenu, deleteComponent, hideMenu, editComponent, updateProcessor, updateConnection, updateService,
-            updateGroup, updateFunnel, updateParameterContext, updatePort, closeComponentEditor, closeNewProcessor, closeNewService,
+            updateGroup, updateFunnel, updateParameterContext, updatePort, updateRpg, updateRpgPort, closeComponentEditor, closeNewProcessor, closeNewService,
             moveConnection, setMovingComponent]);
 }
 
@@ -2168,7 +2402,8 @@ function StringCmp(a: string, b: string) {
 export function FindComponent(flow: FlowObject, id: Uuid): Component | undefined {
     return flow.processors.find(proc => proc.id === id)
         ?? flow.funnels.find(funnel => funnel.id === id)
-        ?? flow.processGroupsPorts?.find(port => port.id === id);
+        ?? flow.processGroupsPorts?.find(port => port.id === id)
+        ?? flow.remoteProcessGroupPorts?.find(port => port.id === id);
 }
 
 // finds all visible (not overlapped by process groups or hidden in their parent) components
@@ -2189,6 +2424,7 @@ export function FindVisibleComponents(flow: FlowObject, area: {
         ...flow.processors.filter(filter),
         ...flow.funnels.filter(filter),
         ...(flow.processGroupsPorts ?? []).filter(filter),
+        ...(flow.remoteProcessGroupPorts ?? []).filter(filter),
     ];
 }
 

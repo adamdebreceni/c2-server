@@ -14,6 +14,8 @@ export const FlowContext = React.createContext<{
   updateFunnel: (id: Uuid, fn: (funnel: Funnel)=>Funnel)=>void,
   updateParameterContext: (id: Uuid, fn: (ctx: ParameterContext)=>ParameterContext)=>void,
   updatePort: (id: Uuid, fn: (port: ProcessGroupPort)=>ProcessGroupPort)=>void,
+  updateRpg: (id: Uuid, fn: (rpg: RPG)=>RPG)=>void,
+  updateRpgPort: (id: Uuid, fn: (port: RPGPort)=>RPGPort)=>void,
   closeComponentEditor: ()=>void,
   closeNewProcessor: (name: string|null)=>void,
   closeNewService: (name: string|null)=>void,
