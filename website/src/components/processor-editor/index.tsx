@@ -175,7 +175,7 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
           <InputField name="NAME" width="100%" default={model.name} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, name: val})) : undefined}/>
           <InputField name="PENALTY DURATION" width="100%" default={model.penalty} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, penalty: val})) : undefined}/>
           <InputField name="YIELD DURATION" width="100%" default={model.yield} onChange={flow_context?.editable ? val => setModel(curr => ({...curr, yield: val})) : undefined}/>
-          <Dropdown name="BULLETIN LEVEL" width="100%" initial={model.bulletinLevel ?? '<disable>'} items={["<disable>", "TRACE", "DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"]} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, bulletinLevel: val})) : undefined}/>
+          <Dropdown name="BULLETIN LEVEL" width="100%" initial={model.bulletinLevel ?? 'ERROR'} items={["TRACE", "DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"]} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, bulletinLevel: val})) : undefined}/>
         </div>
         <div className="section">
           <div className="section-title">Auto-terminated relationships</div>

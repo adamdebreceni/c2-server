@@ -42,6 +42,7 @@ export type ResizeDir = 'top' | 'top-left' | 'left' | 'bottom-left' | 'bottom' |
 interface FlowEditorState {
     saved: boolean,
     flow: FlowObject
+    classManifest: AgentManifest|null
     menu: { position: { x: number, y: number }, items: { name: string, on: () => void }[] } | null
     panning: boolean,
     editingComponent: Uuid | null,
@@ -152,7 +153,7 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
     const [state, setState] = useState<FlowEditorState>({
         saved: true, publish: {agents: [], classes: [], targetFlow: null, modal: false, pending: false},
         flow: props.flow, panning: false, menu: null, editingComponent: null, newConnection: null, newComponent: null,
-        resizeGroup: null, movingComponent: null, newProcessGroup: null, selected: []
+        resizeGroup: null, movingComponent: null, newProcessGroup: null, selected: [], classManifest: null
     });
     const [errors, setErrors] = useState<ErrorObject[]>([]);
     const areaRef = React.useRef<HTMLDivElement>(null);
@@ -255,6 +256,24 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
     const notif = React.useContext(NotificationContext);
 
     const isSavePending = React.useRef(false);
+
+    React.useEffect(() => {
+        if (!props.flow.className) return;
+        let mounted = true;
+        let fn = () => {
+            if (!mounted) return;
+            services?.agents.fetchManifestForClass(props.flow.className!).then(manifest => {
+                if (!mounted || !manifest?.hash || manifest?.hash === props.flow.manifest.hash) return;
+                setState(st => ({...st, classManifest: manifest!}));
+            })
+        };
+        fn();
+        const timer = setInterval(fn, 2000);
+        return () => {
+            mounted = false;
+            clearInterval(timer);
+        }
+    }, [props.flow.className, props.flow.manifest.hash]) 
 
     React.useEffect(() => {
         let errors: ErrorObject[] = [];
@@ -1038,6 +1057,15 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
                 <div className="rearrange-btn" onClick={rearrange}>
                     <span className="label">Rearrange</span>
                 </div>
+                {
+                    state.classManifest && state.flow.manifest.hash !== state.classManifest?.hash ? 
+                    <div className="upgrade-manifest-btn" onClick={() => {
+                        setState(st => ({...st, flow: {...st.flow, manifest: st.classManifest!}}))
+                        notif.emit('Manifest successfully upgraded', 'success');
+                    }}>
+                        <span className="label">Upgrade manifest</span>
+                    </div> : null
+                }
             </div>
             {
                 !state.publish.modal ? null :
