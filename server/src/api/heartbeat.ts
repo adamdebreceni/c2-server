@@ -1,6 +1,6 @@
 import {Router, json} from 'express';
 import { PORT } from '../server-options';
-import { PendingComponentRun, PendingComponentStart, PendingComponentStateClear, PendingComponentStateQuery, PendingComponentStop, PendingDebugInfo, PendingOperationRequest, PendingOperations, PendingPropertyUpdates, PendingRestart, PendingUpdates } from '../services/agent-state';
+import { PendingComponentRun, PendingComponentStart, PendingComponentStateClear, PendingComponentStateQuery, PendingComponentStop, PendingDebugInfo, PendingFlowStart, PendingFlowStop, PendingOperationRequest, PendingOperations, PendingPropertyUpdates, PendingRestart, PendingUpdates } from '../services/agent-state';
 import { MakeAsyncSafe } from '../utils/async';
 import * as uuid from 'uuid';
 
@@ -145,6 +145,32 @@ export function CreateHeartbeatRouter(services: Services) {
         args: {
           processorId: component_start.id
         }
+      }]});
+      return;
+    }
+
+    const flow_stop = PendingFlowStop.get(id);
+    PendingFlowStop.delete(id);
+    if (flow_stop) {
+      const opId = `${nextOperationId++}`;
+      PendingOperations.set(opId, flow_stop);
+      res.json({requestedOperations: [{
+        identifier: opId,
+        operation: "STOP",
+        operand: "FLOW"
+      }]});
+      return;
+    }
+
+    const flow_start = PendingFlowStart.get(id);
+    PendingFlowStart.delete(id);
+    if (flow_start) {
+      const opId = `${nextOperationId++}`;
+      PendingOperations.set(opId, flow_start);
+      res.json({requestedOperations: [{
+        identifier: opId,
+        operation: "START",
+        operand: "FLOW"
       }]});
       return;
     }

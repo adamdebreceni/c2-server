@@ -50,6 +50,14 @@ export class AgentServiceImpl implements AgentService {
     return SendRequest("POST", this.api + "/agent/" + encodeURIComponent(agentId) + "/start-component/" + encodeURIComponent(componentId));
   }
 
+  async stopFlow(agentId: string): Promise<void> {
+    return SendRequest("POST", this.api + "/agent/" + encodeURIComponent(agentId) + "/stop-flow");
+  }
+
+  async startFlow(agentId: string): Promise<void> {
+    return SendRequest("POST", this.api + "/agent/" + encodeURIComponent(agentId) + "/start-flow");
+  }
+
   async configure(id: string, properties: {name: string, value: string, persist: boolean}[]): Promise<void> {
     return SendRequest("POST", this.api + `/agent/configure/${id}`, properties);
   }

@@ -7,6 +7,9 @@ export const PendingComponentStop = new Map<string, {id: string, resolve: ()=>vo
 export const PendingComponentStart = new Map<string, {id: string, resolve: ()=>void, reject: ()=>void}>();
 export const PendingComponentRun = new Map<string, {id: string, input: RunInput, resolve: (result: string)=>void, reject: ()=>void}>();
 
+export const PendingFlowStop = new Map<string, {resolve: ()=>void, reject: ()=>void}>();
+export const PendingFlowStart = new Map<string, {resolve: ()=>void, reject: ()=>void}>();
+
 export const PendingComponentStateQuery = new Map<string, {resolve: (data?: any)=>void, reject: (reason?: string)=>void}>();
 export const PendingComponentStateClear = new Map<string, {components: string[], resolve: ()=>void, reject: (reason?: string)=>void}>();
 

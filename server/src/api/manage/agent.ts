@@ -1,5 +1,5 @@
 import { json, raw, Router, text } from "express";
-import { PendingComponentRun, PendingComponentStart, PendingComponentStateClear, PendingComponentStateQuery, PendingComponentStop, PendingDebugInfo, PendingOperationRequest, PendingPropertyUpdates, PendingRestart, PendingUpdates } from "../../services/agent-state";
+import { PendingComponentRun, PendingComponentStart, PendingComponentStateClear, PendingComponentStateQuery, PendingComponentStop, PendingDebugInfo, PendingFlowStart, PendingFlowStop, PendingOperationRequest, PendingPropertyUpdates, PendingRestart, PendingUpdates } from "../../services/agent-state";
 import { MakeAsyncSafe } from "../../utils/async";
 
 export function CreateManageAgentRouter(services: Services): Router {
@@ -93,7 +93,7 @@ export function CreateManageAgentRouter(services: Services): Router {
       resolve = res;
       reject = rej;
     })
-    console.log(`STOP requested`);
+    console.log(`STOP requested for component ${req.params.componentId} on agent ${req.params.agentId}`);
     PendingComponentStop.set(req.params.agentId, {id: req.params.componentId, resolve, reject});
     await result;
     res.sendStatus(200);
@@ -106,7 +106,34 @@ export function CreateManageAgentRouter(services: Services): Router {
       resolve = res;
       reject = rej;
     })
+    console.log(`START requested for component ${req.params.componentId} on agent ${req.params.agentId}`);
     PendingComponentStart.set(req.params.agentId, {id: req.params.componentId, resolve, reject});
+    await result;
+    res.sendStatus(200);
+  })
+
+  router.post("/:agentId/stop-flow", async (req, res) => {
+    let resolve: ()=>void = null as any;
+    let reject: ()=>void = null as any;
+    const result = new Promise<void>((res, rej)=>{
+      resolve = res;
+      reject = rej;
+    })
+    console.log(`STOP FLOW requested for agent ${req.params.agentId}`);
+    PendingFlowStop.set(req.params.agentId, {resolve, reject});
+    await result;
+    res.sendStatus(200);
+  })
+
+  router.post("/:agentId/start-flow", async (req, res) => {
+    let resolve: ()=>void = null as any;
+    let reject: ()=>void = null as any;
+    const result = new Promise<void>((res, rej)=>{
+      resolve = res;
+      reject = rej;
+    })
+    console.log(`START FLOW requested for agent ${req.params.agentId}`);
+    PendingFlowStart.set(req.params.agentId, {resolve, reject});
     await result;
     res.sendStatus(200);
   })
