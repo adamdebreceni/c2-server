@@ -123,10 +123,12 @@ export function CreateHeartbeatRouter(services: Services) {
       const opId = `${nextOperationId++}`;
       PendingOperations.set(opId, component_stop);
       res.json({requestedOperations: [{
-        operationId: opId,
-        operation: "stop",
-        name: component_stop.id,
-        args: {}
+        identifier: opId,
+        operation: "STOP",
+        operand: "PROCESSOR",
+        args: {
+          processorId: component_stop.id
+        }
       }]});
       return;
     }
@@ -137,10 +139,12 @@ export function CreateHeartbeatRouter(services: Services) {
       const opId = `${nextOperationId++}`;
       PendingOperations.set(opId, component_start);
       res.json({requestedOperations: [{
-        operationId: opId,
-        operation: "start",
-        name: component_start.id,
-        args: {}
+        identifier: opId,
+        operation: "START",
+        operand: "PROCESSOR",
+        args: {
+          processorId: component_start.id
+        }
       }]});
       return;
     }
