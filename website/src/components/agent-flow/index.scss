@@ -1,15 +1,20 @@
+.agent-info-container {
+  display: flex;
+  align-items: center;
+  margin: 20px;
+  pointer-events: all;
+}
+
 .agent-identifier {
   padding: 5px 20px;
   border: 1px solid var(--text-inactive-color);
   color: var(--text-inactive-color);
   border-radius: 30px;
-  margin: 20px;
   cursor: pointer;
   &:hover {
     border: 1px solid var(--text-active-color);
     color: var(--text-active-color);
   }
-  pointer-events: all;
 }
 
 .top-bar {

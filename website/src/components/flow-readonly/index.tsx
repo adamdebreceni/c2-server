@@ -6,6 +6,8 @@ import * as uuid from 'uuid';
 
 import "../flow-editor/index.scss"
 import { ConnectionView } from "../connection";
+import { PlayIcon } from "../../icons/play";
+import { PauseIcon } from "../../icons/pause";
 import { FlowContext } from "../../common/flow-context";
 import { Menu } from "../menu";
 import { ProcessorEditor } from "../processor-editor";
@@ -38,6 +40,7 @@ interface FlowEditorState {
   agent_info: AgentInfo | null,
   panning: boolean,
   editingComponent: Uuid | null,
+  flowRunning: "STARTED" | "STOPPED" | "STARTING" | "STOPPING",
 }
 
 function width(proc: Processor) {
@@ -58,6 +61,14 @@ function isFlowInfoDeprecated(flow_info: FlowInfo | FlowInfoDeprecated): flow_in
   return (flow_info as FlowInfoDeprecated).components !== undefined;
 }
 
+
+function FlowControlButton(props: {state: ComponentState, onClick?: ()=>void, disabled?: boolean}) {
+  const handleClick = props.disabled ? undefined : props.onClick;
+  return <div className={`flow-control-button ${props.state} ${props.disabled ? 'disabled' : ''}`} onClick={handleClick}>
+    {props.state === "STARTED" || props.state === "STOPPING" ? <PlayIcon size={20} /> : null}
+    {props.state === "STOPPED" || props.state === "STARTING" ? <PauseIcon size={20} /> : null}
+  </div>
+}
 
 const TopBar: React.FC<{ device_info: DeviceInfo | null, agent_info: AgentInfo | null }> = ({
                                                                                               device_info,
@@ -118,7 +129,7 @@ const TopBar: React.FC<{ device_info: DeviceInfo | null, agent_info: AgentInfo |
 
 
 export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId?: string}) {
-  const [state, setState] = useState<FlowEditorState>({flow: props.flow, panning: false, device_info: null, agent_info: null, editingComponent: null, selected: []});
+  const [state, setState] = useState<FlowEditorState>({flow: props.flow, panning: false, device_info: null, agent_info: null, editingComponent: null, selected: [], flowRunning: "STARTED"});
   const [errors, setErrors] = useState<ErrorObject[]>([]);
   const areaRef = React.useRef<HTMLDivElement>(null);
   const services = React.useContext(ServiceContext);
@@ -235,7 +246,7 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
           }
           if (conn_changed || proc_changed) {
             return {...st,
-              flow: {...st.flow, 
+              flow: {...st.flow,
                 connections: conn_changed ? new_connections : st.flow.connections,
                 processors: proc_changed ? new_processors : st.flow.processors
               }
@@ -370,12 +381,12 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
         if (st.editingComponent || !st.panning) return st;
 
         return {
-          ...st, 
+          ...st,
           flow: {...st.flow, view: {x: st.flow.view.x - e.movementX / st.flow.view.zoom, y: st.flow.view.y - e.movementY / st.flow.view.zoom, zoom: st.flow.view.zoom}}
         }
       })
     }
-  
+
     const mouseup = (e: MouseEvent)=>{
       setState(st=> {
         if (st.editingComponent) return st;
@@ -383,7 +394,7 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
       })
     }
 
-    
+
     document.addEventListener("mousemove", mousemove);
     document.addEventListener("mouseup", mouseup);
     return ()=>{
@@ -429,7 +440,17 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
       <div className="flow-info">
         {
           props.agentId ?
-          <div className="agent-identifier" onClick={goToAgent}>{props.agentId}</div>
+          <div className="agent-info-container">
+            <div className="agent-identifier" onClick={goToAgent}>{props.agentId}</div>
+            {flowContext.stopFlow && flowContext.startFlow ? (
+              <FlowControlButton
+                state={state.flowRunning}
+                onClick={state.flowRunning === "STARTED" ? flowContext.stopFlow :
+                        state.flowRunning === "STOPPED" ? flowContext.startFlow : undefined}
+                disabled={state.flowRunning === "STARTING" || state.flowRunning === "STOPPING"}
+              />
+            ) : null}
+          </div>
           : null
         }
         {
@@ -488,7 +509,7 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
 
 function useFlowContext(services: Services|null, agentId: string|undefined, areaRef: React.RefObject<HTMLDivElement|null>, state: FlowEditorState, setState: (value: React.SetStateAction<FlowEditorState>)=>void) {
   const notif = React.useContext(NotificationContext);
-  
+
   const showMenu = React.useCallback((position: {clientX: number, clientY: number}, items: {name: string, on: ()=>void}[])=>{
     setState(st => st)
   }, [])
@@ -570,6 +591,42 @@ function useFlowContext(services: Services|null, agentId: string|undefined, area
     }, [])
   }
 
+  let startFlow = undefined;
+  if (agentId && services) {
+    startFlow = React.useCallback(() => {
+      setState(st => {
+        return {...st, flowRunning: "STARTING"};
+      });
+      services.agents.startFlow(agentId).then(() => {
+        setState(st => {
+          return {...st, flowRunning: "STARTED"};
+        });
+      }).catch(() => {
+        setState(st => {
+          return {...st, flowRunning: "STOPPED"};
+        });
+      });
+    }, []);
+  }
+
+  let stopFlow = undefined;
+  if (agentId && services) {
+    stopFlow = React.useCallback(() => {
+      setState(st => {
+        return {...st, flowRunning: "STOPPING"};
+      });
+      services.agents.stopFlow(agentId).then(() => {
+        setState(st => {
+          return {...st, flowRunning: "STOPPED"};
+        });
+      }).catch(() => {
+        setState(st => {
+          return {...st, flowRunning: "STARTED"};
+        });
+      });
+    }, []);
+  }
+
   let updateRun = React.useCallback((proc_id: Uuid, run_id: Uuid, fn: (run: ProcessorRun)=>ProcessorRun|ProcessorRun[]|undefined)=>{
     setState(st => {
       const runs = st.flow.runs?.[proc_id];
@@ -607,7 +664,7 @@ function useFlowContext(services: Services|null, agentId: string|undefined, area
   return React.useMemo(()=>(
       {showMenu, deleteComponent, hideMenu, editComponent, updateProcessor: noopUpdate,
       updateConnection: noopUpdate, updateService: noopUpdate, updateGroup: noopUpdate, updateFunnel: noopUpdate, updateParameterContext: noopUpdate, updatePort: noopUpdate, closeComponentEditor, closeNewProcessor, closeNewService,
-      moveConnection, startProcessor, stopProcessor, clearProcessorState, updateRun, setMovingComponent, editable: false, agentId}),
+      moveConnection, startProcessor, stopProcessor, startFlow, stopFlow, clearProcessorState, updateRun, setMovingComponent, editable: false, agentId}),
     [showMenu, deleteComponent, hideMenu, editComponent, noopUpdate, closeComponentEditor, closeNewProcessor, closeNewService,
-    moveConnection, startProcessor, stopProcessor, clearProcessorState, updateRun, setMovingComponent, agentId]);
+    moveConnection, startProcessor, stopProcessor, startFlow, stopFlow, clearProcessorState, updateRun, setMovingComponent, agentId]);
 }

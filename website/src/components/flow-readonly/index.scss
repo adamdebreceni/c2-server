@@ -16,3 +16,61 @@
     border-color: var(--highlight-blue);
   }
 }
+
+.flow-control-button {
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+  border-radius: 50%;
+  background-color: var(--bg-color);
+  width: 28px;
+  height: 28px;
+  padding: 4px;
+  margin-left: 10px;
+
+  .pause-icon {
+    fill: var(--text-inactive-color);
+  }
+
+  .play-icon {
+    fill: var(--highlight-green);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 4px solid;
+    border-radius: 50%;
+  }
+
+  &.STARTED::after {
+    border-color: var(--highlight-green);
+  }
+
+  &.STOPPED::after {
+    border-color: var(--text-inactive-color);
+  }
+
+  &.STARTING::after, &.STOPPING::after {
+    border-color: var(--highlight-yellow);
+    animation: pulse 1s infinite;
+  }
+
+  &.disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
