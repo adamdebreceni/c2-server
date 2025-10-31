@@ -175,7 +175,7 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
           <InputField name="NAME" width="100%" default={model.name} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, name: val})) : undefined}/>
           <InputField name="PENALTY DURATION" width="100%" default={model.penalty} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, penalty: val})) : undefined}/>
           <InputField name="YIELD DURATION" width="100%" default={model.yield} onChange={flow_context?.editable ? val => setModel(curr => ({...curr, yield: val})) : undefined}/>
-          <Dropdown name="BULLETIN LEVEL" width="100%" initial={model.bulletinLevel ?? '<disable>'} items={["<disable>", "TRACE", "DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"]} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, bulletinLevel: val})) : undefined}/>
+          <Dropdown name="BULLETIN LEVEL" width="100%" initial={model.bulletinLevel} items={["TRACE", "DEBUG", "INFO", "WARN", "ERROR"]} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, bulletinLevel: val})) : undefined}/>
         </div>
         <div className="section">
           <div className="section-title">Auto-terminated relationships</div>
@@ -186,11 +186,11 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
             })
           }
         </div>
-        {!props.manifest.supportsDynamicRelationships ? null : 
+        {!props.manifest.supportsDynamicRelationships ? null :
         <div className="section">
           <div className="section-title">Dynamic Relationships<span style={{flexGrow: 1}}/>
             {
-              flow_context?.editable ? 
+              flow_context?.editable ?
               <div className="add-dynamic-relationship" onClick={openCreateDynRelCb}>
                 <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
               </div>
@@ -208,7 +208,7 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
                 <Toggle key={rel_name} name={rel_name} initial={model.autoterminatedRelationships[rel_name]} onChange={flow_context?.editable ? val => setModel(curr => ({...curr, autoterminatedRelationships: {...curr.autoterminatedRelationships, [rel_name]: val}})) : undefined} error={err?.message}/>
                 <Fill/>
                 {
-                  flow_context?.editable ? 
+                  flow_context?.editable ?
                   <DeleteIcon size={24} onClick={() => {
                     setModel(model => {
                       let new_autorels = {...model.autoterminatedRelationships};
@@ -290,11 +290,11 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
             })
           }
         </div>
-        {!props.manifest.supportsDynamicProperties ? null : 
+        {!props.manifest.supportsDynamicProperties ? null :
         <div className="section">
           <div className="section-title">Dynamic Properties<span style={{flexGrow: 1}}/>
             {
-              flow_context?.editable ? 
+              flow_context?.editable ?
               <div className="add-dynamic-property" onClick={openCreateDynPropCb}>
                 <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
               </div>
@@ -311,7 +311,7 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
                 <PropertyField key={prop_name} name={prop_name} width="100%" default={model.properties[prop_name]} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: val}})) : undefined}/>
                 <Fill/>
                 {
-                  flow_context?.editable ? 
+                  flow_context?.editable ?
                   <DeleteIcon size={24} onClick={() => {
                     setModel(model => {
                       let new_props = {...model.properties};
@@ -337,7 +337,7 @@ export function ProcessorEditor(props: {model: Processor, manifest: ProcessorMan
         }
       </div>
       <div className={`tab ${activeTab === "runs" && activeRunInfo === null ? 'active': ''}`}>
-        {flow_context?.agentId !== undefined ? 
+        {flow_context?.agentId !== undefined ?
           <>
             {(props.runs ?? []).map((run, idx) => {
               return <div key={run.id} className="run-item" onClick={()=>setActiveRunInfo({runIdx: idx, triggerIdx: null})}>Run {idx + 1}
@@ -579,7 +579,7 @@ function RunTriggerInstance(props: {
         updateTrigger?: (runId: Uuid, triggerIdx: number, fn: (curr: TriggerInfo)=>TriggerInfo|undefined)=>void,
         updateTriggerFF?: (runId: Uuid, triggerIdx: number, ffIdx: number, fn: (curr: FlowFileData)=>FlowFileData|undefined)=>void}) {
   const notif = useContext(NotificationContext);
-  
+
   return <div className="section">
     {
       (()=>{
@@ -592,7 +592,7 @@ function RunTriggerInstance(props: {
     <div className="section">
       <div className="section-title">Inputs<Fill/>
       {
-        props.updateTrigger ? 
+        props.updateTrigger ?
         <div className="add-input-entry" onClick={()=>{
           props.updateTrigger!(props.runId, props.triggerIdx, (curr) => [...curr, {attributes: {}, content: ''}])
         }}>
@@ -722,7 +722,7 @@ function RunInputFF(props: {
       model: FlowFileData, runId: Uuid, triggerIdx: number, idx: number, labels?: string[], className?: string
       updateTriggerFF?: (runId: Uuid, triggerIdx: number, ffIdx: number, fn: (curr: FlowFileData)=>FlowFileData|undefined)=>void}) {
   const openModal = useContext(ModalContext);
-  
+
   return <div className={`component-run-input ${props.className ?? ''}`}>
     {
       (props.labels?.length ?? 0) !== 0 ?
@@ -732,7 +732,7 @@ function RunInputFF(props: {
       : null
     }
     {
-      props.updateTriggerFF ? 
+      props.updateTriggerFF ?
       <div className="run-input-header">Flow File {props.idx + 1}<Fill/>
         <DeleteIcon size={24} onClick={() => {
           props.updateTriggerFF!(props.runId, props.triggerIdx, props.idx, curr => undefined);
@@ -761,7 +761,7 @@ function RunInputFF(props: {
             return {...curr, attributes: {...curr.attributes, [attr_name]: val}};
           })) : undefined}/>
           {
-            props.updateTriggerFF ? 
+            props.updateTriggerFF ?
             <>
               <Fill/>
               <DeleteIcon size={24} onClick={() => {
