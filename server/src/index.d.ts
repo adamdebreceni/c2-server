@@ -53,7 +53,9 @@ interface Agent {
   device_info: string|null,
   agent_info: string|null,
   config: string|null,
-  flow_update_error: string|null
+  flow_update_error: string|null,
+  agent_type: string|null,
+  version: string|null
 }
 
 interface AgentClass {

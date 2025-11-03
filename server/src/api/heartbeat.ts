@@ -6,6 +6,9 @@ import * as uuid from 'uuid';
 
 let nextOperationId = 1;
 
+const isLegacyVersion = (version: string | null): boolean =>
+  !!version && parseInt(version.split('.')[0], 10) < 1;
+
 export function CreateHeartbeatRouter(services: Services) {
   const router = MakeAsyncSafe(Router());
 
@@ -122,14 +125,24 @@ export function CreateHeartbeatRouter(services: Services) {
     if (component_stop) {
       const opId = `${nextOperationId++}`;
       PendingOperations.set(opId, component_stop);
-      res.json({requestedOperations: [{
-        identifier: opId,
-        operation: "STOP",
-        operand: "PROCESSOR",
-        args: {
-          processorId: component_stop.id
-        }
-      }]});
+      const agent = await services.agentService.fetchAgent(id);
+      if (agent?.agent_type === 'cpp' && isLegacyVersion(agent?.version)) {
+        res.json({requestedOperations: [{
+          operationId: opId,
+          operation: "stop",
+          name: component_stop.id,
+          args: {}
+        }]});
+      } else {
+        res.json({requestedOperations: [{
+          identifier: opId,
+          operation: "STOP",
+          operand: "PROCESSOR",
+          args: {
+            processorId: component_stop.id
+          }
+        }]});
+      }
       return;
     }
 
@@ -138,14 +151,25 @@ export function CreateHeartbeatRouter(services: Services) {
     if (component_start) {
       const opId = `${nextOperationId++}`;
       PendingOperations.set(opId, component_start);
-      res.json({requestedOperations: [{
-        identifier: opId,
-        operation: "START",
-        operand: "PROCESSOR",
-        args: {
-          processorId: component_start.id
-        }
-      }]});
+
+      const agent = await services.agentService.fetchAgent(id);
+      if (agent?.agent_type === 'cpp' && isLegacyVersion(agent?.version)) {
+        res.json({requestedOperations: [{
+          operationId: opId,
+          operation: "start",
+          name: component_start.id,
+          args: {}
+        }]});
+      } else {
+        res.json({requestedOperations: [{
+          identifier: opId,
+          operation: "START",
+          operand: "PROCESSOR",
+          args: {
+            processorId: component_start.id
+          }
+        }]});
+      }
       return;
     }
 
