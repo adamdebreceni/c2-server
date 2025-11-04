@@ -42,7 +42,8 @@ interface FlowInfoDeprecated {
   components: {[name: string]: {
     running: boolean,
     uuid: Uuid
-  }}
+  }},
+  runStatus?: string
 }
 
 interface FlowInfo {
@@ -55,7 +56,8 @@ interface FlowInfo {
       sizeUtilization: number,
       dataSizeUtilization: number
   }},
-  processorStatuses: ProcessorStatus[]
+  processorStatuses: ProcessorStatus[],
+  runStatus?: string
 }
 
 interface DeviceInfo {

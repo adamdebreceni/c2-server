@@ -16,6 +16,7 @@ import { ArrowFullRightIcon } from "../../icons/arrow-full-right";
 import { ArrowFullLeftIcon } from "../../icons/arrow-full-left";
 import { ArrowFullUpIcon } from "../../icons/arrow-full-up";
 import { ArrowFullDownIcon } from "../../icons/arrow-full-down";
+import { ComponentStatus } from "../component-status";
 
 const ARROW_SIZE = 20;
 
@@ -71,18 +72,10 @@ export function Widget(props: {highlight?: boolean, kind: string, value: Compone
     <div ref={view_ref} className={`processor-view ${IsExtended(props.value) ? "extended" : ""}`}>
       {(IsExtended(props.value) ? <ExtendedWidget value={props.value} /> : null)}
       {props.value.running !== undefined ?
-        <ComponentState state={props.value.running} onClick={(()=>{
-          if (props.value.running !== "STARTED" && props.value.running !== "STOPPED") {
-            return undefined;
-          }
-          if (props.value.running === "STARTED" && flow_context?.stopProcessor) {
-            return ()=>flow_context!.stopProcessor!(props.value.id);
-          }
-          if (props.value.running === "STOPPED" && flow_context?.startProcessor) {
-            return ()=>flow_context!.startProcessor!(props.value.id);
-          }
-          return undefined;
-        })()} /> 
+        <ComponentStatus className="absolute -right-3 -top-3" state={props.value.running}
+          onStart={()=>flow_context!.startProcessor!(props.value.id)}
+          onStop={()=>flow_context!.stopProcessor!(props.value.id)}
+        />
         : null
       }
       {
@@ -213,13 +206,6 @@ export function Widget(props: {highlight?: boolean, kind: string, value: Compone
       }
     </div>
   </div>
-  </div>
-}
-
-function ComponentState(props: {state: ComponentState, onClick?: ()=>void}) {
-  return <div className={`processor-state ${props.state}`} onClick={props.onClick}>
-    {props.state === "STARTED" || props.state === "STOPPING" ? <PlayIcon size={20} /> : null}
-    {props.state === "STOPPED" || props.state === "STARTING" ? <PauseIcon size={20} /> : null}
   </div>
 }
 
