@@ -32,6 +32,7 @@ import NiFiIcon from "../../icons/nifi-icon";
 import "./index.scss"
 import { ComponentEditor } from "../component-editor";
 import { AssetManager } from "../asset-manager";
+import { ComponentStatus } from "../component-status";
 
 interface FlowEditorState {
   selected: Uuid[],
@@ -40,7 +41,7 @@ interface FlowEditorState {
   agent_info: AgentInfo | null,
   panning: boolean,
   editingComponent: Uuid | null,
-  flowRunning: "STARTED" | "STOPPED" | "STARTING" | "STOPPING",
+  flowRunning: ComponentState,
 }
 
 function width(proc: Processor) {
@@ -59,15 +60,6 @@ function isFlowInfo(flow_info: FlowInfo | FlowInfoDeprecated): flow_info is Flow
 
 function isFlowInfoDeprecated(flow_info: FlowInfo | FlowInfoDeprecated): flow_info is FlowInfoDeprecated {
   return (flow_info as FlowInfoDeprecated).components !== undefined;
-}
-
-
-function FlowControlButton(props: {state: ComponentState, onClick?: ()=>void, disabled?: boolean}) {
-  const handleClick = props.disabled ? undefined : props.onClick;
-  return <div className={`flow-control-button ${props.state} ${props.disabled ? 'disabled' : ''}`} onClick={handleClick}>
-    {props.state === "STARTED" || props.state === "STOPPING" ? <PlayIcon size={20} /> : null}
-    {props.state === "STOPPED" || props.state === "STARTING" ? <PauseIcon size={20} /> : null}
-  </div>
 }
 
 const TopBar: React.FC<{ device_info: DeviceInfo | null, agent_info: AgentInfo | null }> = ({
@@ -129,7 +121,7 @@ const TopBar: React.FC<{ device_info: DeviceInfo | null, agent_info: AgentInfo |
 
 
 export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId?: string}) {
-  const [state, setState] = useState<FlowEditorState>({flow: props.flow, panning: false, device_info: null, agent_info: null, editingComponent: null, selected: [], flowRunning: "STARTED"});
+  const [state, setState] = useState<FlowEditorState>({flow: props.flow, panning: false, device_info: null, agent_info: null, editingComponent: null, selected: [], flowRunning: "UNKNOWN"});
   const [errors, setErrors] = useState<ErrorObject[]>([]);
   const areaRef = React.useRef<HTMLDivElement>(null);
   const services = React.useContext(ServiceContext);
@@ -244,12 +236,26 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
               new_processors.push(proc);
             }
           }
-          if (conn_changed || proc_changed) {
+          let new_flow_run_status: ComponentState = "UNKNOWN";
+          if (flow_info.runStatus === "RUNNING") {
+            new_flow_run_status = "STARTED";
+          }
+          if (flow_info.runStatus === "STOPPED") {
+            new_flow_run_status = "STOPPED";
+          }
+          if (st.flowRunning === "STARTING" && new_flow_run_status !== "STARTED") {
+            new_flow_run_status = st.flowRunning;
+          }
+          if (st.flowRunning === "STOPPING" && new_flow_run_status !== "STOPPED") {
+            new_flow_run_status = st.flowRunning;
+          }
+          if (new_flow_run_status !== st.flowRunning || conn_changed || proc_changed) {
             return {...st,
               flow: {...st.flow,
                 connections: conn_changed ? new_connections : st.flow.connections,
                 processors: proc_changed ? new_processors : st.flow.processors
-              }
+              },
+              flowRunning: new_flow_run_status
             }
           }
           return st;
@@ -443,11 +449,10 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
           <div className="agent-info-container">
             <div className="agent-identifier" onClick={goToAgent}>{props.agentId}</div>
             {flowContext.stopFlow && flowContext.startFlow ? (
-              <FlowControlButton
+              <ComponentStatus className="relative ml-3"
                 state={state.flowRunning}
-                onClick={state.flowRunning === "STARTED" ? flowContext.stopFlow :
-                        state.flowRunning === "STOPPED" ? flowContext.startFlow : undefined}
-                disabled={state.flowRunning === "STARTING" || state.flowRunning === "STOPPING"}
+                onStart={flowContext.startFlow}
+                onStop={flowContext.stopFlow}
               />
             ) : null}
           </div>
@@ -597,15 +602,7 @@ function useFlowContext(services: Services|null, agentId: string|undefined, area
       setState(st => {
         return {...st, flowRunning: "STARTING"};
       });
-      services.agents.startFlow(agentId).then(() => {
-        setState(st => {
-          return {...st, flowRunning: "STARTED"};
-        });
-      }).catch(() => {
-        setState(st => {
-          return {...st, flowRunning: "STOPPED"};
-        });
-      });
+      services.agents.startFlow(agentId);
     }, []);
   }
 
@@ -615,15 +612,7 @@ function useFlowContext(services: Services|null, agentId: string|undefined, area
       setState(st => {
         return {...st, flowRunning: "STOPPING"};
       });
-      services.agents.stopFlow(agentId).then(() => {
-        setState(st => {
-          return {...st, flowRunning: "STOPPED"};
-        });
-      }).catch(() => {
-        setState(st => {
-          return {...st, flowRunning: "STARTED"};
-        });
-      });
+      services.agents.stopFlow(agentId);
     }, []);
   }
 
