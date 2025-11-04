@@ -68,7 +68,7 @@ function serializeProcessGroup(id: Uuid | null, flow: FlowObject): object {
             "position": {"x": proc.position.x, "y": proc.position.y},
             "identifier": proc.id,
             "instanceIdentifier": proc.id,
-            ...(proc.bulletinLevel && proc.bulletinLevel !== '<disable>' ? {"bulletinLevel": proc.bulletinLevel} : null),
+            "bulletinLevel": proc.bulletinLevel,
             "executionNode": "ALL",
             "name": proc.name,
             "type": proc.type,
@@ -320,6 +320,7 @@ function deserializeProcessGroup(flow_object: FlowObject, group_id: Uuid | null,
                 parentGroup: group_id,
                 penalty: proc.penaltyDuration,
                 yield: proc.yieldDuration,
+                bulletinLevel: proc.bulletinLevel,
                 autoterminatedRelationships: proc.autoTerminatedRelationships.reduce(
                     (acc: { [name: string]: boolean }, rel: string) => {
                         acc[rel] = true;

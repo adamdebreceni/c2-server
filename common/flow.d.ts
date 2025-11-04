@@ -161,7 +161,7 @@ interface Processor extends Component {
   yield: string,
   autoterminatedRelationships: {[name: string]: boolean},
   scheduling: Scheduling,
-  bulletinLevel?: string,
+  bulletinLevel: string,
   parentGroup: Uuid|null,
   status?: ProcessorStatus|null
 }

@@ -1950,6 +1950,7 @@ function useFlowContext(areaRef: React.RefObject<HTMLDivElement | null>, state: 
                     runSchedule: mapDefined(st.flow.manifest.schedulingDefaults.defaultSchedulingPeriodMillis, val => `${val} ms`, ""),
                     runDuration: mapDefined(st.flow.manifest.schedulingDefaults.defaultRunDurationNanos, val => `${val} ns`, "")
                 },
+                bulletinLevel: "WARN",
                 properties: createDefaultProperties(procManifest.propertyDescriptors ?? {}),
                 visibleProperties: [],
                 parentGroup: st.newComponent.parentGroup,
@@ -2172,7 +2173,7 @@ export function FindComponent(flow: FlowObject, id: Uuid): Component | undefined
 }
 
 // finds all visible (not overlapped by process groups or hidden in their parent) components
-// whose center is in the area 
+// whose center is in the area
 export function FindVisibleComponents(flow: FlowObject, area: {
     x: number,
     y: number,
