@@ -178,11 +178,22 @@ export function CreateHeartbeatRouter(services: Services) {
     if (flow_stop) {
       const opId = `${nextOperationId++}`;
       PendingOperations.set(opId, flow_stop);
-      res.json({requestedOperations: [{
-        identifier: opId,
-        operation: "STOP",
-        operand: "FLOW"
-      }]});
+
+      const agent = await services.agentService.fetchAgent(id);
+      if (agent?.agent_type === 'cpp' && isLegacyVersion(agent?.version)) {
+        res.json({requestedOperations: [{
+          operationId: opId,
+          operation: "stop",
+          name: "FlowController",
+          args: {}
+        }]});
+      } else {
+        res.json({requestedOperations: [{
+          identifier: opId,
+          operation: "STOP",
+          operand: "FLOW"
+        }]});
+      }
       return;
     }
 
@@ -191,11 +202,22 @@ export function CreateHeartbeatRouter(services: Services) {
     if (flow_start) {
       const opId = `${nextOperationId++}`;
       PendingOperations.set(opId, flow_start);
-      res.json({requestedOperations: [{
-        identifier: opId,
-        operation: "START",
-        operand: "FLOW"
-      }]});
+
+      const agent = await services.agentService.fetchAgent(id);
+      if (agent?.agent_type === 'cpp' && isLegacyVersion(agent?.version)) {
+        res.json({requestedOperations: [{
+          operationId: opId,
+          operation: "start",
+          name: "FlowController",
+          args: {}
+        }]});
+      } else {
+        res.json({requestedOperations: [{
+          identifier: opId,
+          operation: "START",
+          operand: "FLOW"
+        }]});
+      }
       return;
     }
 
