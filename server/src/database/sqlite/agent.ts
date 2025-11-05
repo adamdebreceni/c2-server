@@ -1,13 +1,13 @@
 import * as sqlite from "sqlite3";
 
-const selected_fields = ["id", "class", "hb", "flow", "last_heartbeat", "target_flow", "flow_info", "device_info", "agent_info", "config", "flow_update_error"] as const;
+const selected_fields = ["id", "class", "hb", "flow", "last_heartbeat", "target_flow", "flow_info", "device_info", "agent_info", "config", "flow_update_error", "agent_type", "version"] as const;
 
 export class AgentDatabase {
   constructor(private db: sqlite.Database) {}
 
   async insert(agent: Agent): Promise<void> {
     return new Promise((resolve, reject)=>{
-      this.db.run(`INSERT INTO agents (id, class, hb, flow, target_flow, manifest, flow_info, device_info, agent_info, config, flow_update_error) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [agent.id, agent.class, agent.hb, agent.flow, agent.target_flow, agent.manifest, agent.flow_info, agent.device_info, agent.agent_info, agent.config, agent.flow_update_error], (err: Error|null)=>{
+      this.db.run(`INSERT INTO agents (id, class, hb, flow, target_flow, manifest, flow_info, device_info, agent_info, config, flow_update_error, agent_type, version) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [agent.id, agent.class, agent.hb, agent.flow, agent.target_flow, agent.manifest, agent.flow_info, agent.device_info, agent.agent_info, agent.config, agent.flow_update_error, agent.agent_type, agent.version], (err: Error|null)=>{
         if (!err) {
           console.log(`Registered agent ${serialize(agent)}`);
           resolve();
@@ -87,7 +87,7 @@ export class AgentDatabase {
 export function createWhereClause(agent: Partial<Agent>): {query: string, params: any[]}|null {
   const conditions: string[] = [];
   const params: any[] = [];
-  for (const field of ["id", "class", "hb", "flow", "last_heartbeat", "target_flow", "manifest", "flow_info", "device_info", "agent_info", "config", "flow_update_error"]) {
+  for (const field of ["id", "class", "hb", "flow", "last_heartbeat", "target_flow", "manifest", "flow_info", "device_info", "agent_info", "config", "flow_update_error", "agent_type", "version"]) {
     if (field in agent) {
       conditions.push(`${field} = ?`);
       params.push((agent as any)[field]);
@@ -102,7 +102,7 @@ export function createWhereClause(agent: Partial<Agent>): {query: string, params
 function createUpdateClause(new_agent: Partial<Agent>): {update: string, params: any[]}|null {
   const setter: string[] = [];
   const params: any[] = [];
-  for (const field of ["class", "hb", "flow", "last_heartbeat", "target_flow", "manifest", "flow_info", "device_info", "agent_info", "config", "flow_update_error"]) {
+  for (const field of ["class", "hb", "flow", "last_heartbeat", "target_flow", "manifest", "flow_info", "device_info", "agent_info", "config", "flow_update_error", "agent_type", "version"]) {
     if (field in new_agent) {
       setter.push(`${field} = ?`);
       params.push((new_agent as any)[field]);

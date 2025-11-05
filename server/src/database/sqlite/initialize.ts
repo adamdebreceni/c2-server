@@ -31,7 +31,9 @@ export async function initialize(): Promise<Database> {
         device_info TEXT,
         agent_info TEXT,
         config TEXT,
-        flow_update_error TEXT
+        flow_update_error TEXT,
+        agent_type TEXT,
+        version TEXT
       )
     `, (err: Error|null)=>{
       if (err) {

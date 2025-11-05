@@ -49,11 +49,43 @@ export async function CreateAgentService(db: Database): Promise<AgentService> {
         if (agent_update.agent_info === null) {
           delete agent_update.agent_info
         }
+
+        let agent_type: string|null = null;
+        let version: string|null = null;
+        if (agent_hb.agent_info) {
+          try {
+            const parsed_agent_info = JSON.parse(agent_hb.agent_info);
+            agent_type = parsed_agent_info?.agentManifest?.agentType ?? null;
+            version = parsed_agent_info?.agentManifest?.buildInfo?.version ?? null;
+          } catch (e) {
+            console.error("Failed to parse agent_info for agent_type and version extraction", e);
+          }
+        }
+        if (agent_type !== null) {
+          agent_update.agent_type = agent_type;
+        }
+        if (version !== null) {
+          agent_update.version = version;
+        }
+
         await db.agents.update({id: agent.id}, agent_update);
         target_flow = agents[0].target_flow;
       } else {
         console.log(`Registering agent with id: "${agent.id}"`);
-        await db.agents.insert({...agent, target_flow: null, config: null, flow_update_error: null});
+
+        let agent_type: string|null = null;
+        let version: string|null = null;
+        if (agent_hb.agent_info) {
+          try {
+            const parsed_agent_info = JSON.parse(agent_hb.agent_info);
+            agent_type = parsed_agent_info?.agentManifest?.agentType ?? null;
+            version = parsed_agent_info?.agentManifest?.buildInfo?.version ?? null;
+          } catch (e) {
+            console.error("Failed to parse agent_info for agent_type and version extraction", e);
+          }
+        }
+
+        await db.agents.insert({...agent, target_flow: null, config: null, flow_update_error: null, agent_type, version});
       }
       if (agent.class === null) {
         return {flow: null, manifest};

@@ -1,10 +1,13 @@
 import {Router, json} from 'express';
 import { PORT } from '../server-options';
-import { PendingComponentRun, PendingComponentStart, PendingComponentStateClear, PendingComponentStateQuery, PendingComponentStop, PendingDebugInfo, PendingOperationRequest, PendingOperations, PendingPropertyUpdates, PendingRestart, PendingUpdates } from '../services/agent-state';
+import { PendingComponentRun, PendingComponentStart, PendingComponentStateClear, PendingComponentStateQuery, PendingComponentStop, PendingDebugInfo, PendingFlowStart, PendingFlowStop, PendingOperationRequest, PendingOperations, PendingPropertyUpdates, PendingRestart, PendingUpdates } from '../services/agent-state';
 import { MakeAsyncSafe } from '../utils/async';
 import * as uuid from 'uuid';
 
 let nextOperationId = 1;
+
+const isLegacyVersion = (version: string | null): boolean =>
+  !!version && parseInt(version.split('.')[0], 10) < 1;
 
 export function CreateHeartbeatRouter(services: Services) {
   const router = MakeAsyncSafe(Router());
@@ -122,12 +125,24 @@ export function CreateHeartbeatRouter(services: Services) {
     if (component_stop) {
       const opId = `${nextOperationId++}`;
       PendingOperations.set(opId, component_stop);
-      res.json({requestedOperations: [{
-        operationId: opId,
-        operation: "stop",
-        name: component_stop.id,
-        args: {}
-      }]});
+      const agent = await services.agentService.fetchAgent(id);
+      if (agent?.agent_type === 'cpp' && isLegacyVersion(agent?.version)) {
+        res.json({requestedOperations: [{
+          operationId: opId,
+          operation: "stop",
+          name: component_stop.id,
+          args: {}
+        }]});
+      } else {
+        res.json({requestedOperations: [{
+          identifier: opId,
+          operation: "STOP",
+          operand: "PROCESSOR",
+          args: {
+            processorId: component_stop.id
+          }
+        }]});
+      }
       return;
     }
 
@@ -136,12 +151,73 @@ export function CreateHeartbeatRouter(services: Services) {
     if (component_start) {
       const opId = `${nextOperationId++}`;
       PendingOperations.set(opId, component_start);
-      res.json({requestedOperations: [{
-        operationId: opId,
-        operation: "start",
-        name: component_start.id,
-        args: {}
-      }]});
+
+      const agent = await services.agentService.fetchAgent(id);
+      if (agent?.agent_type === 'cpp' && isLegacyVersion(agent?.version)) {
+        res.json({requestedOperations: [{
+          operationId: opId,
+          operation: "start",
+          name: component_start.id,
+          args: {}
+        }]});
+      } else {
+        res.json({requestedOperations: [{
+          identifier: opId,
+          operation: "START",
+          operand: "PROCESSOR",
+          args: {
+            processorId: component_start.id
+          }
+        }]});
+      }
+      return;
+    }
+
+    const flow_stop = PendingFlowStop.get(id);
+    PendingFlowStop.delete(id);
+    if (flow_stop) {
+      const opId = `${nextOperationId++}`;
+      PendingOperations.set(opId, flow_stop);
+
+      const agent = await services.agentService.fetchAgent(id);
+      if (agent?.agent_type === 'cpp' && isLegacyVersion(agent?.version)) {
+        res.json({requestedOperations: [{
+          operationId: opId,
+          operation: "stop",
+          name: "FlowController",
+          args: {}
+        }]});
+      } else {
+        res.json({requestedOperations: [{
+          identifier: opId,
+          operation: "STOP",
+          operand: "FLOW"
+        }]});
+      }
+      return;
+    }
+
+    const flow_start = PendingFlowStart.get(id);
+    PendingFlowStart.delete(id);
+    if (flow_start) {
+      const opId = `${nextOperationId++}`;
+      PendingOperations.set(opId, flow_start);
+
+      const agent = await services.agentService.fetchAgent(id);
+      if (agent?.agent_type === 'cpp' && isLegacyVersion(agent?.version)) {
+        res.json({requestedOperations: [{
+          operationId: opId,
+          operation: "start",
+          name: "FlowController",
+          args: {}
+        }]});
+      } else {
+        res.json({requestedOperations: [{
+          identifier: opId,
+          operation: "START",
+          operand: "FLOW"
+        }]});
+      }
       return;
     }
 

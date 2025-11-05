@@ -42,7 +42,8 @@ interface FlowInfoDeprecated {
   components: {[name: string]: {
     running: boolean,
     uuid: Uuid
-  }}
+  }},
+  runStatus?: string
 }
 
 interface FlowInfo {
@@ -55,7 +56,8 @@ interface FlowInfo {
       sizeUtilization: number,
       dataSizeUtilization: number
   }},
-  processorStatuses: ProcessorStatus[]
+  processorStatuses: ProcessorStatus[],
+  runStatus?: string
 }
 
 interface DeviceInfo {
@@ -116,12 +118,14 @@ interface AgentService {
   configure(id: string, properties: {name: string, value: string, persist: boolean}[]): Promise<void>
   restart(id: string): Promise<void>
   fetchAgentInformation(id: string): Promise<AgentLike|null>;
-  fetchAgentComponentState(agentId: string): Promise<ComponentKVStateMap|null>; 
+  fetchAgentComponentState(agentId: string): Promise<ComponentKVStateMap|null>;
   fetchAgentBulletins(agentId: string, from: Date, to: Date, limit: number): Promise<ProcessorBulletin[]>
   dumpDebugInfo(id: string): Promise<{file: string}>
   sendRequest(id: string, req: JsonValue): Promise<string>
   stopComponent(agentId: string, componentId: string): Promise<void>
   startComponent(agentId: string, componentId: string): Promise<void>
+  stopFlow(agentId: string): Promise<void>
+  startFlow(agentId: string): Promise<void>
   clearComponentState(agentId: string, componentId: string): Promise<void>
   triggerComponent(agentId: string, componentId: string, args: RunInput): Promise<RunResult>
   saveConfig(agentId: string, data: any): Promise<void>
