@@ -61,7 +61,7 @@ async function main() {
     }
   });
 
-  app.get('/*path', (req, res) => {
+  app.get('/{*path}', (req, res) => {
     res.sendFile(path.join(STATIC_DIR, '/index.html'));
   });
 

@@ -47,7 +47,7 @@ export function CreateManageFlowRouter(services: Services): Router {
     if (flow_object === null) {
       console.log("Import failed");
       res.status(400);
-      res.end();
+      res.send("Failed to deserialize flow: the file is not a valid flow for the selected class (see server logs for details)");
       return;
     }
     const id = await services.flowService.save(flow_object);
