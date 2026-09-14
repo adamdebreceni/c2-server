@@ -16,6 +16,11 @@
       border-color: rgb(145, 61, 255) !important;
     }
   }
+  &.reporting-task {
+    .processor-view {
+      border-color: rgb(25, 172, 18) !important;
+    }
+  }
   &.input-port {
     .ripple-1, .ripple-2, .ripple-3 {
       animation: in 2s linear infinite;

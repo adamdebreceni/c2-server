@@ -10,6 +10,7 @@ export const FlowContext = React.createContext<{
   updateProcessor: (id: Uuid, fn: (proc: Processor)=>Processor)=>void,
   updateConnection: (id: Uuid, fn: (conn: Connection)=>Connection)=>void,
   updateService: (id: Uuid, fn: (serv: MiNiFiService)=>MiNiFiService)=>void,
+  updateReportingTask: (id: Uuid, fn: (rtask: ReportingTask)=>ReportingTask)=>void,
   updateGroup: (id: Uuid, fn: (group: ProcessGroup)=>ProcessGroup)=>void,
   updateFunnel: (id: Uuid, fn: (funnel: Funnel)=>Funnel)=>void,
   updateParameterContext: (id: Uuid, fn: (ctx: ParameterContext)=>ParameterContext)=>void,
@@ -17,6 +18,7 @@ export const FlowContext = React.createContext<{
   closeComponentEditor: ()=>void,
   closeNewProcessor: (name: string|null)=>void,
   closeNewService: (name: string|null)=>void,
+  closeNewReportingTask: (name: string|null)=>void,
   editable: boolean
   agentId?: string
   startProcessor?: (id: Uuid)=>void

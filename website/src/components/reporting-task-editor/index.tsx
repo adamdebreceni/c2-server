@@ -10,13 +10,13 @@ import { Dropdown } from "../dropdown";
 import "./index.scss";
 import { CreateStringModal } from "../create-string-modal";
 
-export function ServiceEditor(props: {model: MiNiFiService, manifest: ControllerServiceManifest, errors: ErrorObject[]}) {
+export function ReportingTaskEditor(props: {model: ReportingTask, manifest: ReportingTaskManifest, errors: ErrorObject[]}) {
   const notif = useContext(NotificationContext);
   const flow_context = useContext(FlowContext);
   const openModal = useContext(ModalContext);
   const setModel = React.useMemo(()=>{
-    return (fn: (curr: MiNiFiService)=>MiNiFiService) => flow_context!.updateService(props.model.id, fn);
-  }, [props.model.id, flow_context!.updateService]);
+    return (fn: (curr: ReportingTask)=>ReportingTask) => flow_context!.updateReportingTask(props.model.id, fn);
+  }, [props.model.id, flow_context!.updateReportingTask]);
   const model = props.model;
   const onNewDynamicProperty = React.useCallback((prop: string) => {
     setModel(curr => {
@@ -47,6 +47,11 @@ export function ServiceEditor(props: {model: MiNiFiService, manifest: Controller
         <InputField name="NAME" width="100%" default={model.name} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, name: val})) : undefined}/>
       </div>
       <div className="section">
+        <div className="section-title">Scheduling</div>
+        <Dropdown name="STRATEGY" width="100%" initial={model.scheduling.strategy} items={["TIMER_DRIVEN", "CRON_DRIVEN"]} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, scheduling: {...curr.scheduling, strategy: val as any}})) : undefined}/>
+        <InputField name="RUN SCHEDULE" width="100%" default={model.scheduling.runSchedule} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, scheduling: {...curr.scheduling, runSchedule: val}})) : undefined}/>
+      </div>
+      <div className="section">
         <div className="section-title">Properties</div>
         {
           Object.keys(model.properties).sort().map(prop_name => {
@@ -57,9 +62,9 @@ export function ServiceEditor(props: {model: MiNiFiService, manifest: Controller
             }
             const values = props.manifest.propertyDescriptors[prop_name].allowableValues;
             if (values) {
-              return <Dropdown key={prop_name} name={prop_name} error={err?.message} width="100%" items={values.map(val => val.value)} initial={model.properties[prop_name].value} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: {value: val, type: "custom"}}})) : undefined}/>
+              return <Dropdown key={prop_name} name={prop_name} width="100%" error={err?.message} items={values.map(val => val.value)} initial={model.properties[prop_name].value} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: {value: val, type: "custom"}}})) : undefined}/>
             }
-            return <InputField key={prop_name} name={prop_name} error={err?.message} width="100%" default={model.properties[prop_name].value} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: {value: val, type: "custom"}}})) : undefined}/>
+            return <InputField key={prop_name} name={prop_name} width="100%" error={err?.message} default={model.properties[prop_name].value} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: {value: val, type: "custom"}}})) : undefined}/>
           })
         }
       </div>

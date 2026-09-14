@@ -28,6 +28,8 @@ import {width, height} from "../../utils/widget-size";
 import {autoLayout, createGraph} from "../../utils/auto-layout"
 import { ComponentEditor } from "../component-editor";
 import { AssetManager } from "../asset-manager";
+import { ComponentSelector } from "../component-selector";
+import { ReportingTaskEditor } from "../reporting-task-editor";
 
 interface NewConnection {
     source: Uuid,
@@ -52,7 +54,7 @@ interface FlowEditorState {
     newComponent: {
         x: number,
         y: number,
-        type: "PROCESSOR" | "SERVICE",
+        type: "PROCESSOR" | "SERVICE" | "REPORTING_TASK"
         srcProcessor?: Uuid,
         parentGroup: Uuid | null
     } | null,
@@ -359,6 +361,19 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
                 continue;
             }
             report_property_errors(service, service_manifest);
+        }
+        for (let task of (state.flow.reportingTasks ?? [])) {
+            const task_manifest = state.flow.manifest.reportingTasks?.find(task_manifest => task_manifest.type === task.type);
+            if (!task_manifest) {
+                errors.push({
+                    component: task.id,
+                    type: "PROPERTY",
+                    target: "REPORTING-TASK-TYPE",
+                    message: `This reporting task type is not available`
+                });
+                continue;
+            }
+            report_property_errors(task, task_manifest);
         }
         for (const conn of state.flow.connections) {
             const src_proc = state.flow.processors.find(proc => proc.id === conn.source.id);
@@ -718,6 +733,15 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
                 }
             },
             {
+                name: "Add reporting task", on: () => {
+                    setState(st => {
+                        const {x, y} = toAreaCoords(areaRef, st, {clientX, clientY});
+                        return {...st, newComponent: {x, y, type: "REPORTING_TASK", parentGroup: null}};
+                    })
+                    flowContext.hideMenu();
+                }
+            },
+            {
                 name: "Add process group", on: () => {
                     setState(st => {
                         const {x, y} = toAreaCoords(areaRef, st, {clientX, clientY});
@@ -1018,6 +1042,12 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
                     })
                 }
                 {
+                    state.flow.reportingTasks?.map(task => {
+                        const task_errors = errors.filter(err => err.component === task.id);
+                        return <Widget key={task.id} value={task} errors={task_errors} kind='reporting-task'/>
+                    })
+                }
+                {
                     state.flow.parameterContexts?.map(ctx => {
                         return <Widget key={ctx.id} value={ctx} kind='parameter-context'/>
                     })
@@ -1175,7 +1205,14 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
                                 const serv = state.flow.services.find(serv => serv.id === state.editingComponent);
                                 if (serv) {
                                     const service_manifest = state.flow.manifest.controllerServices.find(serv_manifest => serv_manifest.type === serv.type)!;
-                                    return <ServiceEditor model={serv} manifest={service_manifest}/>
+                                    const service_errors = errors.filter(err => err.component === serv.id);
+                                    return <ServiceEditor model={serv} manifest={service_manifest} errors={service_errors} />
+                                }
+                                const task = state.flow.reportingTasks.find(task => task.id === state.editingComponent);
+                                if (task) {
+                                    const task_manifest = state.flow.manifest.reportingTasks?.find(task_manifest => task_manifest.type === task.type)!;
+                                    const task_errors = errors.filter(err => err.component === task.id);
+                                    return <ReportingTaskEditor model={task} manifest={task_manifest} errors={task_errors} />
                                 }
                                 const funnel = state.flow.funnels.find(funnel => funnel.id === state.editingComponent);
                                 if (funnel) {
@@ -1212,7 +1249,7 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
                                 description: proc.typeDescription
                             }))}/>
                         </div>;
-                    } else {
+                    } else if (state.newComponent.type === "SERVICE") {
                         return <div className="service-selector-container">
                             <div className="overlay" onClick={() => flowContext.closeNewService(null)}/>
                             <ServiceSelector services={state.flow.manifest.controllerServices.map(service => ({
@@ -1220,6 +1257,15 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
                                 name: getUnqualifiedName(service.type),
                                 description: service.typeDescription
                             }))}/>
+                        </div>;
+                    } else {
+                        return <div className="reporting-task-selector-container">
+                            <div className="overlay" onClick={() => flowContext.closeNewReportingTask(null)}/>
+                            <ComponentSelector components={(state.flow.manifest.reportingTasks ?? []).map(task => ({
+                                id: task.type,
+                                name: getUnqualifiedName(task.type),
+                                description: task.typeDescription
+                            }))} type="REPORTING_TASK" onClose={flowContext.closeNewReportingTask} />
                         </div>;
                     }
                 })()
@@ -1575,6 +1621,22 @@ function moveComponentImpl(st: FlowEditorState, id: Uuid, position: { x: number,
             }, original: service
         };
     }
+    const task = st.flow.reportingTasks?.find(task => task.id === id);
+    if (task) {
+        if (!position) {
+            return {state: st, original: task};
+        }
+        return {
+            state: {
+                ...st, flow: {
+                    ...st.flow, reportingTasks: st.flow.reportingTasks?.map(task => {
+                        if (task.id !== id) return task;
+                        return {...task, position}
+                    })
+                }
+            }, original: task
+        };
+    }
     const funnel = st.flow.funnels.find(funnel => funnel.id === id);
     if (funnel) {
         if (!position) {
@@ -1883,7 +1945,11 @@ function useFlowContext(areaRef: React.RefObject<HTMLDivElement | null>, state: 
                     }
                 };
             }
-            return {...st, flow: {...st.flow, services: st.flow.services.filter(serv => serv.id !== id)}};
+            return {...st, flow: {
+                ...st.flow,
+                services: st.flow.services.filter(serv => serv.id !== id),
+                reportingTasks: st.flow.reportingTasks?.filter(task => task.id !== id)
+            }};
         })
     }, []);
 
@@ -1923,6 +1989,17 @@ function useFlowContext(areaRef: React.RefObject<HTMLDivElement | null>, state: 
             const new_services = st.flow.services.filter(serv => serv.id !== updated.id);
             new_services.push(updated);
             return {...st, flow: {...st.flow, services: new_services}}
+        })
+    }, []);
+
+    const updateReportingTask = React.useCallback((id: Uuid, fn: (curr: ReportingTask) => ReportingTask) => {
+        setState(st => {
+            const curr = st.flow.reportingTasks?.find(task => task.id === id);
+            if (!curr) return st;
+            const updated = fn(curr);
+            const new_tasks = st.flow.reportingTasks?.filter(task => task.id !== updated.id);
+            new_tasks.push(updated);
+            return {...st, flow: {...st.flow, reportingTasks: new_tasks}}
         })
     }, []);
 
@@ -2071,6 +2148,33 @@ function useFlowContext(areaRef: React.RefObject<HTMLDivElement | null>, state: 
         })
     }, [])
 
+    const closeNewReportingTask = React.useCallback((id: string | null) => {
+        setState(st => {
+            if (!st.newComponent) return st;
+            if (id === null) {
+                return {...st, newComponent: null};
+            }
+            const taskManifest = st.flow.manifest.reportingTasks?.find(task => task.type === id);
+            if (!taskManifest) {
+                return {...st, newComponent: null};
+            }
+            const name = getUnqualifiedName(id);
+            const newTask: ReportingTask = {
+                position: {x: st.newComponent.x, y: st.newComponent.y},
+                id: uuid.v4() as Uuid,
+                name: name,
+                type: id,
+                scheduling: {
+                    strategy: "TIMER_DRIVEN",
+                    runSchedule: "1 s"
+                },
+                properties: createDefaultProperties(taskManifest.propertyDescriptors ?? {}),
+                visibleProperties: []
+            };
+            return {...st, flow: {...st.flow, reportingTasks: [...(st.flow.reportingTasks ?? []), newTask]}, newComponent: null};
+        })
+    }, [])
+
     return React.useMemo(() => ({
             showMenu,
             deleteComponent,
@@ -2079,6 +2183,7 @@ function useFlowContext(areaRef: React.RefObject<HTMLDivElement | null>, state: 
             updateProcessor,
             updateConnection,
             updateService,
+            updateReportingTask,
             updateGroup,
             updateFunnel,
             updateParameterContext,
@@ -2086,13 +2191,14 @@ function useFlowContext(areaRef: React.RefObject<HTMLDivElement | null>, state: 
             closeComponentEditor,
             closeNewProcessor,
             closeNewService,
+            closeNewReportingTask,
             moveConnection,
             setMovingComponent,
             editable: true
         }),
-        [showMenu, deleteComponent, hideMenu, editComponent, updateProcessor, updateConnection, updateService,
+        [showMenu, deleteComponent, hideMenu, editComponent, updateProcessor, updateConnection, updateService, updateReportingTask,
             updateGroup, updateFunnel, updateParameterContext, updatePort, closeComponentEditor, closeNewProcessor, closeNewService,
-            moveConnection, setMovingComponent]);
+            closeNewReportingTask, moveConnection, setMovingComponent]);
 }
 
 function getUnqualifiedName(name: string) {

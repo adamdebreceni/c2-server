@@ -1,6 +1,7 @@
 interface AgentManifest {
   processors: ProcessorManifest[]
   controllerServices: ControllerServiceManifest[]
+  reportingTasks?: ReportingTaskManifest[],
   schedulingDefaults: {
     defaultMaxConcurrentTasks?: number
     defaultRunDurationNanos?: number
@@ -90,4 +91,8 @@ interface PropertyDescriptor {
 
 interface ControllerServiceManifest extends ComponentManifest {
     providedApiImplementations? : {artifact: string, group: string, type: string}[]
+}
+
+interface ReportingTaskManifest extends ComponentManifest {
+
 }

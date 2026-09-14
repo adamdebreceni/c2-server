@@ -33,6 +33,7 @@ import "./index.scss"
 import { ComponentEditor } from "../component-editor";
 import { AssetManager } from "../asset-manager";
 import { ComponentStatus } from "../component-status";
+import { ReportingTaskEditor } from "../reporting-task-editor";
 
 interface FlowEditorState {
   selected: Uuid[],
@@ -424,6 +425,12 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
           })
         }
         {
+          state.flow.reportingTasks?.map(task => {
+            const task_errors = errors.filter(err => err.component === task.id);
+            return <Widget key={task.id} value={task} errors={task_errors} kind='reporting-task' />
+          })
+        }
+        {
           state.flow.parameterContexts?.map(ctx => {
             return <Widget key={ctx.id} value={ctx} kind='parameter-context' />
           })
@@ -486,7 +493,14 @@ export function FlowReadonlyEditor(props: {id: string, flow: FlowObject, agentId
               const serv = state.flow.services.find(serv => serv.id === state.editingComponent);
               if (serv) {
                 const service_manifest = state.flow.manifest.controllerServices.find(serv_manifest => serv_manifest.type === serv.type)!;
-                return <ServiceEditor model={serv} manifest={service_manifest}/>
+                const service_errors = errors.filter(err => err.component === serv.id);
+                return <ServiceEditor model={serv} manifest={service_manifest} errors={service_errors} />
+              }
+              const task = state.flow.reportingTasks.find(task => task.id === state.editingComponent);
+              if (task) {
+                const task_manifest = state.flow.manifest.reportingTasks?.find(task_manifest => task_manifest.type === task.type)!;
+                const task_errors = errors.filter(err => err.component === task.id);
+                return <ReportingTaskEditor model={task} manifest={task_manifest} errors={task_errors} />
               }
               const funnel = state.flow.funnels.find(funnel => funnel.id === state.editingComponent);
               if (funnel) {
@@ -554,6 +568,10 @@ function useFlowContext(services: Services|null, agentId: string|undefined, area
   }, []);
 
   const closeNewService = React.useCallback((id: string|null)=>{
+    setState(st => st)
+  }, [])
+
+  const closeNewReportingTask = React.useCallback((id: string|null)=>{
     setState(st => st)
   }, [])
 
@@ -654,8 +672,9 @@ function useFlowContext(services: Services|null, agentId: string|undefined, area
 
   return React.useMemo(()=>(
       {showMenu, deleteComponent, hideMenu, editComponent, updateProcessor: noopUpdate,
-      updateConnection: noopUpdate, updateService: noopUpdate, updateGroup: noopUpdate, updateFunnel: noopUpdate, updateParameterContext: noopUpdate, updatePort: noopUpdate, closeComponentEditor, closeNewProcessor, closeNewService,
+      updateConnection: noopUpdate, updateService: noopUpdate, updateReportingTask: noopUpdate, updateGroup: noopUpdate, updateFunnel: noopUpdate, updateParameterContext: noopUpdate, updatePort: noopUpdate,
+      closeComponentEditor, closeNewProcessor, closeNewService, closeNewReportingTask,
       moveConnection, startProcessor, stopProcessor, startFlow, stopFlow, clearProcessorState, updateRun, setMovingComponent, editable: false, agentId}),
-    [showMenu, deleteComponent, hideMenu, editComponent, noopUpdate, closeComponentEditor, closeNewProcessor, closeNewService,
+    [showMenu, deleteComponent, hideMenu, editComponent, noopUpdate, closeComponentEditor, closeNewProcessor, closeNewService, closeNewReportingTask,
     moveConnection, startProcessor, stopProcessor, startFlow, stopFlow, clearProcessorState, updateRun, setMovingComponent, agentId]);
 }
