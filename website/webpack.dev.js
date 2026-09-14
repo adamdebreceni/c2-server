@@ -1,6 +1,6 @@
 /** @type {import('webpack').Configuration} */
 const path = require('path');
-const tailwindcss = require('tailwindcss');
+const tailwindcss = require('@tailwindcss/postcss');
 
 module.exports = {
   mode: "development",

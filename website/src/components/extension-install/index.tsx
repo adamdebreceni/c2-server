@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState } from "react"
-import { NotificationContext } from "website/src/common/notification-context";
+import { NotificationContext } from "../../common/notification-context";
 import "./index.scss"
 
 export function InstallExtensionModal(props: {onInstall: (extensions: AssetInfo[])=>Promise<void>}) {

@@ -1,5 +1,5 @@
 /// <reference path="index.d.ts" />
-import * as express from 'express';
+import express from 'express';
 import {Request, Response, NextFunction} from 'express'; 
 import { CreateApiRoute } from './api';
 import { CreateFileRouter } from './api/file';
@@ -61,7 +61,7 @@ async function main() {
     }
   });
 
-  app.get('*', (req, res) => {
+  app.get('/*path', (req, res) => {
     res.sendFile(path.join(STATIC_DIR, '/index.html'));
   });
 

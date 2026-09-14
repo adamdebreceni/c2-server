@@ -4,7 +4,7 @@ import "./index.scss"
 
 export function TextEditorModal(props: {title: string, value: string, onChange?: (val: string)=>void}) {
   const openModal = React.useContext(ModalContext);
-  const onChange = React.useCallback((e: React.ChangeEvent<HTMLTextAreaElement>)=>{
+  const onChange = React.useCallback((e: React.InputEvent<HTMLTextAreaElement>)=>{
     if (!props.onChange) return;
     props.onChange(e.currentTarget.value);
   }, [props.onChange])

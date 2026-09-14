@@ -1,7 +1,7 @@
 import {raw, Router} from 'express';
 import { MakeAsyncSafe } from '../utils/async';
 import * as path from 'path'
-import * as multer from 'multer';
+import multer from 'multer';
 import * as fs from 'fs'
 import * as crc32 from 'crc-32';
 import * as uuid from 'uuid';
