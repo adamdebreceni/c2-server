@@ -172,6 +172,14 @@ function isNullish(val: string | null) {
     return val === null || val === "<null>";
 }
 
+function wrapProperties(obj: { [key: string]: string } | undefined | null): { [key: string]: PropertyValue } {
+    const result: { [key: string]: PropertyValue } = {};
+    for (const key in (obj ?? {})) {
+        result[key] = { value: obj![key], type: "custom" };
+    }
+    return result;
+}
+
 export function DeserializeJsonToFlow(json_str: string, class_name: string, manifest: AgentManifest): FlowObject|null {
     try {
         const flow_json = JSON.parse(json_str);
@@ -301,7 +309,7 @@ function deserializeProcessGroup(flow_object: FlowObject, group_id: Uuid | null,
                     x: serv.position?.x ?? 0,
                     y: serv.position?.y ?? 0,
                 },
-                properties: serv.properties,
+                properties: wrapProperties(serv.properties),
                 parentGroup: group_id,
             })));
         }
@@ -315,7 +323,7 @@ function deserializeProcessGroup(flow_object: FlowObject, group_id: Uuid | null,
                 id: proc.identifier,
                 type: proc.type,
                 name: proc.name,
-                properties: proc.properties,
+                properties: wrapProperties(proc.properties),
                 parentGroup: group_id,
                 penalty: proc.penaltyDuration,
                 yield: proc.yieldDuration,
@@ -361,7 +369,10 @@ function fixFlowObject(flow_object: FlowObject) {
         if (processor_manifest && processor_manifest.propertyDescriptors) {
             for (let property_name in processor_manifest.propertyDescriptors) {
                 if (!(property_name in processor.properties)) {
-                    processor.properties[property_name].value = null;
+                    processor.properties[property_name] = {
+                        value: processor_manifest.propertyDescriptors[property_name].defaultValue ?? null,
+                        type: "default"
+                    };
                 }
             }
         }
@@ -378,7 +389,10 @@ function fixFlowObject(flow_object: FlowObject) {
         if (service_manifest && service_manifest.propertyDescriptors) {
             for (let property_name in service_manifest.propertyDescriptors) {
                 if (!(property_name in service.properties)) {
-                    service.properties[property_name].value = null;
+                    service.properties[property_name] = {
+                        value: service_manifest.propertyDescriptors[property_name].defaultValue ?? null,
+                        type: "default"
+                    };
                 }
             }
         }

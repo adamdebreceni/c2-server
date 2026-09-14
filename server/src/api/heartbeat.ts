@@ -343,8 +343,8 @@ export function CreateHeartbeatRouter(services: Services) {
         args: {
           flowId: target_flow,
           persist: "true",
-          location: `/${target_flow}`,
-          relativeFlowUrl: `/flows/${target_flow}`
+          location: `${target_flow}`,
+          relativeFlowUrl: `flows/${target_flow}`
         }
       });
       res.json({requestedOperations: req_ops});
