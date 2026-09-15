@@ -1206,13 +1206,13 @@ export function FlowEditor(props: { id: string, flow: FlowObject }) {
                                 if (serv) {
                                     const service_manifest = state.flow.manifest.controllerServices.find(serv_manifest => serv_manifest.type === serv.type)!;
                                     const service_errors = errors.filter(err => err.component === serv.id);
-                                    return <ServiceEditor model={serv} manifest={service_manifest} errors={service_errors} />
+                                    return <ServiceEditor model={serv} manifest={service_manifest} errors={service_errors} minifi_services={state.flow.services} manifest_services={state.flow.manifest.controllerServices}/>
                                 }
                                 const task = state.flow.reportingTasks.find(task => task.id === state.editingComponent);
                                 if (task) {
                                     const task_manifest = state.flow.manifest.reportingTasks?.find(task_manifest => task_manifest.type === task.type)!;
                                     const task_errors = errors.filter(err => err.component === task.id);
-                                    return <ReportingTaskEditor model={task} manifest={task_manifest} errors={task_errors} />
+                                    return <ReportingTaskEditor model={task} manifest={task_manifest} errors={task_errors} minifi_services={state.flow.services} manifest_services={state.flow.manifest.controllerServices}/>
                                 }
                                 const funnel = state.flow.funnels.find(funnel => funnel.id === state.editingComponent);
                                 if (funnel) {

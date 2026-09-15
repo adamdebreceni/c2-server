@@ -9,8 +9,9 @@ import { Dropdown } from "../dropdown";
 
 import "./index.scss";
 import { CreateStringModal } from "../create-string-modal";
+import { ComponentProperties } from "../component-properties";
 
-export function ReportingTaskEditor(props: {model: ReportingTask, manifest: ReportingTaskManifest, errors: ErrorObject[]}) {
+export function ReportingTaskEditor(props: {model: ReportingTask, manifest: ReportingTaskManifest, errors: ErrorObject[], minifi_services?: MiNiFiService[], manifest_services?: ControllerServiceManifest[]}) {
   const notif = useContext(NotificationContext);
   const flow_context = useContext(FlowContext);
   const openModal = useContext(ModalContext);
@@ -51,45 +52,7 @@ export function ReportingTaskEditor(props: {model: ReportingTask, manifest: Repo
         <Dropdown name="STRATEGY" width="100%" initial={model.scheduling.strategy} items={["TIMER_DRIVEN", "CRON_DRIVEN"]} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, scheduling: {...curr.scheduling, strategy: val as any}})) : undefined}/>
         <InputField name="RUN SCHEDULE" width="100%" default={model.scheduling.runSchedule} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, scheduling: {...curr.scheduling, runSchedule: val}})) : undefined}/>
       </div>
-      <div className="section">
-        <div className="section-title">Properties</div>
-        {
-          Object.keys(model.properties).sort().map(prop_name => {
-            let err = props.errors.find(err => err.type === "PROPERTY" && err.target === prop_name);
-            if (!props.manifest.propertyDescriptors || !(prop_name in props.manifest.propertyDescriptors)) {
-              // dynamic property
-              return null;
-            }
-            const values = props.manifest.propertyDescriptors[prop_name].allowableValues;
-            if (values) {
-              return <Dropdown key={prop_name} name={prop_name} width="100%" error={err?.message} items={values.map(val => val.value)} initial={model.properties[prop_name].value} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: {value: val, type: "custom"}}})) : undefined}/>
-            }
-            return <InputField key={prop_name} name={prop_name} width="100%" error={err?.message} default={model.properties[prop_name].value} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: {value: val, type: "custom"}}})) : undefined}/>
-          })
-        }
-      </div>
-      {!props.manifest.supportsDynamicProperties ? null : 
-      <div className="section">
-        <div className="section-title">Dynamic Properties<span style={{flexGrow: 1}}/>
-          {
-            flow_context?.editable ? 
-            <div className="add-dynamic-property" onClick={openModalCb}>
-              <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-            </div>
-            : null
-          }
-        </div>
-        {
-          Object.keys(model.properties).sort().map(prop_name => {
-            if (props.manifest.propertyDescriptors && prop_name in props.manifest.propertyDescriptors) {
-              // not dynamic property
-              return null;
-            }
-            return <InputField key={prop_name} name={prop_name} width="100%" default={model.properties[prop_name].value} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, properties: {...curr.properties, [prop_name]: {value: val, type: "custom"}}})) : undefined}/>
-          })
-        }
-      </div>
-      }
+      <ComponentProperties model={model} setModel={setModel} manifest={props.manifest} minifi_services={props.minifi_services} manifest_services={props.manifest_services} errors={props.errors} />
     </div>
   </div>
 }
