@@ -85,7 +85,8 @@ export class FlowDatabase {
       throw new Error(`Invalid flow id: ${id}`);
     }
     if (fs.existsSync(path.join(SERIALIZED_FLOW_DIR, id))) {
-      throw new Error(`Flow is already serialized id: "${id}"`);
+      console.info(`Flow is already serialized id: "${id}"`)
+      return;
     }
     const flow = await new Promise<Buffer|null>((resolve, reject)=>{
       fs.readFile(path.join(FLOW_DIR, id), (err, data)=>{

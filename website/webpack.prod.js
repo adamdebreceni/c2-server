@@ -15,18 +15,12 @@ module.exports = {
         exclude: /node_modules/
       },
       {
-        test: /\.(scss|css)/,
-        use: ['style-loader', 'css-loader', {
-          loader: 'postcss-loader',
-          options: {
-            postcssOptions: {
-              plugins: [
-                'postcss-preset-env',
-                tailwindcss
-              ]
-            }
-          }
-        },'sass-loader']
+        test: /\.scss/,
+        use: ['style-loader', 'css-loader','sass-loader']
+      },
+      {
+        test: /\.css/,
+        use: ['style-loader', 'css-loader', 'postcss-loader']
       }
     ]
   },

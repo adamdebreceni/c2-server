@@ -23,7 +23,22 @@ export function SerializeFlowToJson(id: string, flow: FlowObject): string {
         }),
         "parameterProviders": [],
         "controllerServices": [],
-        "reportingTasks": [],
+        "reportingTasks": flow.reportingTasks.map(task => ({
+            "position": {"x": task.position.x, "y": task.position.y},
+            "identifier": task.id,
+            "name": task.name,
+            "type": task.type,
+            "schedulingStrategy": task.scheduling.strategy,
+            "schedulingPeriod": task.scheduling.runSchedule,
+            "properties": filterNullish(task.properties),
+            "propertyDescriptors": flow.manifest.controllerServices.find(cs_info => cs_info.type === task.type)?.propertyDescriptors ?? null,
+            "bundle": {
+                "artifact": flow.manifest.controllerServices.find(cs_info => cs_info.type === task.type)?.artifact ?? "unknown",
+                "group": flow.manifest.controllerServices.find(cs_info => cs_info.type === task.type)?.group ?? "unknown",
+                "version": flow.manifest.controllerServices.find(cs_info => cs_info.type === task.type)?.version ?? "unknown",
+            },
+            "componentType": "REPORTING_TASK",
+        })),
         "templates": []
     };
     result["rootGroup"] = {
@@ -197,6 +212,7 @@ export function DeserializeJsonToFlow(json_str: string, class_name: string, mani
             remoteProcessGroups: [],
             connections: [],
             services: [],
+            reportingTasks: [],
             parameters: [],
             funnels: [],
             state: undefined,

@@ -44,6 +44,7 @@ interface FlowObject {
   remoteProcessGroups: RPC[]
   connections: Connection[]
   services: MiNiFiService[]
+  reportingTasks: ReportingTask[]
   parameters: Parameter[]
   funnels: Funnel[]
   state?: ComponentKVStateMap;
@@ -214,6 +215,13 @@ interface Connection {
 }
 
 interface MiNiFiService extends Component {}
+
+interface ReportingTask extends Component {
+  scheduling: {
+    strategy: "TIMER_DRIVEN" | "CRON_DRIVEN",
+    runSchedule: string
+  }
+}
 
 type FlowLike = {
   id: string,

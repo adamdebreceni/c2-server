@@ -11,13 +11,13 @@ import "./index.scss";
 import { CreateStringModal } from "../create-string-modal";
 import { ComponentProperties } from "../component-properties";
 
-export function ServiceEditor(props: {model: MiNiFiService, manifest: ControllerServiceManifest, errors: ErrorObject[], minifi_services?: MiNiFiService[], manifest_services?: ControllerServiceManifest[]}) {
+export function ReportingTaskEditor(props: {model: ReportingTask, manifest: ReportingTaskManifest, errors: ErrorObject[], minifi_services?: MiNiFiService[], manifest_services?: ControllerServiceManifest[]}) {
   const notif = useContext(NotificationContext);
   const flow_context = useContext(FlowContext);
   const openModal = useContext(ModalContext);
   const setModel = React.useMemo(()=>{
-    return (fn: (curr: MiNiFiService)=>MiNiFiService) => flow_context!.updateService(props.model.id, fn);
-  }, [props.model.id, flow_context!.updateService]);
+    return (fn: (curr: ReportingTask)=>ReportingTask) => flow_context!.updateReportingTask(props.model.id, fn);
+  }, [props.model.id, flow_context!.updateReportingTask]);
   const model = props.model;
   const onNewDynamicProperty = React.useCallback((prop: string) => {
     setModel(curr => {
@@ -46,6 +46,11 @@ export function ServiceEditor(props: {model: MiNiFiService, manifest: Controller
       <div className="section">
         <div className="section-title">General</div>
         <InputField name="NAME" width="100%" default={model.name} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, name: val})) : undefined}/>
+      </div>
+      <div className="section">
+        <div className="section-title">Scheduling</div>
+        <Dropdown name="STRATEGY" width="100%" initial={model.scheduling.strategy} items={["TIMER_DRIVEN", "CRON_DRIVEN"]} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, scheduling: {...curr.scheduling, strategy: val as any}})) : undefined}/>
+        <InputField name="RUN SCHEDULE" width="100%" default={model.scheduling.runSchedule} onChange={flow_context?.editable ? val=>setModel(curr => ({...curr, scheduling: {...curr.scheduling, runSchedule: val}})) : undefined}/>
       </div>
       <ComponentProperties model={model} setModel={setModel} manifest={props.manifest} minifi_services={props.minifi_services} manifest_services={props.manifest_services} errors={props.errors} />
     </div>

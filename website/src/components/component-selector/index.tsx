@@ -14,7 +14,7 @@ type SelectorState = {
   position: number|null
 }
 
-export function ComponentSelector(props: {components: ComponentDescription[], onClose: (value: string|null)=>void, type: "PROCESSOR"|"SERVICE"}) {
+export function ComponentSelector(props: {components: ComponentDescription[], onClose: (value: string|null)=>void, type: "PROCESSOR"|"SERVICE"|"REPORTING_TASK"}) {
   const [state, setState] = React.useState<SelectorState>({query: '', components: props.components, position: 0});
 
   const stateRef = React.useRef<SelectorState>(null);
@@ -89,13 +89,13 @@ export function ComponentSelector(props: {components: ComponentDescription[], on
 
   return <div className="component-selector popout">
     <div className="title">
-      {props.type === "PROCESSOR" ? "Processors" : "Services"}
+      {props.type === "PROCESSOR" ? "Processors" : (props.type === "SERVICE" ? "Services" : "Reporting tasks")}
       <Fill />
       <CloseIcon size={18} onClick={()=>props.onClose(null)} />
     </div>
     <input
       type="text"
-      placeholder={`Search ${props.type === "PROCESSOR" ? "processors" : "services"}...`}
+      placeholder={`Search ${props.type === "PROCESSOR" ? "processors" : (props.type === "SERVICE" ? "services" : "reporting tasks")}...`}
       value={state.query}
       onInput={handleInput}
       onKeyDown={handleKey}

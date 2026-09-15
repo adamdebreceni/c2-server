@@ -30,6 +30,7 @@ export async function CreateFlowService(db: Database): Promise<FlowService> {
         remoteProcessGroups: [],
         funnels: [],
         services: [],
+        reportingTasks: [],
         parameters: []
       }
     }

@@ -393,7 +393,8 @@ interface HeartbeatAgentManifest {
     artifact: string
     componentManifest: {
       processors?: ProcessorManifest[]
-      controllerServices?: ControllerServiceManifest[]
+      controllerServices?: ControllerServiceManifest[],
+      reportingTasks?: ReportingTaskManifest[],
     }
   }[]
   schedulingDefaults?: SchedulingDefaults,
@@ -415,7 +416,7 @@ const defaultNames = [
 
 function transformManifest(manifest: HeartbeatAgentManifest|null): AgentManifest|null {
   if (!manifest) return null;
-  const result: AgentManifest = {processors: [], controllerServices: [], schedulingDefaults: {}, properties: {}};
+  const result: AgentManifest = {processors: [], controllerServices: [], reportingTasks: [], schedulingDefaults: {}, properties: {}};
   if (manifest.bundles) {
     const processed_artifacts = new Set<string>();
     for (const bundle of manifest.bundles) {
@@ -423,6 +424,7 @@ function transformManifest(manifest: HeartbeatAgentManifest|null): AgentManifest
       processed_artifacts.add(bundle.artifact);
       result.processors.push(...(bundle.componentManifest?.processors ?? []));
       result.controllerServices.push(...(bundle.componentManifest?.controllerServices ?? []));
+      result.reportingTasks!.push(...(bundle.componentManifest?.reportingTasks ?? []))
     }
   }
   if (manifest.schedulingDefaults) {
